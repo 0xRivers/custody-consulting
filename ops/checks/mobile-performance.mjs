@@ -26,12 +26,15 @@ child.stderr.on('data', (chunk) => {
 
 async function waitForDebugPort() {
   const file = join(profile, 'DevToolsActivePort');
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  for (let attempt = 0; attempt < 400; attempt += 1) {
     try {
       const [port] = (await readFile(file, 'utf8')).split('\n');
       if (port) return port;
     } catch (error) {
       if (error?.code !== 'ENOENT') throw error;
+    }
+    if (child.exitCode !== null || child.signalCode !== null) {
+      throw new Error(`Chrome exited before its DevTools port became ready.${chromeError ? `\n${chromeError}` : ''}`);
     }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
