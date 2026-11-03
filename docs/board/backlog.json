@@ -1,0 +1,503 @@
+{
+  "title": "Custody Consulting \u00b7 Astro rollout",
+  "updated": "2026-11-03",
+  "items": [
+    {
+      "id": "CC-1",
+      "title": "Confirm publishing workflow and launch scope",
+      "phase": "Foundation",
+      "priority": "P0",
+      "owner": "Owner",
+      "size": "S",
+      "dependencies": [],
+      "status": "Ready",
+      "acceptance": [
+        "Choose Markdown/MDX or CMS authoring; default proposal is Git-managed Markdown.",
+        "Confirm launch languages, article topics, pricing, author identity and contact destination.",
+        "Record explicit production launch criteria."
+      ]
+    },
+    {
+      "id": "CC-2",
+      "title": "Inventory URLs and capture rollback baseline",
+      "phase": "Foundation",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "S",
+      "dependencies": [],
+      "status": "Ready",
+      "acceptance": [
+        "Record current production and staging release SHAs and routes.",
+        "Capture key page screenshots and content for comparison.",
+        "Verify previous-release activation and retain the last production artifact."
+      ]
+    },
+    {
+      "id": "CC-3",
+      "title": "Verify staging search exclusion",
+      "phase": "Foundation",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "S",
+      "dependencies": [],
+      "status": "Ready",
+      "acceptance": [
+        "Deploy prepared noindex correction and verify live HTTP header plus HTML meta.",
+        "Allow crawling so noindex can be observed; omit staging from public sitemaps and feeds.",
+        "Check Search Console for existing staging URLs; request removal if present."
+      ]
+    },
+    {
+      "id": "CC-4",
+      "title": "Resolve dependency advisories and pin supported toolchain",
+      "phase": "Foundation",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [],
+      "status": "Ready",
+      "acceptance": [
+        "Inspect npm audit, including the previously reported high advisory.",
+        "Choose supported Astro, Node and integration versions; commit one lockfile.",
+        "Clean install and build pass without forced dependency resolution."
+      ]
+    },
+    {
+      "id": "CC-5",
+      "title": "Create Astro static build and environment contract",
+      "phase": "Migration",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-1",
+        "CC-4"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Generate complete HTML with static Astro output.",
+        "Explicit production/staging build mode; unknown mode fails or remains noindex.",
+        "Document output directory and dependency update procedure."
+      ]
+    },
+    {
+      "id": "CC-6",
+      "title": "Port shared design and navigation",
+      "phase": "Migration",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-5"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Preserve revised copy, logo, vault image, colours and typography.",
+        "Build shared header/footer and accessible mobile navigation.",
+        "Keep JavaScript only for interactions that need it."
+      ]
+    },
+    {
+      "id": "CC-7",
+      "title": "Implement bilingual routes and translation mapping",
+      "phase": "Migration",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-5"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Provide /en/ and /pl/ routes with one complete language per HTML document.",
+        "Language switch links to the equivalent translated page when available.",
+        "Define root URL behaviour and redirects from existing language URLs; no forced locale redirects."
+      ]
+    },
+    {
+      "id": "CC-8",
+      "title": "Create service and consultant pages",
+      "phase": "Content",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-1",
+        "CC-6",
+        "CC-7"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Publish clear services and a verifiable consultant biography in both languages.",
+        "Confirm package scope, prices, currency and tax presentation.",
+        "Include actual contact details and business information without invented credentials."
+      ]
+    },
+    {
+      "id": "CC-9",
+      "title": "Define blog content collection and editorial schema",
+      "phase": "Blog",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-5",
+        "CC-7"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Validate title, summary, locale, slug, author, publication date, update date, draft flag and translation key.",
+        "Reject duplicate URLs and invalid dates at build time.",
+        "Keep drafts out of production pages, indexes, feeds and sitemap."
+      ]
+    },
+    {
+      "id": "CC-10",
+      "title": "Build blog index, topics and pagination",
+      "phase": "Blog",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-6",
+        "CC-9"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Create /en/blog/ and /pl/blog/ with real crawlable article links.",
+        "Topic pages and pagination work without JavaScript; avoid empty thin topic pages.",
+        "Show accessible empty states while articles are drafts."
+      ]
+    },
+    {
+      "id": "CC-11",
+      "title": "Build article template and reading experience",
+      "phase": "Blog",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-9"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Render article body and key answer in initial HTML.",
+        "Show author, dates, table of contents, sources and related articles.",
+        "Provide readable mobile typography, image alt text and navigation back to topic/index."
+      ]
+    },
+    {
+      "id": "CC-12",
+      "title": "Configure editorial workflow and author guide",
+      "phase": "Blog",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "S",
+      "dependencies": [
+        "CC-1",
+        "CC-9"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Document how to draft, preview, translate, review and publish an article.",
+        "Use pull requests with preview on staging and approval before production.",
+        "If CMS chosen, define authenticated previews and webhook/rebuild behaviour."
+      ]
+    },
+    {
+      "id": "CC-13",
+      "title": "Draft initial bilingual article set",
+      "phase": "Content",
+      "priority": "P0",
+      "owner": "Editorial",
+      "size": "L",
+      "dependencies": [
+        "CC-1",
+        "CC-9",
+        "CC-11"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Draft three paired EN/PL articles: self-custody basics, backup/recovery planning, single-signature versus multisig.",
+        "Use direct opening answers, concrete examples, limitations and primary sources.",
+        "No seed phrases, real wallet details or unverified legal/tax instructions."
+      ]
+    },
+    {
+      "id": "CC-14",
+      "title": "Review initial articles for accuracy and translation quality",
+      "phase": "Content",
+      "priority": "P0",
+      "owner": "Owner + reviewer",
+      "size": "M",
+      "dependencies": [
+        "CC-13"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Check technical claims and primary source links.",
+        "Review Polish and English for meaning, terminology and completeness.",
+        "Approve author attribution and record genuine review dates before removing draft status."
+      ]
+    },
+    {
+      "id": "CC-15",
+      "title": "Implement production metadata and canonical URLs",
+      "phase": "SEO",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-7",
+        "CC-11"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Unique title/description and correct lang for every indexable page.",
+        "Production self-canonicals use https://custody.consulting only.",
+        "Reciprocal hreflang links only between published translations; configure x-default deliberately."
+      ]
+    },
+    {
+      "id": "CC-16",
+      "title": "Generate production sitemap and bilingual RSS feeds",
+      "phase": "SEO",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "S",
+      "dependencies": [
+        "CC-9",
+        "CC-15"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Include only published canonical production URLs.",
+        "Exclude drafts, staging URLs, errors and duplicate utility pages.",
+        "Use truthful lastmod dates; feed URLs and links target production."
+      ]
+    },
+    {
+      "id": "CC-17",
+      "title": "Add accurate structured data",
+      "phase": "SEO",
+      "priority": "P1",
+      "owner": "Engineering + Editorial",
+      "size": "S",
+      "dependencies": [
+        "CC-8",
+        "CC-11",
+        "CC-15"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Add Article/BlogPosting, BreadcrumbList and verified Organization/Person data where appropriate.",
+        "Match markup to visible content and actual author details.",
+        "Validate with structured-data tools; no fabricated ratings or promised FAQ rich results."
+      ]
+    },
+    {
+      "id": "CC-18",
+      "title": "Apply answer-focused editorial patterns",
+      "phase": "SEO",
+      "priority": "P1",
+      "owner": "Editorial",
+      "size": "S",
+      "dependencies": [
+        "CC-11",
+        "CC-14"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Begin articles with concise answers followed by reasoning and caveats.",
+        "Use descriptive question headings, definitions and comparison tables when useful.",
+        "Link sources and related services; avoid keyword stuffing and AI citation guarantees."
+      ]
+    },
+    {
+      "id": "CC-19",
+      "title": "Optimise images, fonts and loading performance",
+      "phase": "Quality",
+      "priority": "P1",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-6",
+        "CC-11"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Responsive image sizes/formats with explicit dimensions.",
+        "Optimise hero loading and font delivery; remove unnecessary scripts.",
+        "Measure mobile performance and investigate LCP, CLS and INP issues."
+      ]
+    },
+    {
+      "id": "CC-20",
+      "title": "Connect working enquiry or booking flow",
+      "phase": "Content",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-1",
+        "CC-8"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Choose verified booking URL or form recipient/provider.",
+        "Validate inputs, show truthful success/error states and provide required privacy information.",
+        "Test delivery and failure behaviour; never request wallet secrets."
+      ]
+    },
+    {
+      "id": "CC-21",
+      "title": "Adapt both CI pipelines for Astro artifacts",
+      "phase": "Deployment",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-5",
+        "CC-9"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Build once per deployment from a locked clean install; deploy the tested artifact.",
+        "Replace app.js-specific activation assumptions with HTML/artifact checks.",
+        "Preserve separate keys, users, directories and ports; make reruns recoverable."
+      ]
+    },
+    {
+      "id": "CC-22",
+      "title": "Add environment-specific release checks",
+      "phase": "Deployment",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-15",
+        "CC-16",
+        "CC-21"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Staging requires noindex headers/meta and no production sitemap exposure.",
+        "Production must have no noindex and must use production canonical/hreflang/sitemap URLs.",
+        "Fail deployment checks on draft leaks, missing assets, malformed markup or wrong hostnames."
+      ]
+    },
+    {
+      "id": "CC-23",
+      "title": "Run staging acceptance review",
+      "phase": "Quality",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-10",
+        "CC-14",
+        "CC-17",
+        "CC-18",
+        "CC-19",
+        "CC-20",
+        "CC-22"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Review desktop/mobile layouts, keyboard navigation, language links, forms, articles and 404s.",
+        "Verify content is present with JavaScript disabled and links return expected statuses.",
+        "Record evidence and resolve launch-blocking issues; confirm noindex remains active."
+      ]
+    },
+    {
+      "id": "CC-24",
+      "title": "Prepare URL migration and Caddy routing",
+      "phase": "Deployment",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "S",
+      "dependencies": [
+        "CC-2",
+        "CC-7",
+        "CC-21"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Map legacy URLs and anchors to their new destinations where needed.",
+        "Validate redirects, trailing-slash policy, static routes, 404 status and MIME types.",
+        "Back up Caddy configs and document rollback without affecting other VPS sites."
+      ]
+    },
+    {
+      "id": "CC-25",
+      "title": "Approve and release production",
+      "phase": "Launch",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-23",
+        "CC-24"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Owner reviews staging and authorises production promotion.",
+        "Merge approved release and deploy production-specific artifact.",
+        "Verify HTTPS, release SHA, EN/PL pages, blog, robots, sitemap, canonicals and enquiries; roll back on critical failure."
+      ]
+    },
+    {
+      "id": "CC-26",
+      "title": "Configure search measurement and submit sitemap",
+      "phase": "Launch",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "S",
+      "dependencies": [
+        "CC-25"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Verify production in Google Search Console and Bing Webmaster Tools.",
+        "Submit production sitemap and inspect representative EN/PL pages.",
+        "Exclude staging from submissions; agree privacy-conscious analytics/conversion measurement."
+      ]
+    },
+    {
+      "id": "CC-27",
+      "title": "Monitor launch and indexing",
+      "phase": "Launch",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-25",
+        "CC-26"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Check availability, 404s, forms and performance within 24\u201348 hours.",
+        "Review indexing/canonical/language reports at one and four weeks; track staging exclusions.",
+        "Prioritise evidence-based fixes; document any AI referrals without assuming complete attribution."
+      ]
+    },
+    {
+      "id": "CC-28",
+      "title": "Establish ongoing publishing and maintenance cadence",
+      "phase": "Launch",
+      "priority": "P2",
+      "owner": "Owner + Editorial",
+      "size": "S",
+      "dependencies": [
+        "CC-12",
+        "CC-27"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Maintain a question-led editorial backlog and review outdated custody guidance.",
+        "Schedule dependency updates, link checks and recovery drills.",
+        "Review search performance and consultation conversions monthly; update dates only for substantive changes."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+name: Publish rollout board
+on:
+  push:
+    branches: [staging]
+    paths:
+      - 'docs/board/**'
+      - '.github/workflows/board-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: rollout-board-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/board
+      - name: Deploy board
+        id: deployment
+        uses: actions/deploy-pages@v4
