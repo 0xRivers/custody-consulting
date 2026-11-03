@@ -42,7 +42,7 @@
       "owner": "Engineering",
       "size": "S",
       "dependencies": [],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Deploy prepared noindex correction and verify live HTTP header plus HTML meta.",
         "Allow crawling so noindex can be observed; omit staging from public sitemaps and feeds.",
@@ -345,7 +345,7 @@
         "Optimise hero loading and font delivery; remove unnecessary scripts.",
         "Measure mobile performance and investigate LCP, CLS and INP issues."
       ],
-      "notes": "Implementation prepared: responsive WebP hero candidates, bounded logo transforms, intrinsic image dimensions, explicit LCP priority, system fonts, zero hydrated client JavaScript, static asset budgets, immutable fingerprinted-asset caching and a repeatable mobile Chrome lab report. CI and public staging evidence are pending; production remains unchanged. See docs/PERFORMANCE.md."
+      "notes": "Completed in d30d8e4 and verified by staging run 41733249032: responsive WebP candidates and bounded logo transforms passed static budgets; system fonts and zero client script resources were verified; mobile lab measured 752 ms LCP, 0 CLS, 24 ms synthetic interaction and 0 ms blocking time. The non-root deploy verified the public SHA and X-Robots-Tag noindex controls. Main remained protected at 9b6b41f and production was unchanged. Evidence: docs/VERIFICATION-CC19.md."
     },
     {
       "id": "CC-20",
