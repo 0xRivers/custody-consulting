@@ -78,3 +78,14 @@
   border-radius: 9999px;
   background: var(--color-primary);
 }
+
+/* Keep anchored headings clear of the sticky header and controls keyboard-visible. */
+html { scroll-padding-top: 6rem; }
+a, button, summary { -webkit-tap-highlight-color: transparent; }
+:where(a, button, summary):focus-visible { outline: 3px solid var(--color-primary); outline-offset: 5px; }
+summary { gap: 1.5rem; }
+summary > span { flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
