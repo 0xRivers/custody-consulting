@@ -4,6 +4,8 @@ on:
     branches: [staging]
     paths:
       - '.github/workflows/pin-astro.yml'
+      - 'astro/**'
+      - 'ops/checks/astro-environment.test.mjs'
   workflow_dispatch:
 permissions:
   contents: write
