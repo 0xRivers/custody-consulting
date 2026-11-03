@@ -19,7 +19,16 @@ import Base from '../layouts/Base.astro';
     }
   </script>
   <main class="gateway">
-    <Image src={logo} alt="Custody Consulting" class="gateway__logo" />
+    <Image
+      src={logo}
+      alt="Custody Consulting"
+      class="gateway__logo"
+      width={384}
+      format="webp"
+      quality={80}
+      loading="eager"
+      decoding="async"
+    />
     <p class="eyebrow"><span class="dot"></span>Bitcoin self-custody consulting · Europe</p>
     <h1>Choose your language<br /><span>Wybierz język</span></h1>
     <p>Practical guidance for protecting access to your bitcoin, in English or Polish.</p>

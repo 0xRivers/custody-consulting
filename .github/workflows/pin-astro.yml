@@ -16,6 +16,8 @@ on:
       - 'ops/checks/structured-data-output.mjs'
       - 'ops/checks/answer-focused.test.mjs'
       - 'ops/checks/answer-focused-output.mjs'
+      - 'ops/checks/performance-output.mjs'
+      - 'ops/checks/performance-source.test.mjs'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
@@ -47,6 +49,7 @@ jobs:
           npm run check:syndication-output
           npm run check:structured-data-output
           npm run check:answer-focused-output
+          npm run check:performance-output
           test -s build/astro-staging/index.html
           test -s build/astro-staging/en/index.html
           test -s build/astro-staging/pl/index.html

@@ -31,6 +31,33 @@ jobs:
           test -s build/astro-staging/en/blog/index.html
           test -s build/astro-staging/pl/blog/index.html
           node -e 'const fs = require("fs"); if (!/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(fs.readFileSync("build/astro-staging/index.html", "utf8"))) throw new Error("Staging must include noindex")'
+      - name: Check static performance budgets
+        run: npm run check:performance-output
+      - name: Measure mobile lab performance
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/performance
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory build/astro-staging > "$RUNNER_TEMP/custody-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/en/ > /dev/null; then
+              break
+            fi
+            sleep 0.25
+          done
+          curl --fail --silent http://127.0.0.1:4173/en/ > /dev/null
+          chrome_bin=$(command -v google-chrome || command -v chromium-browser || command -v chromium)
+          PERF_URL=http://127.0.0.1:4173/en/ CHROME_BIN="$chrome_bin" \
+            node ops/checks/mobile-performance.mjs > build/performance/mobile-lab.json
+          cat build/performance/mobile-lab.json
+      - name: Retain mobile performance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-performance-${{ github.sha }}
+          path: build/performance/mobile-lab.json
+          retention-days: 30
       - name: Deploy over verified SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_DEPLOY_KEY }}

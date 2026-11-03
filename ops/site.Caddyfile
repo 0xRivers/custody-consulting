@@ -8,6 +8,9 @@ http://:8004 {
     bind 127.0.0.1
     root * /srv/custody-consulting/current
     encode zstd gzip
-    header Cache-Control "no-cache"
+    @immutable path /_astro/*
+    header @immutable Cache-Control "public, max-age=31536000, immutable"
+    @mutable not path /_astro/*
+    header @mutable Cache-Control "no-cache"
     file_server
 }

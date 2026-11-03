@@ -17,7 +17,17 @@ const alternateName = alternate === 'pl' ? 'Polski' : 'English';
 <header class="site-header">
   <div class="shell header__inner">
     <a href={`/${lang}/`} class="brand" aria-label="Custody Consulting">
-      <Image src={logo} alt="Custody Consulting" class="brand__logo" />
+      <Image
+        src={logo}
+        alt="Custody Consulting"
+        class="brand__logo"
+        width={336}
+        format="webp"
+        quality={80}
+        loading="eager"
+        decoding="async"
+        fetchpriority="low"
+      />
     </a>
     <nav class="desktop-nav" aria-label={t.nav.label}>
       <a href={`/${lang}/#why`}>{t.nav.why}</a>

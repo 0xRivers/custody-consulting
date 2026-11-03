@@ -9,6 +9,7 @@ on:
       - 'astro/**'
       - 'ops/checks/astro-environment.test.mjs'
       - 'ops/checks/article-rules.test.mjs'
+      - 'ops/checks/performance-source.test.mjs'
       - '.github/workflows/foundation.yml'
   workflow_dispatch:
 permissions:
