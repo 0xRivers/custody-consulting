@@ -38,6 +38,8 @@ const alternatePagePath = page === 1 ? alternateBasePath : `${alternateBasePath}
   canonicalPath={pageHref(page)}
   alternatePaths={!topic ? [{ lang, path: pageHref(page) }, { lang: alternate, path: alternatePagePath }] : []}
   xDefaultPath={!topic ? '/' : undefined}
+  feedPath={`/${lang}/rss.xml`}
+  feedTitle={`${ui.label} RSS`}
 >
   <SiteHeader lang={lang} alternateHref={`/${lang === 'en' ? 'pl' : 'en'}/blog/`} />
   <main id="content" class="blog-main">

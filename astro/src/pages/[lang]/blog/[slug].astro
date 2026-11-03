@@ -56,6 +56,8 @@ const alternateHref = alternate ? articlePath(alternate) : `/${alternateLocale}/
     { lang, path: articlePath(article) },
     { lang: alternateLocale, path: articlePath(alternate) },
   ] : []}
+  feedPath={`/${lang}/rss.xml`}
+  feedTitle={`${ui.label} RSS`}
 >
   <SiteHeader lang={lang} alternateHref={alternateHref} />
   <main id="content">

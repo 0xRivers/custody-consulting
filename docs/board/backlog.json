@@ -281,12 +281,13 @@
         "CC-9",
         "CC-15"
       ],
-      "status": "Backlog",
+      "status": "Review",
       "acceptance": [
         "Include only published canonical production URLs.",
         "Exclude drafts, staging URLs, errors and duplicate utility pages.",
         "Use truthful lastmod dates; feed URLs and links target production."
-      ]
+      ],
+      "notes": "Implementation in progress: production-only sitemap.xml and locale RSS endpoints derive from published Astro content. Staging omits the endpoints and feed discovery; artifact checks enforce the boundary. Awaiting GitHub Actions evidence before Done."
     },
     {
       "id": "CC-17",

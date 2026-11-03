@@ -44,3 +44,7 @@ to a generic page would misrepresent equivalence.
 - alternate URLs use the production origin and translated links are reciprocal;
 - every x-default link targets the neutral root chooser;
 - noindex production pages declare no canonical.
+
+Production sitemap, robots discovery and bilingual RSS rules are documented in
+[`docs/SYNDICATION.md`](SYNDICATION.md). Those outputs are generated only for
+the production build and have a separate artifact-level regression check.

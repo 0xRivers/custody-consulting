@@ -11,6 +11,8 @@ on:
       - 'ops/checks/editorial-boundaries.mjs'
       - 'ops/checks/metadata.test.mjs'
       - 'ops/checks/metadata-output.mjs'
+      - 'ops/checks/syndication.test.mjs'
+      - 'ops/checks/syndication-output.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'src/lib/content.ts'
@@ -38,6 +40,7 @@ jobs:
       - run: npm run build:astro:production
       - run: npm run check:editorial-boundaries
       - run: npm run check:metadata-output
+      - run: npm run check:syndication-output
       - name: Verify editorial publication boundaries
         run: |
           set -euo pipefail
