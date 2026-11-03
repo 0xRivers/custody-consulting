@@ -23,15 +23,28 @@ const localeCode = lang === 'pl' ? 'pl-PL' : 'en-GB';
 const dateFormat = new Intl.DateTimeFormat(localeCode, { day: 'numeric', month: 'long', year: 'numeric' });
 const basePath = topic ? `/${lang}/blog/topics/${topic}/` : `/${lang}/blog/`;
 const pageHref = (target: number) => target === 1 ? basePath : `${basePath}page/${target}/`;
-const title = topic ? `${topicLabel(topic)} · ${ui.label}` : ui.title;
+const baseTitle = topic ? `${topicLabel(topic)} · ${ui.label}` : ui.title;
+const title = page > 1 ? `${baseTitle} — ${ui.page} ${page}` : baseTitle;
+const baseDescription = topic ? `${ui.topicIntro} ${topicLabel(topic)}.` : ui.intro;
+const description = page > 1 ? `${baseDescription} ${ui.page} ${page} / ${totalPages}.` : baseDescription;
+const alternate = lang === 'en' ? 'pl' : 'en';
+const alternateBasePath = `/${alternate}/blog/`;
+const alternatePagePath = page === 1 ? alternateBasePath : `${alternateBasePath}page/${page}/`;
 ---
-<Base title={`${title} · Custody Consulting`} description={ui.intro} lang={lang}>
+<Base
+  title={`${title} · Custody Consulting`}
+  description={description}
+  lang={lang}
+  canonicalPath={pageHref(page)}
+  alternatePaths={!topic ? [{ lang, path: pageHref(page) }, { lang: alternate, path: alternatePagePath }] : []}
+  xDefaultPath={!topic ? '/' : undefined}
+>
   <SiteHeader lang={lang} alternateHref={`/${lang === 'en' ? 'pl' : 'en'}/blog/`} />
   <main id="content" class="blog-main">
     <header class="blog-hero shell">
       <p class="eyebrow"><span class="dot"></span>{ui.label}</p>
       <h1>{topic ? topicLabel(topic) : ui.title}</h1>
-      <p>{ui.intro}</p>
+      <p>{description}</p>
     </header>
 
     <div class="shell blog-layout">

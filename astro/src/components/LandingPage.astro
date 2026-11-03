@@ -4,7 +4,7 @@ import hero from '../../../src/assets/hero-vault.jpg';
 import Base from '../layouts/Base.astro';
 import SiteFooter from './SiteFooter.astro';
 import SiteHeader from './SiteHeader.astro';
-import { getContent, type Locale } from '../lib/i18n';
+import { alternateLocale, getContent, type Locale } from '../lib/i18n';
 
 interface Props {
   lang: Locale;
@@ -12,8 +12,16 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = getContent(lang);
+const alternate = alternateLocale(lang);
 ---
-<Base title={t.meta.title} description={t.meta.description} lang={lang}>
+<Base
+  title={t.meta.title}
+  description={t.meta.description}
+  lang={lang}
+  canonicalPath={`/${lang}/`}
+  alternatePaths={[{ lang, path: `/${lang}/` }, { lang: alternate, path: `/${alternate}/` }]}
+  xDefaultPath="/"
+>
   <SiteHeader lang={lang} />
 
   <main id="content">

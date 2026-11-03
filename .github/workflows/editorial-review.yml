@@ -9,6 +9,8 @@ on:
       - 'astro/**'
       - 'ops/checks/article-rules.test.mjs'
       - 'ops/checks/editorial-boundaries.mjs'
+      - 'ops/checks/metadata.test.mjs'
+      - 'ops/checks/metadata-output.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'src/lib/content.ts'
@@ -35,6 +37,7 @@ jobs:
       - run: npm run build:astro:staging
       - run: npm run build:astro:production
       - run: npm run check:editorial-boundaries
+      - run: npm run check:metadata-output
       - name: Verify editorial publication boundaries
         run: |
           set -euo pipefail

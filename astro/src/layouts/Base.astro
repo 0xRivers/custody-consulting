@@ -1,9 +1,39 @@
 ---
 import { buildEnvironment } from '../../environment.mjs';
 import favicon from '../../../public/favicon.png';
+import { buildMetadataLinks, type AlternatePath } from '../lib/metadata';
 import '../styles/site.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: 'en' | 'pl';
+  bodyClass?: string;
+  noindex?: boolean;
+  canonicalPath?: string;
+  alternatePaths?: AlternatePath[];
+  xDefaultPath?: string;
+}
+
 const environment = buildEnvironment(process.env.SITE_ENV);
-const { title, description, lang = 'en', bodyClass = '', noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  lang = 'en',
+  bodyClass = '',
+  noindex = false,
+  canonicalPath,
+  alternatePaths,
+  xDefaultPath,
+} = Astro.props;
+const metadataLinks = buildMetadataLinks({
+  indexable: environment.indexable,
+  noindex,
+  site: environment.site,
+  canonicalPath,
+  alternatePaths,
+  xDefaultPath,
+});
 ---
 <!doctype html>
 <html lang={lang}>
@@ -13,6 +43,14 @@ const { title, description, lang = 'en', bodyClass = '', noindex = false } = Ast
     <title>{title}</title>
     <link rel="icon" type="image/png" href={favicon.src} />
     {description && <meta name="description" content={description} />}
+    {metadataLinks.canonical && <link rel="canonical" href={metadataLinks.canonical} />}
+    {metadataLinks.alternates.map((alternate) => <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />)}
+    <meta property="og:site_name" content="Custody Consulting" />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {metadataLinks.canonical && <meta property="og:url" content={metadataLinks.canonical} />}
+    <meta property="og:locale" content={lang === 'pl' ? 'pl_PL' : 'en_GB'} />
+    <meta name="twitter:card" content="summary" />
     <meta name="theme-color" content="#061631" />
     {(!environment.indexable || noindex) && <meta name="robots" content="noindex, nofollow, noarchive" />}
   </head>

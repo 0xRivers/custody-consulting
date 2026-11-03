@@ -74,6 +74,11 @@ Only after review, change both paired entries to `draft: false`, add a genuine
 `updatedAt` when an already published article changes materially, and push the
 result to `staging` for one final preview.
 
+Changing a published slug changes its canonical URL. Treat that as a migration:
+record the old URL, add a permanent redirect during the production rollout and
+verify canonical plus hreflang output. The complete policy is in
+[`docs/METADATA.md`](METADATA.md).
+
 Open a pull request from `staging` to `main`. Complete the repository pull
 request checklist and complete the owner sign-off. The `Editorial production
 gate` workflow builds both environments and confirms that draft material cannot

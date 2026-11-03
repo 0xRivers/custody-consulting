@@ -51,6 +51,11 @@ const alternateHref = alternate ? articlePath(alternate) : `/${alternateLocale}/
   lang={lang}
   noindex={article.data.draft}
   bodyClass="article-page"
+  canonicalPath={articlePath(article)}
+  alternatePaths={alternate ? [
+    { lang, path: articlePath(article) },
+    { lang: alternateLocale, path: articlePath(alternate) },
+  ] : []}
 >
   <SiteHeader lang={lang} alternateHref={alternateHref} />
   <main id="content">

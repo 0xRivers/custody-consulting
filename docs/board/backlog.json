@@ -262,12 +262,13 @@
         "CC-7",
         "CC-11"
       ],
-      "status": "Backlog",
+      "status": "Review",
       "acceptance": [
         "Unique title/description and correct lang for every indexable page.",
         "Production self-canonicals use https://custody.consulting only.",
         "Reciprocal hreflang links only between published translations; configure x-default deliberately."
-      ]
+      ],
+      "notes": "Implemented production-only self-canonicals, reciprocal published-translation hreflang, deliberate language-chooser x-default policy, unique paginated/topic metadata and artifact-level validation. Awaiting clean CI and public staging evidence."
     },
     {
       "id": "CC-16",
