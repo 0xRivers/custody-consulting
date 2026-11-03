@@ -262,13 +262,13 @@
         "CC-7",
         "CC-11"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Unique title/description and correct lang for every indexable page.",
         "Production self-canonicals use https://custody.consulting only.",
         "Reciprocal hreflang links only between published translations; configure x-default deliberately."
       ],
-      "notes": "Implemented production-only self-canonicals, reciprocal published-translation hreflang, deliberate language-chooser x-default policy, unique paginated/topic metadata and artifact-level validation. Awaiting clean CI and public staging evidence."
+      "notes": "Completed in 6422eb7. Astro run 41716790015 passed eight tests and verified metadata for all staging HTML plus five indexable production pages; staging run 41716789930 publicly verified the release and noindex header. Production remained unchanged. Evidence: docs/VERIFICATION-CC15.md."
     },
     {
       "id": "CC-16",
