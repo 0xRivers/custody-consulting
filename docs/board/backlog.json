@@ -95,13 +95,13 @@
       "dependencies": [
         "CC-5"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Preserve revised copy, logo, vault image, colours and typography.",
         "Build shared header/footer and accessible mobile navigation.",
         "Keep JavaScript only for interactions that need it."
       ],
-      "notes": "Astro port preserves the revised landing-page design, content, logo and vault image with static, accessible desktop/mobile navigation. Awaiting CI artifact verification."
+      "notes": "Completed in d4b7994 and verified by run 41670998494: the static Astro port preserves the revised content, logo, vault image and responsive desktop/mobile navigation. Browser acceptance remains part of CC-23."
     },
     {
       "id": "CC-7",
@@ -113,13 +113,13 @@
       "dependencies": [
         "CC-5"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Provide /en/ and /pl/ routes with one complete language per HTML document.",
         "Language switch links to the equivalent translated page when available.",
         "Define root URL behaviour and redirects from existing language URLs; no forced locale redirects."
       ],
-      "notes": "Static /en/ and /pl/ documents, equivalent language links, a neutral root chooser and explicit legacy ?lang= handling are implemented. Awaiting CI artifact verification."
+      "notes": "Completed in d4b7994 and verified by run 41670998494: /en/ and /pl/ render complete language-specific HTML with equivalent switch links; root is a neutral chooser and legacy ?lang= remains explicit."
     },
     {
       "id": "CC-8",
@@ -151,7 +151,7 @@
         "CC-5",
         "CC-7"
       ],
-      "status": "Backlog",
+      "status": "Ready",
       "acceptance": [
         "Validate title, summary, locale, slug, author, publication date, update date, draft flag and translation key.",
         "Reject duplicate URLs and invalid dates at build time.",
