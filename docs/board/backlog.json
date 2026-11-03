@@ -32,7 +32,7 @@
         "Capture key page screenshots and content for comparison.",
         "Verify previous-release activation and retain the last production artifact."
       ],
-      "notes": "Source route inventory recorded; live snapshots, screenshots and server rollback verification pending."
+      "notes": "Foundation run 41666352832 captured production 9b6b41f and pre-deploy staging 20c7271. See docs/VERIFICATION-5dc591f.md. Screenshots and retained-release rollback verification pending."
     },
     {
       "id": "CC-3",
@@ -42,13 +42,13 @@
       "owner": "Engineering",
       "size": "S",
       "dependencies": [],
-      "status": "Blocked",
+      "status": "Review",
       "acceptance": [
         "Deploy prepared noindex correction and verify live HTTP header plus HTML meta.",
         "Allow crawling so noindex can be observed; omit staging from public sitemaps and feeds.",
         "Check Search Console for existing staging URLs; request removal if present."
       ],
-      "notes": "Source controls checked; live evidence workflow and Search Console verification pending."
+      "notes": "Live staging HTML noindex, header and crawlable robots passed run 41666352832; post-deploy noindex passed 41666353233. Search Console history review remains outstanding."
     },
     {
       "id": "CC-4",
@@ -58,13 +58,13 @@
       "owner": "Engineering",
       "size": "M",
       "dependencies": [],
-      "status": "Blocked",
+      "status": "In progress",
       "acceptance": [
         "Inspect npm audit, including the previously reported high advisory.",
         "Choose supported Astro, Node and integration versions; commit one lockfile.",
         "Clean install and build pass without forced dependency resolution."
       ],
-      "notes": "npm registry DNS unavailable in editor. Foundation workflow collects audit; no forced upgrades."
+      "notes": "Run 41666352832: zero npm vulnerabilities and clean build. Vite 7.3.7/esbuild 0.28.2. Astro version pin and lockfile validation remain pending."
     },
     {
       "id": "CC-5",
@@ -77,12 +77,13 @@
         "CC-1",
         "CC-4"
       ],
-      "status": "Backlog",
+      "status": "In progress",
       "acceptance": [
         "Generate complete HTML with static Astro output.",
         "Explicit production/staging build mode; unknown mode fails or remains noindex.",
         "Document output directory and dependency update procedure."
-      ]
+      ],
+      "notes": "Isolated Astro scaffold and staging/production environment contract added; contract tests pass. Existing deployment paths unchanged. Astro installation/build awaits registry access; CC-1 business inputs still pending."
     },
     {
       "id": "CC-6",

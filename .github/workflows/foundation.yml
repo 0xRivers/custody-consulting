@@ -6,6 +6,8 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'ops/checks/foundation.py'
+      - 'astro/**'
+      - 'ops/checks/astro-environment.test.mjs'
       - '.github/workflows/foundation.yml'
   workflow_dispatch:
 permissions:
@@ -19,6 +21,8 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - name: Check Astro environment contract
+        run: node --test ops/checks/astro-environment.test.mjs
       - name: Capture public baseline and verify staging exclusion
         run: python3 ops/checks/foundation.py
       - name: Collect dependency audit
