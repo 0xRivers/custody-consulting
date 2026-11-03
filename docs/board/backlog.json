@@ -320,13 +320,13 @@
         "CC-11",
         "CC-14"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Begin articles with concise answers followed by reasoning and caveats.",
         "Use descriptive question headings, definitions and comparison tables when useful.",
         "Link sources and related services; avoid keyword stuffing and AI citation guarantees."
       ],
-      "notes": "Implementation in progress: the paired draft now uses concise answers, decision-led question headings, explicit caveats, a neutral comparison, primary specifications and contextual service links. Source and rendered-output checks enforce the bilingual people-first contract and reject ranking or AI-citation promises. Awaiting GitHub Actions evidence before Done."
+      "notes": "Completed in 5cc0c7b. Astro run 41723290467 passed sixteen contract tests and verified answer-first rendering, question headings, neutral comparisons, bilingual parity, primary sources, contextual service links and rejection of ranking or AI-citation promises. Deployment run 41723290286 publicly verified the same SHA and noindex header through the non-root account. Both revised articles remain drafts and production stayed unchanged. Evidence: docs/VERIFICATION-CC18.md."
     },
     {
       "id": "CC-19",
