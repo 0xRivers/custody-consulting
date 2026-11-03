@@ -197,6 +197,16 @@ try {
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 } finally {
   connection?.socket.close();
-  child.kill('SIGTERM');
-  await rm(profile, { recursive: true, force: true });
+  if (child.exitCode === null && child.signalCode === null) {
+    child.kill('SIGTERM');
+    const exited = await Promise.race([
+      new Promise((resolve) => child.once('exit', () => resolve(true))),
+      new Promise((resolve) => setTimeout(() => resolve(false), 2_000)),
+    ]);
+    if (!exited && child.exitCode === null && child.signalCode === null) {
+      child.kill('SIGKILL');
+      await new Promise((resolve) => child.once('exit', resolve));
+    }
+  }
+  await rm(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
