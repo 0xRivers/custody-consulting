@@ -151,12 +151,13 @@
         "CC-5",
         "CC-7"
       ],
-      "status": "Ready",
+      "status": "In progress",
       "acceptance": [
         "Validate title, summary, locale, slug, author, publication date, update date, draft flag and translation key.",
         "Reject duplicate URLs and invalid dates at build time.",
         "Keep drafts out of production pages, indexes, feeds and sitemap."
-      ]
+      ],
+      "notes": "Astro content schema, paired draft fixtures, shared published/preview queries and build-time duplicate route/translation validation are implemented. Awaiting CI collection and artifact checks."
     },
     {
       "id": "CC-10",

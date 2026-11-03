@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { validateArticleCollection } from '../lib/article-rules';
+
+validateArticleCollection(await getCollection('blog'));
+---
+<Base
+  title="Page not found · Custody Consulting"
+  description="The requested page could not be found."
+  lang="en"
+  bodyClass="gateway-page"
+  noindex={true}
+>
+  <main class="gateway">
+    <p class="eyebrow"><span class="dot"></span>404</p>
+    <h1>Page not found<br /><span>Nie znaleziono strony</span></h1>
+    <nav aria-label="Return to the website" class="gateway__choices">
+      <a href="/en/" lang="en"><strong>English</strong><span>Return to the English page →</span></a>
+      <a href="/pl/" lang="pl"><strong>Polski</strong><span>Wróć do strony po polsku →</span></a>
+    </nav>
+  </main>
+</Base>

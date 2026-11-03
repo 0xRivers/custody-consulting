@@ -8,6 +8,7 @@ on:
       - 'ops/checks/foundation.py'
       - 'astro/**'
       - 'ops/checks/astro-environment.test.mjs'
+      - 'ops/checks/article-rules.test.mjs'
       - '.github/workflows/foundation.yml'
   workflow_dispatch:
 permissions:
@@ -22,7 +23,7 @@ jobs:
           node-version: '24'
           cache: npm
       - name: Check Astro environment contract
-        run: node --test ops/checks/astro-environment.test.mjs
+        run: npm run test:astro:contract
       - name: Capture public baseline and verify staging exclusion
         run: python3 ops/checks/foundation.py
       - name: Collect dependency audit
