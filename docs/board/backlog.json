@@ -42,7 +42,7 @@
       "owner": "Engineering",
       "size": "S",
       "dependencies": [],
-      "status": "Done",
+      "status": "Review",
       "acceptance": [
         "Deploy prepared noindex correction and verify live HTTP header plus HTML meta.",
         "Allow crawling so noindex can be observed; omit staging from public sitemaps and feeds.",
@@ -339,7 +339,7 @@
         "CC-6",
         "CC-11"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Responsive image sizes/formats with explicit dimensions.",
         "Optimise hero loading and font delivery; remove unnecessary scripts.",
@@ -349,20 +349,21 @@
     },
     {
       "id": "CC-20",
-      "title": "Connect working enquiry or booking flow",
+      "title": "Deliver bilingual paid consultation booking",
       "phase": "Content",
       "priority": "P0",
       "owner": "Owner + Engineering",
       "size": "M",
       "dependencies": [
         "CC-1",
-        "CC-8"
+        "CC-8",
+        "CC-33"
       ],
       "status": "Backlog",
       "acceptance": [
-        "Choose verified booking URL or form recipient/provider.",
-        "Validate inputs, show truthful success/error states and provide required privacy information.",
-        "Test delivery and failure behaviour; never request wallet secrets."
+        "Publish booking entry routes at /en/book/ and /pl/rezerwacja/ with localized confirmation and booking-management links.",
+        "Use Cal.com for scheduling, Stripe Checkout for fiat including BLIK, and BTCPay Server for Bitcoin.",
+        "Require the staging acceptance checks in CC-33 before promotion."
       ]
     },
     {
@@ -513,6 +514,81 @@
         "Maintain a question-led editorial backlog and review outdated custody guidance.",
         "Schedule dependency updates, link checks and recovery drills.",
         "Review search performance and consultation conversions monthly; update dates only for substantive changes."
+      ]
+    },
+    {
+      "id": "CC-29",
+      "title": "Approve consultation pricing and payment terms",
+      "phase": "Content",
+      "priority": "P0",
+      "owner": "Owner",
+      "size": "S",
+      "dependencies": ["CC-1"],
+      "status": "Backlog",
+      "acceptance": [
+        "Confirm merchant country, Stripe eligibility, fixed EUR and PLN prices, and full payment versus deposit.",
+        "Approve bilingual cancellation, rescheduling, privacy and refund terms, including whether BTC refunds use the original BTC amount or the fiat equivalent at refund time.",
+        "Agree tax presentation, receipt and invoice requirements for both payment rails."
+      ]
+    },
+    {
+      "id": "CC-30",
+      "title": "Build bilingual booking pages and Cal.com slot holds",
+      "phase": "Content",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": ["CC-29"],
+      "status": "Backlog",
+      "acceptance": [
+        "Verify the configured Cal.com event and API support the hold and confirmation flow before integration.",
+        "Build localized service selection, availability, pending payment, confirmation and secure manage-booking links.",
+        "Use one expiring hold per slot across payment methods and release unpaid holds. Collect only necessary details and never request wallet secrets."
+      ]
+    },
+    {
+      "id": "CC-31",
+      "title": "Integrate Stripe Checkout for cards and BLIK",
+      "phase": "Content",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": ["CC-30"],
+      "status": "Backlog",
+      "acceptance": [
+        "Create hosted Checkout sessions linked to the booking hold with server-controlled prices. Offer BLIK on eligible PLN checkouts and cards and eligible wallets on fiat checkouts.",
+        "Verify signed webhook events, paid status, amount and currency before confirming a booking. Process retries idempotently.",
+        "Test BLIK and card success, cancellation, failure, refunds and receipt reconciliation."
+      ]
+    },
+    {
+      "id": "CC-32",
+      "title": "Integrate BTCPay Server for Bitcoin payments",
+      "phase": "Content",
+      "priority": "P0",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": ["CC-30"],
+      "status": "Backlog",
+      "acceptance": [
+        "Configure pay.custody.consulting and generate expiring BTC invoices from the approved EUR or PLN price. Offer on-chain Bitcoin and validate Lightning for introductory calls or deposits.",
+        "Confirm only from verified settlement events. Handle late, partial and duplicate payments and reconcile approved refunds.",
+        "Keep checkout credentials server-side and document wallet recovery and settlement operations."
+      ]
+    },
+    {
+      "id": "CC-33",
+      "title": "Verify paid booking end to end on staging",
+      "phase": "Quality",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": ["CC-31", "CC-32"],
+      "status": "Backlog",
+      "acceptance": [
+        "Use test payment environments and verify EN/PL checkout, confirmation emails, rescheduling, cancellations and refunds.",
+        "Test simultaneous slot claims, expired holds, late settlement and replayed webhooks. Confirm one booking and route excess payments for reconciliation.",
+        "Verify staging noindex and document provider setup and release checks for production approval."
       ]
     }
   ]
