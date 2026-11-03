@@ -10,11 +10,11 @@ sha=$(git rev-parse HEAD)
 [[ $sha =~ ^[a-f0-9]{40}$ ]]
 # Never deploy a dirty working tree under a clean commit identifier.
 [[ -z $(git status --porcelain --untracked-files=normal) ]] || { echo 'Commit all source changes first.' >&2; exit 1; }
-node --check dist/app.js
-[[ -s dist/index.html ]]
+node --check build/staging/app.js
+[[ -s build/staging/index.html ]]
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
-cp -a dist/. "$stage/"
+cp -a build/staging/. "$stage/"
 printf 'User-agent: *\nDisallow: /\n' > "$stage/robots.txt"
 printf '%s\n' "$sha" > "$stage/version.txt"
 ssh_args=(-F /dev/null -i "$DEPLOY_KEY" -p "$port" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$DEPLOY_KNOWN_HOSTS" -o ConnectTimeout=15)
