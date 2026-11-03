@@ -281,13 +281,13 @@
         "CC-9",
         "CC-15"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Include only published canonical production URLs.",
         "Exclude drafts, staging URLs, errors and duplicate utility pages.",
         "Use truthful lastmod dates; feed URLs and links target production."
       ],
-      "notes": "Implementation in progress: production-only sitemap.xml and locale RSS endpoints derive from published Astro content. Staging omits the endpoints and feed discovery; artifact checks enforce the boundary. Awaiting GitHub Actions evidence before Done."
+      "notes": "Completed in 5a0e150. Astro run 41718420172 passed ten contract tests, built both environments and verified the production-only sitemap, bilingual RSS, robots discovery, truthful dates and staging exclusions. Deployment run 41718420109 publicly verified the same SHA and noindex header through the non-root account. Production remained unchanged. Evidence: docs/VERIFICATION-CC16.md."
     },
     {
       "id": "CC-17",
