@@ -13,6 +13,8 @@ on:
       - 'ops/checks/metadata-output.mjs'
       - 'ops/checks/syndication.test.mjs'
       - 'ops/checks/syndication-output.mjs'
+      - 'ops/checks/structured-data.test.mjs'
+      - 'ops/checks/structured-data-output.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'src/lib/content.ts'
@@ -41,6 +43,7 @@ jobs:
       - run: npm run check:editorial-boundaries
       - run: npm run check:metadata-output
       - run: npm run check:syndication-output
+      - run: npm run check:structured-data-output
       - name: Verify editorial publication boundaries
         run: |
           set -euo pipefail

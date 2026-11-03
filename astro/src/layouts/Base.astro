@@ -2,6 +2,7 @@
 import { buildEnvironment } from '../../environment.mjs';
 import favicon from '../../../public/favicon.png';
 import { buildMetadataLinks, type AlternatePath } from '../lib/metadata';
+import { serializeStructuredData } from '../lib/structured-data';
 import '../styles/site.css';
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
   xDefaultPath?: string;
   feedPath?: string;
   feedTitle?: string;
+  structuredData?: unknown;
 }
 
 const environment = buildEnvironment(process.env.SITE_ENV);
@@ -29,6 +31,7 @@ const {
   xDefaultPath,
   feedPath,
   feedTitle,
+  structuredData,
 } = Astro.props;
 const metadataLinks = buildMetadataLinks({
   indexable: environment.indexable,
@@ -40,6 +43,9 @@ const metadataLinks = buildMetadataLinks({
 });
 if (feedPath && !feedPath.startsWith('/')) throw new Error(`Feed path must be site-relative: ${feedPath}`);
 const feedUrl = environment.indexable && !noindex && feedPath ? new URL(feedPath, environment.site).href : undefined;
+const structuredDataJson = environment.indexable && !noindex && structuredData
+  ? serializeStructuredData(structuredData)
+  : undefined;
 ---
 <!doctype html>
 <html lang={lang}>
@@ -60,6 +66,7 @@ const feedUrl = environment.indexable && !noindex && feedPath ? new URL(feedPath
     <meta name="twitter:card" content="summary" />
     <meta name="theme-color" content="#061631" />
     {(!environment.indexable || noindex) && <meta name="robots" content="noindex, nofollow, noarchive" />}
+    {structuredDataJson && <script type="application/ld+json" set:html={structuredDataJson}></script>}
   </head>
   <body class={bodyClass}><slot /></body>
 </html>

@@ -177,7 +177,11 @@ h3 { font-size: 1.3rem; }
 .article-page .site-header, .article-page .site-footer { background: var(--navy); color: var(--white); color-scheme: dark; }
 .shell--article { max-width: 66rem; }
 .article-hero { padding-block: clamp(4rem, 9vw, 7rem) clamp(2.5rem, 5vw, 4rem); }
-.article-back { display: inline-block; margin-bottom: 3rem; color: #8a4300; font-weight: 800; text-decoration: none; }
+.article-breadcrumb { margin-bottom: 3rem; color: rgba(7, 23, 47, 0.65); font-size: 0.82rem; }
+.article-breadcrumb ol { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; list-style: none; }
+.article-breadcrumb li:not(:last-child)::after { margin-left: 0.45rem; content: '/'; color: rgba(7, 23, 47, 0.35); }
+.article-breadcrumb a { color: #8a4300; font-weight: 800; text-decoration: none; }
+.article-breadcrumb [aria-current='page'] { overflow: hidden; max-width: 30rem; text-overflow: ellipsis; white-space: nowrap; }
 .article-kicker { display: flex; gap: 0.8rem; align-items: center; margin-bottom: 1rem; color: #8a4300; font-size: 0.75rem; font-weight: 850; letter-spacing: 0.13em; text-transform: uppercase; }
 .article-kicker strong { padding: 0.2rem 0.45rem; border: 1px solid currentColor; }
 .article-hero h1 { max-width: 58rem; font-size: clamp(2.6rem, 7vw, 5.2rem); }

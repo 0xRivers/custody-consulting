@@ -301,12 +301,13 @@
         "CC-11",
         "CC-15"
       ],
-      "status": "Backlog",
+      "status": "Review",
       "acceptance": [
         "Add Article/BlogPosting, BreadcrumbList and verified Organization/Person data where appropriate.",
         "Match markup to visible content and actual author details.",
         "Validate with structured-data tools; no fabricated ratings or promised FAQ rich results."
-      ]
+      ],
+      "notes": "Implementation in progress: production-only BlogPosting, matching visible breadcrumbs and a minimal public-brand Organization graph are covered by contract and artifact validators. No identity, credential, rating or FAQ claims are inferred. Awaiting GitHub Actions evidence before Done."
     },
     {
       "id": "CC-18",
