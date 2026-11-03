@@ -19,10 +19,10 @@ Complete this section when the pull request changes blog content.
 - [ ] The byline, publication date and update date are genuine.
 - [ ] No seed phrases, descriptors, keys, client data or other wallet secrets are present.
 - [ ] Links, headings, alternative text, topic pages and mobile reading order were reviewed.
-- [ ] One owner/code-owner approval is requested before production merge.
+- [ ] The owner sign-off is complete; limitations requiring future independent review are recorded.
 
 ## Production authorization
 
 - [ ] This pull request is from `staging` to `main`.
 - [ ] All review conversations are resolved.
-- [ ] I understand that merging is the production authorization event.
+- [ ] I understand that merging starts deployment and a separate production-environment approval is still required.

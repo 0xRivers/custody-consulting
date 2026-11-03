@@ -213,7 +213,7 @@
         "Use pull requests with preview on staging and approval before production.",
         "If CMS chosen, define authenticated previews and webhook/rebuild behaviour."
       ],
-      "notes": "Implemented the Git-backed author guide, bilingual review checklist, CODEOWNERS routing and a staging-to-main editorial production gate. Awaiting CI evidence and repository branch protection requiring the Editorial review check plus one code-owner approval. No external CMS is selected."
+      "notes": "Implemented the Git-backed author guide, bilingual review checklist, CODEOWNERS routing and staging-to-main editorial gate. Run 41712895138 verified paired EN/PL entries and production draft exclusion; run 41713176959 verified the gate runs on every production PR. Awaiting solo-safe main protection plus manual owner approval on the production environment. No external CMS is selected."
     },
     {
       "id": "CC-13",

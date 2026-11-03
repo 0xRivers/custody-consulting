@@ -75,15 +75,17 @@ Only after review, change both paired entries to `draft: false`, add a genuine
 result to `staging` for one final preview.
 
 Open a pull request from `staging` to `main`. Complete the repository pull
-request checklist and obtain one approving owner/code-owner review. The
-`Editorial production gate` workflow builds both environments and confirms that
-draft material cannot leak into the production artifact. Never bypass a failed
-gate by deleting a fixture, weakening noindex checks or deploying manually.
+request checklist and complete the owner sign-off. The `Editorial production
+gate` workflow builds both environments and confirms that draft material cannot
+leak into the production artifact. Never bypass a failed gate by deleting a
+fixture, weakening noindex checks or deploying manually.
 
-Merging into `main` is the production authorization event. During the current
-rollout, `main` still deploys the legacy production artifact; the Astro
-production cutover is a separate release item and must not be inferred from an
-article merge.
+Merging into `main` starts a production deployment, but the protected
+`production` environment pauses it for a separate manual owner approval. This
+second action is a deliberate solo-operator release checkpoint, not an
+independent peer review. During the current rollout, `main` still deploys the
+legacy production artifact; the Astro production cutover is a separate release
+item and must not be inferred from an article merge.
 
 ### Repository protection required
 
@@ -91,11 +93,16 @@ The repository administrator must protect `main` with these settings before
 the first editorial production merge:
 
 - require a pull request before merging;
-- require one approving review and a code-owner review;
-- dismiss stale approvals when new commits are pushed;
 - require resolution of review conversations;
 - require the `check` and `Editorial review` status checks to pass;
 - block force pushes and branch deletion.
+
+The repository currently has one maintainer, and pull-request authors cannot
+approve their own work. The branch therefore requires zero peer approvals. The
+production environment instead requires a manual approval from the owner with
+self-review permitted. When a trusted collaborator is added, upgrade `main` to
+require one approval, code-owner review and stale-approval dismissal, then turn
+on prevention of self-review for the production environment.
 
 Keep direct pushes available on `staging` because that branch is the preview
 deployment target. These settings intentionally change repository governance;
