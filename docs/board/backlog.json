@@ -10,12 +10,13 @@
       "owner": "Owner",
       "size": "S",
       "dependencies": [],
-      "status": "Ready",
+      "status": "In progress",
       "acceptance": [
         "Choose Markdown/MDX or CMS authoring; default proposal is Git-managed Markdown.",
         "Confirm launch languages, article topics, pricing, author identity and contact destination.",
         "Record explicit production launch criteria."
-      ]
+      ],
+      "notes": "Working architecture and editorial defaults recorded in docs/FOUNDATION.md; business inputs pending."
     },
     {
       "id": "CC-2",
@@ -25,12 +26,13 @@
       "owner": "Engineering",
       "size": "S",
       "dependencies": [],
-      "status": "Ready",
+      "status": "In progress",
       "acceptance": [
         "Record current production and staging release SHAs and routes.",
         "Capture key page screenshots and content for comparison.",
         "Verify previous-release activation and retain the last production artifact."
-      ]
+      ],
+      "notes": "Source route inventory recorded; live snapshots, screenshots and server rollback verification pending."
     },
     {
       "id": "CC-3",
@@ -40,12 +42,13 @@
       "owner": "Engineering",
       "size": "S",
       "dependencies": [],
-      "status": "Ready",
+      "status": "Blocked",
       "acceptance": [
         "Deploy prepared noindex correction and verify live HTTP header plus HTML meta.",
         "Allow crawling so noindex can be observed; omit staging from public sitemaps and feeds.",
         "Check Search Console for existing staging URLs; request removal if present."
-      ]
+      ],
+      "notes": "Source controls checked; live evidence workflow and Search Console verification pending."
     },
     {
       "id": "CC-4",
@@ -55,12 +58,13 @@
       "owner": "Engineering",
       "size": "M",
       "dependencies": [],
-      "status": "Ready",
+      "status": "Blocked",
       "acceptance": [
         "Inspect npm audit, including the previously reported high advisory.",
         "Choose supported Astro, Node and integration versions; commit one lockfile.",
         "Clean install and build pass without forced dependency resolution."
-      ]
+      ],
+      "notes": "npm registry DNS unavailable in editor. Foundation workflow collects audit; no forced upgrades."
     },
     {
       "id": "CC-5",

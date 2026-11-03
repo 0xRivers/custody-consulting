@@ -1,0 +1,36 @@
+name: Foundation evidence
+on:
+  push:
+    branches: [staging]
+    paths:
+      - 'ops/checks/foundation.py'
+      - '.github/workflows/foundation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Capture public baseline and verify staging exclusion
+        run: python3 ops/checks/foundation.py
+      - name: Collect dependency audit
+        if: always()
+        run: |
+          mkdir -p build/foundation
+          npm audit --json > build/foundation/npm-audit.json
+      - name: Clean install and build
+        if: always()
+        run: npm ci && npm run build
+      - name: Retain evidence even when checks fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-evidence
+          path: build/foundation/
+          retention-days: 30
