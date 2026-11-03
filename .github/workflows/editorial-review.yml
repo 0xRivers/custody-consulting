@@ -15,6 +15,8 @@ on:
       - 'ops/checks/syndication-output.mjs'
       - 'ops/checks/structured-data.test.mjs'
       - 'ops/checks/structured-data-output.mjs'
+      - 'ops/checks/answer-focused.test.mjs'
+      - 'ops/checks/answer-focused-output.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'src/lib/content.ts'
@@ -44,6 +46,7 @@ jobs:
       - run: npm run check:metadata-output
       - run: npm run check:syndication-output
       - run: npm run check:structured-data-output
+      - run: npm run check:answer-focused-output
       - name: Verify editorial publication boundaries
         run: |
           set -euo pipefail

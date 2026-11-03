@@ -26,6 +26,13 @@ limitations and actionable reasoning. Link primary sources whenever they exist.
 Never include seed phrases, wallet descriptors, private keys, real recovery
 material, client details or screenshots containing sensitive wallet data.
 
+Follow the people-first pattern in
+[`docs/ANSWER-FOCUSED-CONTENT.md`](ANSWER-FOCUSED-CONTENT.md): use descriptive
+question headings where they reflect real reader decisions, compare options in
+a table only when it improves understanding, and add a related service link
+only in a relevant next-step context. Never promise rankings, featured snippets
+or citations by an AI system.
+
 Use a real, approved public byline. `Custody Consulting` is a temporary
 organizational byline until CC-1 records the consultant identity and business
 details. Do not invent credentials, review dates or regulatory claims.
@@ -59,6 +66,8 @@ Review both language versions together. The reviewer checks:
 - technical claims are supported by primary sources and include limitations;
 - English and Polish communicate the same meaning naturally;
 - headings, link text, lists, tables and image alternative text are useful;
+- the concise answer precedes reasoning and preserves necessary caveats;
+- English and Polish comparisons, sources and service scope remain equivalent;
 - examples use invented, non-sensitive data;
 - author attribution and dates are genuine;
 - the staging language switch reaches the paired translation;

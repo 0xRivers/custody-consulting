@@ -320,12 +320,13 @@
         "CC-11",
         "CC-14"
       ],
-      "status": "Backlog",
+      "status": "Review",
       "acceptance": [
         "Begin articles with concise answers followed by reasoning and caveats.",
         "Use descriptive question headings, definitions and comparison tables when useful.",
         "Link sources and related services; avoid keyword stuffing and AI citation guarantees."
-      ]
+      ],
+      "notes": "Implementation in progress: the paired draft now uses concise answers, decision-led question headings, explicit caveats, a neutral comparison, primary specifications and contextual service links. Source and rendered-output checks enforce the bilingual people-first contract and reject ranking or AI-citation promises. Awaiting GitHub Actions evidence before Done."
     },
     {
       "id": "CC-19",
