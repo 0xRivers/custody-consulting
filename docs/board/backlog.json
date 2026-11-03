@@ -207,12 +207,13 @@
         "CC-1",
         "CC-9"
       ],
-      "status": "Backlog",
+      "status": "Review",
       "acceptance": [
         "Document how to draft, preview, translate, review and publish an article.",
         "Use pull requests with preview on staging and approval before production.",
         "If CMS chosen, define authenticated previews and webhook/rebuild behaviour."
-      ]
+      ],
+      "notes": "Implemented the Git-backed author guide, bilingual review checklist, CODEOWNERS routing and a staging-to-main editorial production gate. Awaiting CI evidence and repository branch protection requiring the Editorial review check plus one code-owner approval. No external CMS is selected."
     },
     {
       "id": "CC-13",

@@ -7,6 +7,7 @@ on:
       - 'astro/**'
       - 'ops/checks/astro-environment.test.mjs'
       - 'ops/checks/article-rules.test.mjs'
+      - 'ops/checks/editorial-boundaries.mjs'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
@@ -33,6 +34,7 @@ jobs:
           npm run test:astro:contract
           npm run build:astro:staging
           npm run build:astro:production
+          npm run check:editorial-boundaries
           test -s build/astro-staging/index.html
           test -s build/astro-staging/en/index.html
           test -s build/astro-staging/pl/index.html

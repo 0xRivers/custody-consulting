@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "build:astro:staging": "SITE_ENV=staging astro build --root astro --config astro.config.mjs",
     "build:astro:production": "SITE_ENV=production astro build --root astro --config astro.config.mjs",
-    "test:astro:contract": "node --test ops/checks/astro-environment.test.mjs ops/checks/article-rules.test.mjs"
+    "test:astro:contract": "node --test ops/checks/astro-environment.test.mjs ops/checks/article-rules.test.mjs",
+    "check:editorial-boundaries": "node ops/checks/editorial-boundaries.mjs"
   },
   "dependencies": {
     "react": "19.2.0",

@@ -1,5 +1,8 @@
 # Blog content contract
 
+For the end-to-end drafting, preview, translation, review and publication
+process, see [`docs/AUTHORING.md`](../docs/AUTHORING.md).
+
 Articles live in `src/content/blog/<locale>/` as Markdown or MDX. Every entry
 must provide the fields validated by `src/content.config.ts`:
 
