@@ -16,11 +16,12 @@ Run `npm install` to generate package-lock.json and install dependencies, then
 `npm run build`. Commit package-lock.json. CI uses npm ci and performs the
 TypeScript/build checks before deployment.
 
-Staging build output is build/staging; it is ignored by Git and recreated in CI.
-The existing tracked dist directory is deliberately retained: production's
-main workflow continues to deploy that version. Promotion of this React app to
-production will need an explicit production build/deployment workflow update.
-A merge alone does not switch production to the React output.
+The Vite import builds to `build/staging/` for historical comparison. Active
+staging deployment now builds the Astro port to `build/astro-staging/`. The
+existing tracked `dist/` directory is deliberately retained: production's main
+workflow continues to deploy that version. Promotion requires an explicit
+production workflow change; a merge alone does not switch the production
+artifact.
 
 The original contact form never sent messages. The visual form remains, but its
 post-submit message explicitly says it is a preview and no message was sent.

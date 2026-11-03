@@ -9,8 +9,11 @@ export interface ArticleLike {
     draft: boolean;
     publishedAt: Date;
     updatedAt?: Date;
+    topics?: string[];
   };
 }
+
+export const ARTICLES_PER_PAGE = 6;
 
 export function articlePath(article: ArticleLike): string {
   return `/${article.data.locale}/blog/${article.data.slug}/`;
@@ -52,4 +55,17 @@ export function publishedArticles<T extends ArticleLike>(articles: T[], locale?:
   return validateArticleCollection(articles)
     .filter((article) => !article.data.draft && (!locale || article.data.locale === locale))
     .sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime());
+}
+
+export function paginateArticles<T>(articles: T[], page: number, pageSize = ARTICLES_PER_PAGE) {
+  if (!Number.isInteger(page) || page < 1) throw new Error(`Invalid page number: ${page}`);
+  if (!Number.isInteger(pageSize) || pageSize < 1) throw new Error(`Invalid page size: ${pageSize}`);
+  const totalPages = Math.max(1, Math.ceil(articles.length / pageSize));
+  if (page > totalPages) throw new Error(`Page ${page} exceeds ${totalPages}`);
+  const start = (page - 1) * pageSize;
+  return { items: articles.slice(start, start + pageSize), page, totalPages };
+}
+
+export function articleTopics<T extends ArticleLike>(articles: T[]): string[] {
+  return [...new Set(articles.flatMap((article) => article.data.topics ?? []))].sort();
 }

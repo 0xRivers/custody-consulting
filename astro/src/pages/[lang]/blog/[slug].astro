@@ -1,0 +1,107 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import SiteFooter from '../../../components/SiteFooter.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import Base from '../../../layouts/Base.astro';
+import { articlePath } from '../../../lib/article-rules';
+import { getBuildArticles } from '../../../lib/articles';
+import { blogUi, topicLabel } from '../../../lib/blog-i18n';
+import type { Locale } from '../../../lib/i18n';
+
+export async function getStaticPaths() {
+  const articles = await getBuildArticles();
+  return articles.map((article) => {
+    const alternate = articles.find((candidate) =>
+      candidate.data.translationKey === article.data.translationKey
+      && candidate.data.locale !== article.data.locale
+    );
+    const related = articles
+      .filter((candidate) =>
+        candidate.id !== article.id
+        && candidate.data.locale === article.data.locale
+        && candidate.data.topics.some((topic) => article.data.topics.includes(topic))
+      )
+      .slice(0, 3);
+    return {
+      params: { lang: article.data.locale, slug: article.data.slug },
+      props: { article, alternate, related },
+    };
+  });
+}
+
+interface Props {
+  article: CollectionEntry<'blog'>;
+  alternate?: CollectionEntry<'blog'>;
+  related: CollectionEntry<'blog'>[];
+}
+
+const { article, alternate, related } = Astro.props;
+const lang = article.data.locale as Locale;
+const ui = blogUi[lang];
+const { Content, headings } = await render(article);
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const localeCode = lang === 'pl' ? 'pl-PL' : 'en-GB';
+const formatDate = new Intl.DateTimeFormat(localeCode, { day: 'numeric', month: 'long', year: 'numeric' });
+const alternateLocale = lang === 'en' ? 'pl' : 'en';
+const alternateHref = alternate ? articlePath(alternate) : `/${alternateLocale}/blog/`;
+---
+<Base
+  title={`${article.data.title} · Custody Consulting`}
+  description={article.data.summary}
+  lang={lang}
+  noindex={article.data.draft}
+  bodyClass="article-page"
+>
+  <SiteHeader lang={lang} alternateHref={alternateHref} />
+  <main id="content">
+    <article>
+      <header class="article-hero shell shell--article">
+        <a class="article-back" href={`/${lang}/blog/`}>← {ui.back}</a>
+        <div class="article-kicker">
+          <span>{ui.label}</span>
+          {article.data.draft && <strong>{ui.draft}</strong>}
+        </div>
+        <h1>{article.data.title}</h1>
+        <p class="article-summary">{article.data.summary}</p>
+        <dl class="article-byline">
+          <div><dt>{ui.by}</dt><dd>{article.data.author}</dd></div>
+          <div><dt>{ui.published}</dt><dd><time datetime={article.data.publishedAt.toISOString()}>{formatDate.format(article.data.publishedAt)}</time></dd></div>
+          {article.data.updatedAt && <div><dt>{ui.updated}</dt><dd><time datetime={article.data.updatedAt.toISOString()}>{formatDate.format(article.data.updatedAt)}</time></dd></div>}
+        </dl>
+      </header>
+
+      <div class="article-layout shell shell--article">
+        {toc.length > 0 && (
+          <aside class="article-toc">
+            <strong>{ui.contents}</strong>
+            <ol>{toc.map((heading) => <li class={`depth-${heading.depth}`}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ol>
+          </aside>
+        )}
+        <div class="article-column">
+          <section class="key-answer" aria-label={lang === 'pl' ? 'Najważniejsza odpowiedź' : 'Key answer'}>
+            <span>{lang === 'pl' ? 'W skrócie' : 'In brief'}</span>
+            <p>{article.data.keyAnswer}</p>
+          </section>
+          <div class="article-prose"><Content /></div>
+
+          <section class="article-sources" aria-labelledby="article-sources-title">
+            <h2 id="article-sources-title">{ui.sources}</h2>
+            <ul>{article.data.sources.map((source) => <li><a href={source.url} rel="noreferrer">{source.label}</a></li>)}</ul>
+          </section>
+
+          <nav class="article-topics" aria-label={ui.topics}>
+            {article.data.topics.map((topic) => <a href={`/${lang}/blog/topics/${topic}/`}>{topicLabel(topic)}</a>)}
+          </nav>
+        </div>
+      </div>
+    </article>
+
+    {related.length > 0 && (
+      <aside class="related-articles shell shell--article" aria-labelledby="related-title">
+        <h2 id="related-title">{ui.related}</h2>
+        <div>{related.map((item) => <a href={articlePath(item)}><strong>{item.data.title}</strong><span>{item.data.summary}</span></a>)}</div>
+      </aside>
+    )}
+  </main>
+  <SiteFooter lang={lang} />
+</Base>

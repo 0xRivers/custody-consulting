@@ -1,9 +1,10 @@
 ---
 import { Image } from 'astro:assets';
-import logo from '../../../src/assets/custody-logo-white.png';
 import hero from '../../../src/assets/hero-vault.jpg';
 import Base from '../layouts/Base.astro';
-import { alternateLocale, getContent, type Locale } from '../lib/i18n';
+import SiteFooter from './SiteFooter.astro';
+import SiteHeader from './SiteHeader.astro';
+import { getContent, type Locale } from '../lib/i18n';
 
 interface Props {
   lang: Locale;
@@ -11,41 +12,9 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = getContent(lang);
-const alternate = alternateLocale(lang);
-const menuLabel = lang === 'pl' ? 'Menu' : 'Menu';
-const alternateName = alternate === 'pl' ? 'Polski' : 'English';
 ---
 <Base title={t.meta.title} description={t.meta.description} lang={lang}>
-  <a class="skip-link" href="#content">{lang === 'pl' ? 'Przejdź do treści' : 'Skip to content'}</a>
-  <header class="site-header">
-    <div class="shell header__inner">
-      <a href={`/${lang}/`} class="brand" aria-label="Custody Consulting">
-        <Image src={logo} alt="Custody Consulting" class="brand__logo" />
-      </a>
-      <nav class="desktop-nav" aria-label={t.nav.label}>
-        <a href="#why">{t.nav.why}</a>
-        <a href="#services">{t.nav.services}</a>
-        <a href="#process">{t.nav.process}</a>
-        <a href="#faq">{t.nav.faq}</a>
-      </nav>
-      <div class="header__actions">
-        <a class="language-link" href={`/${alternate}/`} hreflang={alternate} lang={alternate} aria-label={`${t.nav.language}: ${alternateName}`}>
-          {alternate.toUpperCase()}
-        </a>
-        <a class="button button--small desktop-cta" href="#contact">{t.nav.cta}</a>
-        <details class="mobile-menu">
-          <summary aria-label={menuLabel}><span></span><span></span><span></span></summary>
-          <nav aria-label={t.nav.label}>
-            <a href="#why">{t.nav.why}</a>
-            <a href="#services">{t.nav.services}</a>
-            <a href="#process">{t.nav.process}</a>
-            <a href="#faq">{t.nav.faq}</a>
-            <a href="#contact">{t.nav.cta}</a>
-          </nav>
-        </details>
-      </div>
-    </div>
-  </header>
+  <SiteHeader lang={lang} />
 
   <main id="content">
     <section id="top" class="hero">
@@ -149,9 +118,5 @@ const alternateName = alternate === 'pl' ? 'Polski' : 'English';
     </section>
   </main>
 
-  <footer class="site-footer shell">
-    <Image src={logo} alt="Custody Consulting" class="footer-logo" />
-    <p>{t.footer}</p>
-    <p>© {new Date().getFullYear()} Custody Consulting</p>
-  </footer>
+  <SiteFooter lang={lang} />
 </Base>

@@ -1,0 +1,24 @@
+---
+import BlogIndex from '../../../../../components/BlogIndex.astro';
+import { getBuildArticles } from '../../../../../lib/articles';
+import { articleTopics, paginateArticles } from '../../../../../lib/article-rules';
+import { locales, type Locale } from '../../../../../lib/i18n';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const lang of locales) {
+    const allArticles = await getBuildArticles(lang);
+    for (const topic of articleTopics(allArticles)) {
+      paths.push({ params: { lang, topic }, props: { lang, topic } });
+    }
+  }
+  return paths;
+}
+
+interface Props { lang: Locale; topic: string }
+const { lang, topic } = Astro.props;
+const allArticles = await getBuildArticles(lang);
+const topicArticles = allArticles.filter((article) => article.data.topics.includes(topic));
+const pagination = paginateArticles(topicArticles, 1);
+---
+<BlogIndex lang={lang} topic={topic} articles={pagination.items} allArticles={allArticles} page={1} totalPages={pagination.totalPages} />

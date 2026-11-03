@@ -1,0 +1,75 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { articlePath, articleTopics } from '../lib/article-rules';
+import { blogUi, topicLabel } from '../lib/blog-i18n';
+import type { Locale } from '../lib/i18n';
+import SiteFooter from './SiteFooter.astro';
+import SiteHeader from './SiteHeader.astro';
+
+interface Props {
+  lang: Locale;
+  articles: CollectionEntry<'blog'>[];
+  allArticles: CollectionEntry<'blog'>[];
+  page: number;
+  totalPages: number;
+  topic?: string;
+}
+
+const { lang, articles, allArticles, page, totalPages, topic } = Astro.props;
+const ui = blogUi[lang];
+const topics = articleTopics(allArticles);
+const localeCode = lang === 'pl' ? 'pl-PL' : 'en-GB';
+const dateFormat = new Intl.DateTimeFormat(localeCode, { day: 'numeric', month: 'long', year: 'numeric' });
+const basePath = topic ? `/${lang}/blog/topics/${topic}/` : `/${lang}/blog/`;
+const pageHref = (target: number) => target === 1 ? basePath : `${basePath}page/${target}/`;
+const title = topic ? `${topicLabel(topic)} · ${ui.label}` : ui.title;
+---
+<Base title={`${title} · Custody Consulting`} description={ui.intro} lang={lang}>
+  <SiteHeader lang={lang} alternateHref={`/${lang === 'en' ? 'pl' : 'en'}/blog/`} />
+  <main id="content" class="blog-main">
+    <header class="blog-hero shell">
+      <p class="eyebrow"><span class="dot"></span>{ui.label}</p>
+      <h1>{topic ? topicLabel(topic) : ui.title}</h1>
+      <p>{ui.intro}</p>
+    </header>
+
+    <div class="shell blog-layout">
+      <aside class="topic-nav" aria-label={ui.topics}>
+        <strong>{ui.topics}</strong>
+        <a class={!topic ? 'is-current' : undefined} href={`/${lang}/blog/`}>{ui.all}</a>
+        {topics.map((item) => <a class={item === topic ? 'is-current' : undefined} href={`/${lang}/blog/topics/${item}/`}>{topicLabel(item)}</a>)}
+      </aside>
+
+      <section aria-live="polite">
+        {articles.length === 0 ? (
+          <div class="blog-empty"><p>{ui.empty}</p></div>
+        ) : (
+          <div class="article-grid">
+            {articles.map((article) => (
+              <article class="article-card">
+                <div class="article-card__meta">
+                  <time datetime={article.data.publishedAt.toISOString()}>{dateFormat.format(article.data.publishedAt)}</time>
+                  {article.data.draft && <span>{ui.draft}</span>}
+                </div>
+                <h2><a href={articlePath(article)}>{article.data.title}</a></h2>
+                <p>{article.data.summary}</p>
+                <ul aria-label={ui.topics}>{article.data.topics.map((item) => <li>{topicLabel(item)}</li>)}</ul>
+                <a class="article-card__link" href={articlePath(article)}>{ui.read} →</a>
+              </article>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <nav class="pagination" aria-label={`${ui.page} ${page}`}>
+            {page > 1 ? <a href={pageHref(page - 1)}>← {ui.previous}</a> : <span></span>}
+            <span>{ui.page} {page} / {totalPages}</span>
+            {page < totalPages ? <a href={pageHref(page + 1)}>{ui.next} →</a> : <span></span>}
+          </nav>
+        )}
+      </section>
+    </div>
+  </main>
+  <SiteFooter lang={lang} />
+</Base>

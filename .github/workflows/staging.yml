@@ -20,13 +20,17 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: npm run build
+      - run: npm run test:astro:contract
+      - run: npm run build:astro:staging
       - name: Check deployment scripts and assets
         run: |
           bash -n ops/*.sh ops/activate-release ops/activate-staging-release
-          test -s build/staging/index.html
-          test -s build/staging/app.js
-          node -e 'const fs = require("fs"); if (!/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(fs.readFileSync("build/staging/index.html", "utf8"))) throw new Error("Staging must include noindex")' 
+          test -s build/astro-staging/index.html
+          test -s build/astro-staging/en/index.html
+          test -s build/astro-staging/pl/index.html
+          test -s build/astro-staging/en/blog/index.html
+          test -s build/astro-staging/pl/blog/index.html
+          node -e 'const fs = require("fs"); if (!/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(fs.readFileSync("build/astro-staging/index.html", "utf8"))) throw new Error("Staging must include noindex")'
       - name: Deploy over verified SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_DEPLOY_KEY }}

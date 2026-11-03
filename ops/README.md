@@ -8,7 +8,7 @@ recovery; do not repeat bootstrap for routine deployments.
 
 | Branch | SSH account | Artifact | Backend |
 | --- | --- | --- | --- |
-| staging | custody-staging | build/staging/ | 127.0.0.1:8008 |
+| staging | custody-staging | build/astro-staging/ | 127.0.0.1:8008 |
 | main | custody-deploy | dist/ | 127.0.0.1:8004 |
 
 Commits pushed to each branch trigger its existing deployment workflow, using

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   articlePath,
+  articleTopics,
+  paginateArticles,
   publishedArticles,
   validateArticleCollection,
 } from '../../astro/src/lib/article-rules.ts';
@@ -45,4 +47,14 @@ test('invalid date order fails and production selection excludes drafts', () => 
     entry('polish', { locale: 'pl' }),
   ], 'en');
   assert.deepEqual(published.map((article) => article.id), ['published']);
+});
+
+test('pagination and topic routes are derived only from existing articles', () => {
+  const articles = Array.from({ length: 7 }, (_, index) => entry(`post-${index + 1}`, {
+    topics: index < 6 ? ['foundations'] : ['recovery'],
+  }));
+  assert.deepEqual(paginateArticles(articles, 1).items.map((article) => article.id), articles.slice(0, 6).map((article) => article.id));
+  assert.deepEqual(paginateArticles(articles, 2).items.map((article) => article.id), ['post-7']);
+  assert.deepEqual(articleTopics(articles), ['foundations', 'recovery']);
+  assert.throws(() => paginateArticles(articles, 3), /exceeds/);
 });

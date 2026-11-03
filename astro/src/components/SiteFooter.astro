@@ -1,0 +1,14 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../../../src/assets/custody-logo-white.png';
+import { getContent, type Locale } from '../lib/i18n';
+
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = getContent(lang);
+---
+<footer class="site-footer shell">
+  <Image src={logo} alt="Custody Consulting" class="footer-logo" />
+  <p>{t.footer}</p>
+  <p>© {new Date().getFullYear()} Custody Consulting</p>
+</footer>

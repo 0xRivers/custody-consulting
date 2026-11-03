@@ -6,7 +6,7 @@ export const content = {
       title: "Custody Consulting — Twój bitcoin. Twoje klucze. Jasny plan.",
       description: "Indywidualne wsparcie w samodzielnym przechowywaniu bitcoina. Portfele sprzętowe, kopie zapasowe i plan odzyskiwania. Po polsku i angielsku, dla klientów w Europie.",
     },
-    nav: { why: "Po co plan", services: "Usługi", process: "Jak pracujemy", faq: "FAQ", cta: "Porozmawiajmy", label: "Nawigacja główna", language: "Wybierz język" },
+    nav: { why: "Po co plan", services: "Usługi", process: "Jak pracujemy", faq: "FAQ", blog: "Baza wiedzy", cta: "Porozmawiajmy", label: "Nawigacja główna", language: "Wybierz język" },
     hero: {
       eyebrow: "Samodzielne przechowywanie bitcoina · Europa",
       title: "Twój bitcoin. Twoje klucze. Jasny plan.",
@@ -77,7 +77,7 @@ export const content = {
       title: "Custody Consulting — Your bitcoin. Your keys. A clear plan.",
       description: "Personal guidance for Bitcoin self-custody. Hardware wallets, backups and recovery planning for individuals, families and businesses across Europe. English and Polish.",
     },
-    nav: { why: "Why a plan", services: "Services", process: "Our approach", faq: "FAQ", cta: "Let’s talk", label: "Main navigation", language: "Choose language" },
+    nav: { why: "Why a plan", services: "Services", process: "Our approach", faq: "FAQ", blog: "Knowledge base", cta: "Let’s talk", label: "Main navigation", language: "Choose language" },
     hero: {
       eyebrow: "Bitcoin self-custody consulting · Europe",
       title: "Your bitcoin. Your keys. A clear plan.",

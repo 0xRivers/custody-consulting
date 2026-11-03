@@ -37,8 +37,9 @@ git push -u origin staging
 ```
 
 The main push deploys production's unchanged website. The staging push triggers
-staging.yml and deploys the same initial site to the separate backend. Future
-work on staging deploys there; main continues to deploy production.
+staging.yml, builds the Astro site with `SITE_ENV=staging` and deploys only
+`build/astro-staging/` to the separate backend. Future work on staging deploys
+there; main continues to deploy the tracked production artifact.
 
 5. Verify staging's workflow succeeds, then add its public proxy route:
 

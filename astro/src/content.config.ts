@@ -15,6 +15,7 @@ const blog = defineCollection({
     .object({
       title: z.string().trim().min(8).max(100),
       summary: z.string().trim().min(30).max(240),
+      keyAnswer: z.string().trim().min(40).max(360),
       locale: z.enum(['en', 'pl']),
       slug: routeSegment,
       author: z.string().trim().min(2).max(100),
@@ -23,6 +24,10 @@ const blog = defineCollection({
       draft: z.boolean().default(true),
       translationKey: routeSegment,
       topics: z.array(routeSegment).min(1).max(5),
+      sources: z.array(z.object({
+        label: z.string().trim().min(3).max(140),
+        url: z.string().url(),
+      }).strict()).min(1).max(12),
     })
     .strict()
     .superRefine((article, context) => {

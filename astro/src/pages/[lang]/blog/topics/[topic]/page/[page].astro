@@ -1,0 +1,28 @@
+---
+import BlogIndex from '../../../../../../../components/BlogIndex.astro';
+import { getBuildArticles } from '../../../../../../../lib/articles';
+import { ARTICLES_PER_PAGE, articleTopics, paginateArticles } from '../../../../../../../lib/article-rules';
+import { locales, type Locale } from '../../../../../../../lib/i18n';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const lang of locales) {
+    const allArticles = await getBuildArticles(lang);
+    for (const topic of articleTopics(allArticles)) {
+      const topicArticles = allArticles.filter((article) => article.data.topics.includes(topic));
+      const totalPages = Math.ceil(topicArticles.length / ARTICLES_PER_PAGE);
+      for (let page = 2; page <= totalPages; page += 1) {
+        paths.push({ params: { lang, topic, page: String(page) }, props: { lang, topic, page } });
+      }
+    }
+  }
+  return paths;
+}
+
+interface Props { lang: Locale; topic: string; page: number }
+const { lang, topic, page } = Astro.props;
+const allArticles = await getBuildArticles(lang);
+const topicArticles = allArticles.filter((article) => article.data.topics.includes(topic));
+const pagination = paginateArticles(topicArticles, page);
+---
+<BlogIndex lang={lang} topic={topic} articles={pagination.items} allArticles={allArticles} page={page} totalPages={pagination.totalPages} />

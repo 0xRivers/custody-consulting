@@ -1,0 +1,47 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../../../src/assets/custody-logo-white.png';
+import { alternateLocale, getContent, type Locale } from '../lib/i18n';
+
+interface Props {
+  lang: Locale;
+  alternateHref?: string;
+}
+
+const { lang, alternateHref } = Astro.props;
+const t = getContent(lang);
+const alternate = alternateLocale(lang);
+const alternateName = alternate === 'pl' ? 'Polski' : 'English';
+---
+<a class="skip-link" href="#content">{lang === 'pl' ? 'Przejdź do treści' : 'Skip to content'}</a>
+<header class="site-header">
+  <div class="shell header__inner">
+    <a href={`/${lang}/`} class="brand" aria-label="Custody Consulting">
+      <Image src={logo} alt="Custody Consulting" class="brand__logo" />
+    </a>
+    <nav class="desktop-nav" aria-label={t.nav.label}>
+      <a href={`/${lang}/#why`}>{t.nav.why}</a>
+      <a href={`/${lang}/#services`}>{t.nav.services}</a>
+      <a href={`/${lang}/#process`}>{t.nav.process}</a>
+      <a href={`/${lang}/#faq`}>{t.nav.faq}</a>
+      <a href={`/${lang}/blog/`}>{t.nav.blog}</a>
+    </nav>
+    <div class="header__actions">
+      <a class="language-link" href={alternateHref ?? `/${alternate}/`} hreflang={alternate} lang={alternate} aria-label={`${t.nav.language}: ${alternateName}`}>
+        {alternate.toUpperCase()}
+      </a>
+      <a class="button button--small desktop-cta" href={`/${lang}/#contact`}>{t.nav.cta}</a>
+      <details class="mobile-menu">
+        <summary aria-label="Menu"><span></span><span></span><span></span></summary>
+        <nav aria-label={t.nav.label}>
+          <a href={`/${lang}/#why`}>{t.nav.why}</a>
+          <a href={`/${lang}/#services`}>{t.nav.services}</a>
+          <a href={`/${lang}/#process`}>{t.nav.process}</a>
+          <a href={`/${lang}/#faq`}>{t.nav.faq}</a>
+          <a href={`/${lang}/blog/`}>{t.nav.blog}</a>
+          <a href={`/${lang}/#contact`}>{t.nav.cta}</a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>

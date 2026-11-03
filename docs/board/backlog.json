@@ -151,13 +151,13 @@
         "CC-5",
         "CC-7"
       ],
-      "status": "In progress",
+      "status": "Done",
       "acceptance": [
         "Validate title, summary, locale, slug, author, publication date, update date, draft flag and translation key.",
         "Reject duplicate URLs and invalid dates at build time.",
         "Keep drafts out of production pages, indexes, feeds and sitemap."
       ],
-      "notes": "Astro content schema, paired draft fixtures, shared published/preview queries and build-time duplicate route/translation validation are implemented. Awaiting CI collection and artifact checks."
+      "notes": "Completed in 91c9b2d. Astro run 41699471880 passed five contract checks, built both environments, excluded all draft metadata from production and reported zero dependency vulnerabilities. Public staging run 41699471965 verified the release SHA and X-Robots-Tag noindex controls. Evidence: docs/VERIFICATION-CC9.md."
     },
     {
       "id": "CC-10",
@@ -170,12 +170,13 @@
         "CC-6",
         "CC-9"
       ],
-      "status": "Backlog",
+      "status": "Review",
       "acceptance": [
         "Create /en/blog/ and /pl/blog/ with real crawlable article links.",
         "Topic pages and pagination work without JavaScript; avoid empty thin topic pages.",
         "Show accessible empty states while articles are drafts."
-      ]
+      ],
+      "notes": "Implemented crawlable bilingual indexes, topic routes, server-rendered pagination and reviewed production empty states. Awaiting Astro artifact and public staging verification."
     },
     {
       "id": "CC-11",
@@ -187,12 +188,13 @@
       "dependencies": [
         "CC-9"
       ],
-      "status": "Backlog",
+      "status": "Review",
       "acceptance": [
         "Render article body and key answer in initial HTML.",
         "Show author, dates, table of contents, sources and related articles.",
         "Provide readable mobile typography, image alt text and navigation back to topic/index."
-      ]
+      ],
+      "notes": "Implemented the initial-HTML article template with concise answer, author and dates, generated table of contents, required sources, topics, related reading and responsive typography. Awaiting Astro artifact and public staging verification."
     },
     {
       "id": "CC-12",

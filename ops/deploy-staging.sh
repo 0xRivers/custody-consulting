@@ -10,11 +10,11 @@ sha=$(git rev-parse HEAD)
 [[ $sha =~ ^[a-f0-9]{40}$ ]]
 # Never deploy a dirty working tree under a clean commit identifier.
 [[ -z $(git status --porcelain --untracked-files=normal) ]] || { echo 'Commit all source changes first.' >&2; exit 1; }
-node --check build/staging/app.js
-[[ -s build/staging/index.html ]]
+build_dir=${DEPLOY_BUILD_DIR:-build/astro-staging}
+[[ -s "$build_dir/index.html" ]]
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
-cp -a build/staging/. "$stage/"
+cp -a "$build_dir"/. "$stage/"
 # Allow crawlers to see the staging noindex header; robots.txt alone cannot prevent indexing.
 printf 'User-agent: *\nAllow: /\n' > "$stage/robots.txt"
 printf '%s\n' "$sha" > "$stage/version.txt"
