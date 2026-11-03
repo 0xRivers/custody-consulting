@@ -207,13 +207,13 @@
         "CC-1",
         "CC-9"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Document how to draft, preview, translate, review and publish an article.",
         "Use pull requests with preview on staging and approval before production.",
         "If CMS chosen, define authenticated previews and webhook/rebuild behaviour."
       ],
-      "notes": "Implemented the Git-backed author guide, bilingual review checklist, CODEOWNERS routing and staging-to-main editorial gate. Run 41712895138 verified paired EN/PL entries and production draft exclusion; run 41713176959 verified the gate runs on every production PR. Awaiting solo-safe main protection plus manual owner approval on the production environment. No external CMS is selected."
+      "notes": "Completed in dc56e99, 44a81cb and 5f0a71b. Editorial runs 41712895138, 41713176959 and 41715415340 verified bilingual pairing, production draft exclusion and the always-on production PR gate. Main requires strict check + Editorial review statuses; production requires a separate manual owner approval. Evidence: docs/VERIFICATION-CC12.md."
     },
     {
       "id": "CC-13",
