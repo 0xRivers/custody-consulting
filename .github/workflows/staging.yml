@@ -49,8 +49,16 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:4173/en/ > /dev/null
           chrome_bin=$(command -v google-chrome || command -v chromium-browser || command -v chromium)
-          PERF_URL=http://127.0.0.1:4173/en/ CHROME_BIN="$chrome_bin" \
-            node ops/checks/mobile-performance.mjs > build/performance/mobile-lab.json
+          measured=false
+          for attempt in 1 2; do
+            if PERF_URL=http://127.0.0.1:4173/en/ CHROME_BIN="$chrome_bin" \
+              node ops/checks/mobile-performance.mjs > build/performance/mobile-lab.json; then
+              measured=true
+              break
+            fi
+            printf 'Chrome measurement attempt %s failed; retrying.\n' "$attempt" >&2
+          done
+          test "$measured" = true
           cat build/performance/mobile-lab.json
       - name: Retain mobile performance evidence
         uses: actions/upload-artifact@v4

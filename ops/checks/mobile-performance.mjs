@@ -1,5 +1,6 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -8,15 +9,33 @@ if (!target) throw new Error('Set PERF_URL to the page under test.');
 const chrome = process.env.CHROME_BIN;
 if (!chrome) throw new Error('Set CHROME_BIN to a Chromium or Chrome executable.');
 
+async function availablePort() {
+  const server = createServer();
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('Unable to reserve a Chrome debugging port.');
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  return address.port;
+}
+
 const profile = await mkdtemp(join(tmpdir(), 'custody-chrome-'));
+const debugPort = await availablePort();
 const child = spawn(chrome, [
   '--headless=new',
   '--no-sandbox',
   '--disable-dev-shm-usage',
+  '--disable-gpu',
   '--disable-background-networking',
   '--disable-component-update',
+  '--disable-extensions',
+  '--no-default-browser-check',
+  '--no-first-run',
   `--user-data-dir=${profile}`,
-  '--remote-debugging-port=0',
+  '--remote-debugging-address=127.0.0.1',
+  `--remote-debugging-port=${debugPort}`,
   'about:blank',
 ], { stdio: ['ignore', 'ignore', 'pipe'] });
 let chromeError = '';
@@ -25,14 +44,11 @@ child.stderr.on('data', (chunk) => {
 });
 
 async function waitForDebugPort() {
-  const file = join(profile, 'DevToolsActivePort');
   for (let attempt = 0; attempt < 400; attempt += 1) {
     try {
-      const [port] = (await readFile(file, 'utf8')).split('\n');
-      if (port) return port;
-    } catch (error) {
-      if (error?.code !== 'ENOENT') throw error;
-    }
+      const response = await fetch(`http://127.0.0.1:${debugPort}/json/version`);
+      if (response.ok) return debugPort;
+    } catch {}
     if (child.exitCode !== null || child.signalCode !== null) {
       throw new Error(`Chrome exited before its DevTools port became ready.${chromeError ? `\n${chromeError}` : ''}`);
     }
