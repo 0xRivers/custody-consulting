@@ -14,7 +14,7 @@ ln -s "$path" "$base/.current-next"
 mv -Tf "$base/.current-next" "$base/current"
 healthy=false
 for attempt in {1..10}; do
-  if [[ $(curl --fail --silent --max-time 3 "http://127.0.0.1:8004/version.txt?release=$release" || true) == "$release" ]]; then
+  if [[ $(curl --fail --silent --max-time 3 -H "Host: custody.consulting" "http://127.0.0.1:8004/version.txt?release=$release" || true) == "$release" ]]; then
     healthy=true
     break
   fi

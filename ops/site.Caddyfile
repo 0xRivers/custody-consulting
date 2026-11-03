@@ -4,7 +4,8 @@
     auto_https off
     persist_config off
 }
-http://127.0.0.1:8004 {
+http://:8004 {
+    bind 127.0.0.1
     root * /srv/custody-consulting/current
     encode zstd gzip
     header Cache-Control "no-cache"
