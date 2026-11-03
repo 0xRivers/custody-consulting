@@ -41,6 +41,11 @@ staging.yml, builds the Astro site with `SITE_ENV=staging` and deploys only
 `build/astro-staging/` to the separate backend. Future work on staging deploys
 there; main continues to deploy the tracked production artifact.
 
+The release bundle currently includes an empty `app.js` compatibility marker
+because the root-installed activation helper still checks for the legacy Vite
+entrypoint. Astro pages do not reference it. Remove the marker only after a
+planned root maintenance change updates that helper.
+
 5. Verify staging's workflow succeeds, then add its public proxy route:
 
 ```bash

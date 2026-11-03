@@ -15,6 +15,10 @@ build_dir=${DEPLOY_BUILD_DIR:-build/astro-staging}
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 cp -a "$build_dir"/. "$stage/"
+# The root-installed activation helper predates Astro and still checks for this
+# legacy file. Keep an inert marker until the helper is updated during planned
+# server maintenance; no generated page references it.
+: > "$stage/app.js"
 # Allow crawlers to see the staging noindex header; robots.txt alone cannot prevent indexing.
 printf 'User-agent: *\nAllow: /\n' > "$stage/robots.txt"
 printf '%s\n' "$sha" > "$stage/version.txt"
