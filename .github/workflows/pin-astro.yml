@@ -28,8 +28,8 @@ jobs:
         run: |
           set -euo pipefail
           node --test ops/checks/astro-environment.test.mjs
-          SITE_ENV=staging ./node_modules/.bin/astro build --config astro/astro.config.mjs
-          SITE_ENV=production ./node_modules/.bin/astro build --config astro/astro.config.mjs
+          SITE_ENV=staging ./node_modules/.bin/astro build --root astro --config astro.config.mjs
+          SITE_ENV=production ./node_modules/.bin/astro build --root astro --config astro.config.mjs
           test -s build/astro-staging/index.html
           test -s build/astro-production/index.html
           grep -Eiq '<meta[^>]+name="robots"[^>]+noindex' build/astro-staging/index.html

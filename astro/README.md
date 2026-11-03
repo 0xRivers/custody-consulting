@@ -13,8 +13,8 @@ pinned and no successful Astro build is claimed. Complete CC-4 by selecting a
 supported exact Astro version with Node 24 and committing its root lockfile.
 Use the root package and lockfile, not a separate package here. Then build with:
 
-    SITE_ENV=staging ./node_modules/.bin/astro build --config astro/astro.config.mjs
-    SITE_ENV=production ./node_modules/.bin/astro build --config astro/astro.config.mjs
+    SITE_ENV=staging ./node_modules/.bin/astro build --root astro --config astro.config.mjs
+    SITE_ENV=production ./node_modules/.bin/astro build --root astro --config astro.config.mjs
 
 Outputs: build/astro-staging and build/astro-production. Review generated HTML,
 robots directives and assets in both outputs before changing deployment paths.
