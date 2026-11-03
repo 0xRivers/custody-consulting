@@ -301,13 +301,13 @@
         "CC-11",
         "CC-15"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Add Article/BlogPosting, BreadcrumbList and verified Organization/Person data where appropriate.",
         "Match markup to visible content and actual author details.",
         "Validate with structured-data tools; no fabricated ratings or promised FAQ rich results."
       ],
-      "notes": "Implementation in progress: production-only BlogPosting, matching visible breadcrumbs and a minimal public-brand Organization graph are covered by contract and artifact validators. No identity, credential, rating or FAQ claims are inferred. Awaiting GitHub Actions evidence before Done."
+      "notes": "Completed in cee7c04. Astro run 41719961650 passed thirteen contract tests and validated production-only BlogPosting, visible matching breadcrumbs, the minimal public-brand Organization node, safe serialization and staging exclusions. Deployment run 41719961341 publicly verified the same SHA and noindex header through the non-root account. External live rich-result validation remains a first-published-article release check because production currently has no reviewed article URL. Production remained unchanged. Evidence: docs/VERIFICATION-CC17.md."
     },
     {
       "id": "CC-18",
