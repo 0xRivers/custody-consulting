@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+release=${1:?Usage: activate-release COMMIT_SHA}
+[[ $release =~ ^[a-f0-9]{40}$ ]] || { echo 'Expected full commit SHA' >&2; exit 1; }
+base=/srv/custody-consulting
+exec 9>"$base/.deploy.lock"
+flock -w 60 9
+path="$base/releases/$release"
+[[ -f "$path/index.html" && -f "$path/app.js" && -f "$path/version.txt" ]]
+[[ $(cat "$path/version.txt") == "$release" ]]
+previous=$(readlink "$base/current" || true)
+# Release directory must already exist; rename on the same filesystem is atomic.
+ln -s "$path" "$base/.current-next"
+mv -Tf "$base/.current-next" "$base/current"
+healthy=false
+for attempt in {1..10}; do
+  if [[ $(curl --fail --silent --max-time 3 "http://127.0.0.1:8004/version.txt?release=$release" || true) == "$release" ]]; then
+    healthy=true
+    break
+  fi
+  sleep 1
+done
+if [[ $healthy != true ]]; then
+  if [[ -n $previous ]]; then
+    ln -s "$previous" "$base/.rollback-next"
+    mv -Tf "$base/.rollback-next" "$base/current"
+  else
+    rm "$base/current"
+  fi
+  echo 'Health check failed; previous release restored.' >&2
+  exit 1
+fi
+printf 'Active release: %s\n' "$release"

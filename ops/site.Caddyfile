@@ -1,0 +1,12 @@
+# Separate static backend; the existing public Caddy remains the TLS proxy.
+{
+    admin off
+    auto_https off
+    persist_config off
+}
+http://127.0.0.1:8004 {
+    root * /srv/custody-consulting/current
+    encode zstd gzip
+    header Cache-Control "no-cache"
+    file_server
+}

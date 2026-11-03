@@ -1,0 +1,5 @@
+# Add this block to the EXISTING public Caddy configuration.
+# Do not replace the existing Caddyfile with this file.
+custody.consulting {
+    reverse_proxy 127.0.0.1:8004
+}
