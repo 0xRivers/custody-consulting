@@ -1,8 +1,8 @@
 ---
-import BlogIndex from '../../../../../../../components/BlogIndex.astro';
-import { getBuildArticles } from '../../../../../../../lib/articles';
-import { ARTICLES_PER_PAGE, articleTopics, paginateArticles } from '../../../../../../../lib/article-rules';
-import { locales, type Locale } from '../../../../../../../lib/i18n';
+import BlogIndex from '../../../../../../components/BlogIndex.astro';
+import { getBuildArticles } from '../../../../../../lib/articles';
+import { ARTICLES_PER_PAGE, articleTopics, paginateArticles } from '../../../../../../lib/article-rules';
+import { locales, type Locale } from '../../../../../../lib/i18n';
 
 export async function getStaticPaths() {
   const paths = [];
