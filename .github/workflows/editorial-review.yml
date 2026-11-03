@@ -14,16 +14,6 @@ on:
       - 'src/lib/content.ts'
   pull_request:
     branches: [main]
-    paths:
-      - '.github/CODEOWNERS'
-      - '.github/pull_request_template.md'
-      - '.github/workflows/editorial-review.yml'
-      - 'astro/**'
-      - 'ops/checks/article-rules.test.mjs'
-      - 'ops/checks/editorial-boundaries.mjs'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'src/lib/content.ts'
   workflow_dispatch:
 permissions:
   contents: read
