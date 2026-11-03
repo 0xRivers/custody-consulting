@@ -4,8 +4,9 @@ Production: main -> custody.consulting -> 127.0.0.1:8004.
 Staging: staging -> staging.custody.consulting -> 127.0.0.1:8008.
 Staging has its own Unix account, SSH key, service, configuration, release tree
 and rollback history. Its key cannot write production releases. Staging is
-publicly accessible; robots.txt and X-Robots-Tag discourage indexing but are not
-access controls. Do not put private data on it.
+publicly accessible; HTML noindex metadata and X-Robots-Tag exclude it from compliant search
+indexing but are not access controls. Crawling is allowed so crawlers can see
+noindex. Do not put private data on it.
 
 Run local commands from the custody-site repository.
 

@@ -15,7 +15,8 @@ node --check build/staging/app.js
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 cp -a build/staging/. "$stage/"
-printf 'User-agent: *\nDisallow: /\n' > "$stage/robots.txt"
+# Allow crawlers to see the staging noindex header; robots.txt alone cannot prevent indexing.
+printf 'User-agent: *\nAllow: /\n' > "$stage/robots.txt"
 printf '%s\n' "$sha" > "$stage/version.txt"
 ssh_args=(-F /dev/null -i "$DEPLOY_KEY" -p "$port" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$DEPLOY_KNOWN_HOSTS" -o ConnectTimeout=15)
 # mkdir refuses to replace an existing release; a rollback uses activation only.

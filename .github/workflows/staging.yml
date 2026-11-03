@@ -26,6 +26,7 @@ jobs:
           bash -n ops/*.sh ops/activate-release ops/activate-staging-release
           test -s build/staging/index.html
           test -s build/staging/app.js
+          node -e 'const fs = require("fs"); if (!/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(fs.readFileSync("build/staging/index.html", "utf8"))) throw new Error("Staging must include noindex")' 
       - name: Deploy over verified SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_DEPLOY_KEY }}
@@ -41,3 +42,8 @@ jobs:
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$hosts"
           export DEPLOY_KEY="$key" DEPLOY_KNOWN_HOSTS="$hosts"
           bash ops/deploy-staging.sh
+      - name: Verify staging is excluded from indexing
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 2 --max-time 20 --head https://staging.custody.consulting/ > "$RUNNER_TEMP/staging-headers"
+          grep -Ei '^x-robots-tag:.*noindex' "$RUNNER_TEMP/staging-headers"

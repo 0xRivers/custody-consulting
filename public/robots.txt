@@ -1,2 +1,3 @@
+# Crawlers must be able to read the noindex header and HTML meta tag.
 User-agent: *
-Disallow: /
+Allow: /
