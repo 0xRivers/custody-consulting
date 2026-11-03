@@ -3,6 +3,8 @@ on:
   push:
     branches: [staging]
     paths:
+      - 'package.json'
+      - 'package-lock.json'
       - 'ops/checks/foundation.py'
       - '.github/workflows/foundation.yml'
   workflow_dispatch:
@@ -23,7 +25,10 @@ jobs:
         if: always()
         run: |
           mkdir -p build/foundation
-          npm audit --json > build/foundation/npm-audit.json
+          audit_status=0
+          npm audit --json > build/foundation/npm-audit.json || audit_status=$?
+          cat build/foundation/npm-audit.json
+          exit "$audit_status"
       - name: Clean install and build
         if: always()
         run: npm ci && npm run build

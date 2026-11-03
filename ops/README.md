@@ -1,8 +1,26 @@
 # VPS deployment
 
-Prepared for `85.122.114.151`, with GitHub Actions as the assumed CI provider.
-No remote installation or DNS change has been performed. The website source is
-`dist/`; run Git commands from `custody-site/`.
+Deployed on `85.122.114.151` through GitHub Actions. Run Git commands from
+`custody-site/`. The numbered sections below describe initial installation and
+recovery; do not repeat bootstrap for routine deployments.
+
+## Routine deployment (no root required)
+
+| Branch | SSH account | Artifact | Backend |
+| --- | --- | --- | --- |
+| staging | custody-staging | build/staging/ | 127.0.0.1:8008 |
+| main | custody-deploy | dist/ | 127.0.0.1:8004 |
+
+Commits pushed to each branch trigger its existing deployment workflow, using
+that environment's dedicated SSH key and verified known-hosts secret. The
+deployment accounts do not need sudo, root login or Caddy restarts to activate
+static releases. Production promotion retains the rollout's review gate.
+
+An agent with GitHub network access can commit, push, monitor the workflow and
+check the public release SHA without operator terminal commands. Direct SSH
+additionally requires outbound port 22 access. VPS permissions cannot remove
+restrictions imposed by the agent's execution environment. Never disable host
+verification to work around a connectivity failure.
 
 ## 1. Connect and inspect
 
@@ -72,8 +90,8 @@ ssh -F /dev/null -i .local/custody-deploy -o IdentitiesOnly=yes -o StrictHostKey
 
 ## 3. Connect the GitHub repository
 
-Choose/create the repository first; no repository URL has been supplied.
-The existing local Git repository has no configured remote or commits.
+The configured repository is `0xRivers/custody-consulting`. The commands below
+are initial setup examples; the existing repository and remote are already set.
 
 ```bash
 gh auth login
