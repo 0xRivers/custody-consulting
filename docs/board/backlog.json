@@ -170,13 +170,13 @@
         "CC-6",
         "CC-9"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Create /en/blog/ and /pl/blog/ with real crawlable article links.",
         "Topic pages and pagination work without JavaScript; avoid empty thin topic pages.",
         "Show accessible empty states while articles are drafts."
       ],
-      "notes": "Implemented crawlable bilingual indexes, topic routes, server-rendered pagination and reviewed production empty states. Awaiting Astro artifact and public staging verification."
+      "notes": "Completed in 8110f51 with route fix 04672aa. Astro run 41704521685 verified crawlable bilingual indexes, non-empty topic routes, server-rendered pagination contracts and production empty states. Non-root deployment run 41709594835 activated release 4646d7b. Evidence: docs/VERIFICATION-CC10-11.md."
     },
     {
       "id": "CC-11",
@@ -188,13 +188,13 @@
       "dependencies": [
         "CC-9"
       ],
-      "status": "Review",
+      "status": "Done",
       "acceptance": [
         "Render article body and key answer in initial HTML.",
         "Show author, dates, table of contents, sources and related articles.",
         "Provide readable mobile typography, image alt text and navigation back to topic/index."
       ],
-      "notes": "Implemented the initial-HTML article template with concise answer, author and dates, generated table of contents, required sources, topics, related reading and responsive typography. Awaiting Astro artifact and public staging verification."
+      "notes": "Completed in 8110f51 and verified by Astro run 41704521685 and public deployment 41709594835. The initial HTML includes the answer, byline and dates, generated contents, required sources, topic navigation and responsive reading styles. Evidence: docs/VERIFICATION-CC10-11.md."
     },
     {
       "id": "CC-12",
