@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:astro:staging": "SITE_ENV=staging astro build --root astro --config astro.config.mjs",
+    "build:astro:production": "SITE_ENV=production astro build --root astro --config astro.config.mjs",
+    "test:astro:contract": "node --test ops/checks/astro-environment.test.mjs"
   },
   "dependencies": {
     "react": "19.2.0",

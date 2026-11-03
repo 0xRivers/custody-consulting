@@ -1,8 +1,8 @@
 # CC-5: isolated Astro foundation
 
-This is the verified Astro foundation, not the migrated website. Existing
-build/deploy commands still use React on staging and dist/ on production. This
-scaffold is not deployed by either workflow.
+This is the verified Astro foundation and bilingual landing-page port. Existing
+deployment commands still use React on staging and dist/ on production. Astro
+artifacts are not deployed until the staging pipeline is changed in CC-21.
 
 The explicit SITE_ENV contract rejects missing/unknown values, uses separate
 hostnames and output directories, and applies noindex metadata to staging.
@@ -14,9 +14,9 @@ Use the root package and lockfile, not a separate package here. Build with:
     SITE_ENV=staging ./node_modules/.bin/astro build --root astro --config astro.config.mjs
     SITE_ENV=production ./node_modules/.bin/astro build --root astro --config astro.config.mjs
 
-Outputs: build/astro-staging and build/astro-production. Review generated HTML,
+Outputs: build/astro-staging and build/astro-production. Each contains the root
+language chooser plus `/en/` and `/pl/` landing pages. Review generated HTML,
 robots directives and assets in both outputs before changing deployment paths.
-Do not deploy the placeholder homepage. CC-6 ports the actual design/content.
 Production-only canonical/hreflang/sitemap support follows in CC-15/CC-16.
 
 Update Astro with an exact version, regenerate the root lockfile, and run both

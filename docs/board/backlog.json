@@ -95,12 +95,13 @@
       "dependencies": [
         "CC-5"
       ],
-      "status": "Ready",
+      "status": "Review",
       "acceptance": [
         "Preserve revised copy, logo, vault image, colours and typography.",
         "Build shared header/footer and accessible mobile navigation.",
         "Keep JavaScript only for interactions that need it."
-      ]
+      ],
+      "notes": "Astro port preserves the revised landing-page design, content, logo and vault image with static, accessible desktop/mobile navigation. Awaiting CI artifact verification."
     },
     {
       "id": "CC-7",
@@ -112,12 +113,13 @@
       "dependencies": [
         "CC-5"
       ],
-      "status": "Ready",
+      "status": "Review",
       "acceptance": [
         "Provide /en/ and /pl/ routes with one complete language per HTML document.",
         "Language switch links to the equivalent translated page when available.",
         "Define root URL behaviour and redirects from existing language URLs; no forced locale redirects."
-      ]
+      ],
+      "notes": "Static /en/ and /pl/ documents, equivalent language links, a neutral root chooser and explicit legacy ?lang= handling are implemented. Awaiting CI artifact verification."
     },
     {
       "id": "CC-8",
