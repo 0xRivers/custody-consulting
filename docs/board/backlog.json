@@ -361,7 +361,7 @@
       ],
       "status": "Backlog",
       "acceptance": [
-        "Publish booking entry routes at /en/book/ and /pl/rezerwacja/ with localized confirmation and booking-management links.",
+        "Make the free discovery call the primary public booking action in English and Polish. Send paid booking links manually after discovery and keep them off public pages.",
         "Use Cal.com for scheduling, Stripe Checkout for fiat including BLIK, and BTCPay Server for Bitcoin.",
         "Require the staging acceptance checks in CC-33 before promotion."
       ]
@@ -529,7 +529,8 @@
         "Confirm merchant country, Stripe eligibility, fixed EUR and PLN prices, and full payment versus deposit.",
         "Approve bilingual cancellation, rescheduling, privacy and refund terms, including whether BTC refunds use the original BTC amount or the fiat equivalent at refund time.",
         "Agree tax presentation, receipt and invoice requirements for both payment rails."
-      ]
+      ],
+      "notes": "Owner confirmed a Polish-incorporated business and the booking sequence: a free 15-minute discovery call first, followed by the 60-minute starter consultation at a fixed 420 PLN, payable in full at booking. Stripe account creation and verification are pending. Confirm whether launch is PLN-only, plus cancellation, refunds, tax presentation and invoicing."
     },
     {
       "id": "CC-30",
@@ -541,8 +542,9 @@
       "dependencies": ["CC-29"],
       "status": "Backlog",
       "acceptance": [
-        "Verify the configured Cal.com event and API support the hold and confirmation flow before integration.",
-        "Build localized service selection, availability, pending payment, confirmation and secure manage-booking links.",
+        "Verify the configured Cal.com event and API support the hold and confirmation flow before integration. Record the discovery and starter event identifiers and verify that the paid event cannot be confirmed by bypassing checkout.",
+        "Make the free 15-minute discovery call the first booking step in both languages, with no checkout. Offer the 60-minute starter consultation at a fixed 420 PLN as a separate booking after discovery, with full payment required at booking.",
+        "Provide localized availability, payment status, confirmation and secure management through the private follow-up flow.",
         "Use one expiring hold per slot across payment methods and release unpaid holds. Collect only necessary details and never request wallet secrets."
       ]
     },
@@ -556,7 +558,10 @@
       "dependencies": ["CC-30"],
       "status": "Backlog",
       "acceptance": [
-        "Create hosted Checkout sessions linked to the booking hold with server-controlled prices. Offer BLIK on eligible PLN checkouts and cards and eligible wallets on fiat checkouts.",
+        "Complete Stripe onboarding for the Polish business and verify card and BLIK availability for the merchant account before the live pilot.",
+        "In the Custody Consulting sandbox, create a server-side hosted Checkout Session for 420 PLN (42000 minor units) against an active starter booking hold. Enable cards and BLIK via Stripe payment method settings and verify BLIK appears on eligible PLN checkouts.",
+        "Use a sandbox restricted API key and separate webhook signing secret in the backend secret store. Keep credentials out of the static Astro build.",
+        "Coordinate Checkout expiry with hold expiry. Route payments arriving after release to reconciliation without booking the slot.",
         "Verify signed webhook events, paid status, amount and currency before confirming a booking. Process retries idempotently.",
         "Test BLIK and card success, cancellation, failure, refunds and receipt reconciliation."
       ]

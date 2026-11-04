@@ -6,10 +6,12 @@ import { alternateLocale, getContent, type Locale } from '../lib/i18n';
 interface Props {
   lang: Locale;
   alternateHref?: string;
+  primaryAction?: { href: string; label: string };
 }
 
-const { lang, alternateHref } = Astro.props;
+const { lang, alternateHref, primaryAction } = Astro.props;
 const t = getContent(lang);
+const action = primaryAction ?? { href: `/${lang}/#contact`, label: t.nav.cta };
 const alternate = alternateLocale(lang);
 const alternateName = alternate === 'pl' ? 'Polski' : 'English';
 ---
@@ -40,7 +42,7 @@ const alternateName = alternate === 'pl' ? 'Polski' : 'English';
       <a class="language-link" href={alternateHref ?? `/${alternate}/`} hreflang={alternate} lang={alternate} aria-label={`${t.nav.language}: ${alternateName}`}>
         {alternate.toUpperCase()}
       </a>
-      <a class="button button--small desktop-cta" href={`/${lang}/#contact`}>{t.nav.cta}</a>
+      <a class="button button--small desktop-cta" href={action.href}>{action.label}</a>
       <details class="mobile-menu">
         <summary aria-label="Menu"><span></span><span></span><span></span></summary>
         <nav aria-label={t.nav.label}>
@@ -49,7 +51,7 @@ const alternateName = alternate === 'pl' ? 'Polski' : 'English';
           <a href={`/${lang}/#process`}>{t.nav.process}</a>
           <a href={`/${lang}/#faq`}>{t.nav.faq}</a>
           <a href={`/${lang}/blog/`}>{t.nav.blog}</a>
-          <a href={`/${lang}/#contact`}>{t.nav.cta}</a>
+          <a href={action.href}>{action.label}</a>
         </nav>
       </details>
     </div>

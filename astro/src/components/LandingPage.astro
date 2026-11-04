@@ -17,6 +17,7 @@ const alternate = alternateLocale(lang);
 const discoveryUrl = buildEnvironment(process.env.SITE_ENV).name === 'staging'
   ? 'https://cal.com/custody.consulting/discovery'
   : undefined;
+const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : 'Book a free discovery call (15 min)';
 ---
 <Base
   title={t.meta.title}
@@ -26,7 +27,7 @@ const discoveryUrl = buildEnvironment(process.env.SITE_ENV).name === 'staging'
   alternatePaths={[{ lang, path: `/${lang}/` }, { lang: alternate, path: `/${alternate}/` }]}
   xDefaultPath="/"
 >
-  <SiteHeader lang={lang} />
+  <SiteHeader lang={lang} primaryAction={discoveryUrl ? { href: discoveryUrl, label: discoveryLabel } : undefined} />
 
   <main id="content">
     <section id="top" class="hero">
@@ -48,8 +49,8 @@ const discoveryUrl = buildEnvironment(process.env.SITE_ENV).name === 'staging'
         <h1>{t.hero.title}</h1>
         <p class="hero__lead">{t.hero.sub}</p>
         <div class="button-row">
-          <a class="button" href="#services">{t.hero.cta}</a>
-          <a class="button button--ghost" href="#process">{t.hero.cta2}</a>
+          <a class="button" href={discoveryUrl ?? '#services'}>{discoveryUrl ? discoveryLabel : t.hero.cta}</a>
+          <a class="button button--ghost" href={discoveryUrl ? '#services' : '#process'}>{discoveryUrl ? t.hero.cta : t.hero.cta2}</a>
         </div>
         <ul class="signals" aria-label={lang === 'pl' ? 'Najważniejsze zasady' : 'Key principles'}>
           {t.hero.signals.map((signal) => <li><span class="dot"></span>{signal}</li>)}
@@ -135,7 +136,7 @@ const discoveryUrl = buildEnvironment(process.env.SITE_ENV).name === 'staging'
           <div class="contact-card__status">
             {discoveryUrl ? (
               <a class="button" href={discoveryUrl}>
-                {lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : 'Book a free discovery call (15 min)'}
+                {discoveryLabel}
               </a>
             ) : (
               <>
