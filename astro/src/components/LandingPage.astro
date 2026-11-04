@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { buildEnvironment } from '../../environment.mjs';
 import hero from '../../../src/assets/hero-vault.jpg';
 import Base from '../layouts/Base.astro';
 import SiteFooter from './SiteFooter.astro';
@@ -13,6 +14,9 @@ interface Props {
 const { lang } = Astro.props;
 const t = getContent(lang);
 const alternate = alternateLocale(lang);
+const discoveryUrl = buildEnvironment(process.env.SITE_ENV).name === 'staging'
+  ? 'https://cal.com/custody.consulting/discovery'
+  : undefined;
 ---
 <Base
   title={t.meta.title}
@@ -129,8 +133,16 @@ const alternate = alternateLocale(lang);
             {t.contact.prompts.map((prompt) => <li><span aria-hidden="true">→</span>{prompt}</li>)}
           </ul>
           <div class="contact-card__status">
-            <strong>{t.contact.status}</strong>
-            <p>{t.contact.availability}</p>
+            {discoveryUrl ? (
+              <a class="button" href={discoveryUrl}>
+                {lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : 'Book a free discovery call (15 min)'}
+              </a>
+            ) : (
+              <>
+                <strong>{t.contact.status}</strong>
+                <p>{t.contact.availability}</p>
+              </>
+            )}
           </div>
         </aside>
       </div>
