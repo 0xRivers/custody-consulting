@@ -1,6 +1,6 @@
 {
-  "title": "Custody Consulting \u00b7 Astro rollout",
-  "updated": "2026-11-03",
+  "title": "Custody Consulting · Astro rollout",
+  "updated": "2026-11-07",
   "items": [
     {
       "id": "CC-1",
@@ -133,12 +133,13 @@
         "CC-6",
         "CC-7"
       ],
-      "status": "Backlog",
+      "status": "In progress",
       "acceptance": [
         "Publish clear services and a verifiable consultant biography in both languages.",
         "Confirm package scope, prices, currency and tax presentation.",
         "Include actual contact details and business information without invented credentials."
-      ]
+      ],
+      "notes": "Bilingual homepage service cards now cover Foundation (1h), Self-Custody Essentials (7h), Transaction Support and Family & Business Continuity, with optimized stock photos and no published service prices. Audience section added for five client situations. Local staging build passed; homepage script supplied. Consultant biography/business details and final publication acceptance remain open."
     },
     {
       "id": "CC-9",
@@ -359,12 +360,13 @@
         "CC-8",
         "CC-33"
       ],
-      "status": "Backlog",
+      "status": "In progress",
       "acceptance": [
         "Make the free discovery call the primary public booking action in English and Polish. Send paid booking links manually after discovery and keep them off public pages.",
         "Use Cal.com for scheduling, Stripe Checkout for fiat including BLIK, and BTCPay Server for Bitcoin.",
         "Require the staging acceptance checks in CC-33 before promotion."
-      ]
+      ],
+      "notes": "Private Nostr-allowlisted invitations, bilingual native scheduling, Stripe/BTCPay handoff, signed settlement and automatic Cal confirmation are implemented and exercised on staging. Owner confirmed EN/PL success and result/Cal outcomes. Production promotion waits for CC-33/CC-40."
     },
     {
       "id": "CC-21",
@@ -377,12 +379,13 @@
         "CC-5",
         "CC-9"
       ],
-      "status": "Backlog",
+      "status": "In progress",
       "acceptance": [
         "Build once per deployment from a locked clean install; deploy the tested artifact.",
         "Replace app.js-specific activation assumptions with HTML/artifact checks.",
         "Preserve separate keys, users, directories and ports; make reruns recoverable."
-      ]
+      ],
+      "notes": "Astro staging CI and working-tree snapshot deployment scripts exist. Activation helpers still require an app.js marker; production full-site CI/artifact migration remains open. The production holding page is a separate snapshot."
     },
     {
       "id": "CC-22",
@@ -396,12 +399,13 @@
         "CC-16",
         "CC-21"
       ],
-      "status": "Backlog",
+      "status": "In progress",
       "acceptance": [
         "Staging requires noindex headers/meta and no production sitemap exposure.",
         "Production must have no noindex and must use production canonical/hreflang/sitemap URLs.",
         "Fail deployment checks on draft leaks, missing assets, malformed markup or wrong hostnames."
-      ]
+      ],
+      "notes": "Staging noindex checks and local production metadata contracts exist. Booking origin/live-mode isolation guards are deployed to staging. Complete production release checks remain unverified."
     },
     {
       "id": "CC-23",
@@ -419,12 +423,13 @@
         "CC-20",
         "CC-22"
       ],
-      "status": "Backlog",
+      "status": "In progress",
       "acceptance": [
         "Review desktop/mobile layouts, keyboard navigation, language links, forms, articles and 404s.",
         "Verify content is present with JavaScript disabled and links return expected statuses.",
         "Record evidence and resolve launch-blocking issues; confirm noindex remains active."
-      ]
+      ],
+      "notes": "Owner has reviewed multiple booking/result screens and confirmed payment/Cal outcomes; homepage services and audience changes build successfully. Full desktop/mobile, keyboard, no-JS, article and launch review remains open."
     },
     {
       "id": "CC-24",
@@ -493,7 +498,7 @@
       ],
       "status": "Backlog",
       "acceptance": [
-        "Check availability, 404s, forms and performance within 24\u201348 hours.",
+        "Check availability, 404s, forms and performance within 24–48 hours.",
         "Review indexing/canonical/language reports at one and four weeks; track staging exclusions.",
         "Prioritise evidence-based fixes; document any AI referrals without assuming complete attribution."
       ]
@@ -523,30 +528,33 @@
       "priority": "P0",
       "owner": "Owner",
       "size": "S",
-      "dependencies": ["CC-1"],
-      "status": "Backlog",
+      "dependencies": [
+        "CC-1"
+      ],
+      "status": "In progress",
       "acceptance": [
         "Confirm merchant country, Stripe eligibility, fixed EUR and PLN prices, and full payment versus deposit.",
         "Approve bilingual cancellation, rescheduling, privacy and refund terms, including whether BTC refunds use the original BTC amount or the fiat equivalent at refund time.",
         "Agree tax presentation, receipt and invoice requirements for both payment rails."
       ],
-      "notes": "Owner confirmed a Polish-incorporated business and the booking sequence: a free 15-minute discovery call first, followed by the 60-minute starter consultation at a fixed 420 PLN, payable in full at booking. Stripe account creation and verification are pending. Confirm whether launch is PLN-only, plus cancellation, refunds, tax presentation and invoicing."
+      "notes": "Owner approved Foundation 420 PLN, EUR 95 and GBP 80, full payment, and a 10% BTC discount (378 PLN invoice base). Fixed ratios derive prices from one editable anchor; USD is a display equivalent, not an enabled charge currency. Polish business; Stripe sandbox card/BLIK, receipts and refunds previously tested. Cancellation/rescheduling, BTC refund policy, tax and live account eligibility still need explicit final approval."
     },
     {
       "id": "CC-30",
-      "title": "Build bilingual booking pages and Cal.com slot holds",
+      "title": "Define the private paid consultation workflow",
       "phase": "Content",
       "priority": "P0",
       "owner": "Engineering",
       "size": "M",
-      "dependencies": ["CC-29"],
-      "status": "Backlog",
+      "dependencies": [],
+      "status": "Done",
       "acceptance": [
-        "Verify the configured Cal.com event and API support the hold and confirmation flow before integration. Record the discovery and starter event identifiers and verify that the paid event cannot be confirmed by bypassing checkout.",
-        "Make the free 15-minute discovery call the first booking step in both languages, with no checkout. Offer the 60-minute starter consultation at a fixed 420 PLN as a separate booking after discovery, with full payment required at booking.",
-        "Provide localized availability, payment status, confirmation and secure management through the private follow-up flow.",
-        "Use one expiring hold per slot across payment methods and release unpaid holds. Collect only necessary details and never request wallet secrets."
-      ]
+        "Use a free discovery call before issuing a private paid Foundation invitation in the client language.",
+        "Allow the invited client to select an available slot; hold it for a defined 35-minute payment window across payment methods.",
+        "Automatically confirm only after verified provider settlement against the immutable booking price; persist booking reference, provider identity and status.",
+        "Release definitive unpaid expiry. Route late payments to review; require signed operator preview and confirmation for replacement bookings after checking availability. Never request wallet secrets."
+      ],
+      "notes": "Private workflow implemented and exercised on staging: free discovery first; allowlisted Nostr admin issues expiring invitations; client selects an available slot; 35-minute payment hold; verified signed settlement auto-confirms Cal; definitive unpaid expiry rejects/releases. Late payment enters review, and signed operator preview/confirm can create a replacement after availability/payment checks. Owner confirmed successful normal and late-resolution flows. Commercial terms remain tracked in CC-29."
     },
     {
       "id": "CC-31",
@@ -555,31 +563,37 @@
       "priority": "P0",
       "owner": "Engineering",
       "size": "M",
-      "dependencies": ["CC-30"],
-      "status": "Backlog",
+      "dependencies": [
+        "CC-30"
+      ],
+      "status": "In progress",
       "acceptance": [
         "Complete Stripe onboarding for the Polish business and verify card and BLIK availability for the merchant account before the live pilot.",
-        "In the Custody Consulting sandbox, create a server-side hosted Checkout Session for 420 PLN (42000 minor units) against an active starter booking hold. Enable cards and BLIK via Stripe payment method settings and verify BLIK appears on eligible PLN checkouts.",
-        "Use a sandbox restricted API key and separate webhook signing secret in the backend secret store. Keep credentials out of the static Astro build.",
-        "Coordinate Checkout expiry with hold expiry. Route payments arriving after release to reconciliation without booking the slot.",
-        "Verify signed webhook events, paid status, amount and currency before confirming a booking. Process retries idempotently.",
+        "In the Custody Consulting sandbox, test a private Stripe-hosted payment link for 420 PLN, limited to one completed checkout and associated with the held appointment. Verify cards and BLIK on eligible PLN checkouts.",
+        "Deactivate unpaid links when the hold expires and reconcile any late payments before offering another slot.",
+        "Verify settled status, amount, currency and booking reference in Stripe before manually confirming. Require signed and idempotent webhooks if confirmation is later automated.",
         "Test BLIK and card success, cancellation, failure, refunds and receipt reconciliation."
-      ]
+      ],
+      "notes": "Stripe sandbox cards/BLIK, receipts/refunds and signed automatic Cal confirmation tested. Owner reports EUR 95 and GBP 80 checkout success and card-to-BTC switching with discount. Recovery deployed/enabled after verifying restricted-key Events read permission. Controlled missed-webhook recovery test and live account/pilot checks remain open."
     },
     {
       "id": "CC-32",
-      "title": "Integrate BTCPay Server for Bitcoin payments",
+      "title": "Set up private Bitcoin invoices in BTCPay Server",
       "phase": "Content",
       "priority": "P0",
       "owner": "Engineering",
       "size": "M",
-      "dependencies": ["CC-30"],
-      "status": "Backlog",
+      "dependencies": [
+        "CC-30"
+      ],
+      "status": "In progress",
       "acceptance": [
-        "Configure pay.custody.consulting and generate expiring BTC invoices from the approved EUR or PLN price. Offer on-chain Bitcoin and validate Lightning for introductory calls or deposits.",
-        "Confirm only from verified settlement events. Handle late, partial and duplicate payments and reconcile approved refunds.",
+        "Use a separate Bitcoin test-network store and create an expiring 420 PLN invoice for an agreed appointment. Send its checkout link privately after discovery.",
+        "Verify on-chain settlement in BTCPay before manually confirming the appointment. Test late, partial and duplicate payments and reconcile approved refunds.",
+        "Verify the live payment hostname and wallet setup before the production pilot. Test Lightning separately if enabled.",
         "Keep checkout credentials server-side and document wallet recovery and settlement operations."
-      ]
+      ],
+      "notes": "Testnet3 on-chain invoices, settlement, one-confirmation UI/block height, bilingual result/email flow, expiry/release and paid-late manual resolution tested by owner. Owner confirms 378 PLN BTC discount and correct Cal/result outcomes. Recovery deployed/enabled. Mainnet store/wallet release checks, controlled missed-webhook recovery and remaining partial/duplicate/refund acceptance remain open; Lightning tracked separately."
     },
     {
       "id": "CC-33",
@@ -588,13 +602,280 @@
       "priority": "P0",
       "owner": "Owner + Engineering",
       "size": "M",
-      "dependencies": ["CC-31", "CC-32"],
-      "status": "Backlog",
+      "dependencies": [
+        "CC-31",
+        "CC-32"
+      ],
+      "status": "In progress",
       "acceptance": [
         "Use test payment environments and verify EN/PL checkout, confirmation emails, rescheduling, cancellations and refunds.",
-        "Test simultaneous slot claims, expired holds, late settlement and replayed webhooks. Confirm one booking and route excess payments for reconciliation.",
+        "Test expired holds, late settlement, repeat link use and duplicate payments across providers. Confirm one booking and route excess payments for reconciliation.",
         "Verify staging noindex and document provider setup and release checks for production approval."
+      ],
+      "notes": "Owner confirmed EUR/GBP checkout, discounted BTC invoice (378 PLN), card-to-BTC discount, result page and Cal confirmation all passed. Earlier tests verified EN/PL settlement, unpaid expiry with slot release, late-payment review and manual replacement confirmation. Runtime/recovery deployment and SQLite backup/isolated restore passed 2026-11-07. Controlled missed-webhook tests have been requested but not reported complete. Remaining reschedule/cancel/refund and duplicate/partial acceptance need explicit evidence."
+    },
+    {
+      "id": "CC-34",
+      "title": "Set up a confirmation page for discovery calls",
+      "phase": "Content",
+      "priority": "P1",
+      "owner": "Engineering",
+      "size": "S",
+      "dependencies": [
+        "CC-33"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Keep one shared Cal.com event for the free 15-minute discovery call. Verify how the booking flow can preserve the source page language through the successful booking redirect, and route EN and PL visitors to their matching confirmation pages.",
+        "Accept only en and pl as language values. For direct Cal.com visits or missing or invalid language values, show a bilingual language chooser with links to both confirmation pages.",
+        "Explain where to find the calendar invite, meeting link and reschedule or cancellation options.",
+        "Keep paid consultation links off the page and keep confirmation pages out of search indexes.",
+        "Verify the redirect and confirmation copy with a test booking from each staging language page and test the fallback from the shared Cal.com link."
       ]
+    },
+    {
+      "id": "CC-35",
+      "title": "Connect the VPS to Umbrel BTCPay over Tailscale",
+      "phase": "Deployment",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "S",
+      "dependencies": [],
+      "status": "In progress",
+      "acceptance": [
+        "Identify the BTCPay local scheme and port. Enroll VPS 151 and Umbrel or an always-on home gateway in the same Tailscale network.",
+        "Restrict access to the BTCPay web port. If using a subnet router, advertise only the Umbrel host route and restrict access with Tailscale policy.",
+        "Verify that an HTTP request from the VPS reaches the BTCPay web service over Tailscale."
+      ],
+      "notes": "BTCPay is installed on Umbrel and generated a 420 PLN invoice using the BitPay BTC_PLN rule. The workspace cannot reach VPS SSH. Awaiting the local BTCPay base URL and VPS Tailscale status."
+    },
+    {
+      "id": "CC-36",
+      "title": "Route the public BTCPay hostname through Caddy",
+      "phase": "Deployment",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "S",
+      "dependencies": [
+        "CC-35"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Point pay.custody.consulting at VPS 151. Validate and reload a dedicated Caddy route to BTCPay over Tailscale.",
+        "Configure the public HTTPS base URL and verify that checkout assets and status updates work. Keep Umbrel management, Bitcoin RPC and BTCPay administration private.",
+        "Record the Caddy rollback steps and verify existing sites after the reload."
+      ]
+    },
+    {
+      "id": "CC-37",
+      "title": "Verify external Bitcoin checkout and settlement",
+      "phase": "Quality",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "S",
+      "dependencies": [
+        "CC-36"
+      ],
+      "status": "Review",
+      "acceptance": [
+        "Open a fresh unpaid 420 PLN invoice on mobile data. Verify HTTPS, the public hostname, BTC amount, QR code and expiry.",
+        "Verify settlement on a test network or use a separately approved low-value mainnet invoice before sharing real client links."
+      ],
+      "notes": "The public checkout showed payment received and awaiting one confirmation for CC-37-TEST. The owner confirmed the 10 PLN on-chain mainnet invoice reached Settled. Whether the public checkout advanced to Settled without a manual refresh is unverified."
+    },
+    {
+      "id": "CC-38",
+      "title": "Add discount codes to Foundation bookings across PLN and BTC",
+      "phase": "Content",
+      "priority": "P2",
+      "owner": "Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-33"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Add an optional, collapsed Have a discount code? / Masz kod rabatowy? control before checkout creation. Apply or remove a code without creating a Cal booking. Show the original PLN price, discount and final total in the selected language; changing between PLN and BTC preserves the applied code.",
+        "Use one server-owned code catalogue for both payment methods. Support percentage or fixed-PLN discounts, activation and expiry timestamps, disabling, Foundation-only eligibility and global usage limits. Normalize codes consistently, allow one code per booking and reject stacking, 100% discounts or totals below the configured positive checkout minimum. Keep referral schemes, bundles and customer segmentation out of the first version.",
+        "Calculate amounts on the server using integer grosz and a documented percentage-rounding rule. Never trust a submitted discount or total. Persist an immutable booking price snapshot: original amount, code ID/version, discount, net PLN amount and currency before creating a payment request.",
+        "Charge the same discounted PLN value through Stripe or use it as the fiat price for the BTCPay invoice, which quotes the BTC amount at invoice creation. For example, 10% off 420 PLN produces a 42 PLN discount and a 378 PLN invoice on either rail. Do not apply a second provider-side discount or attempt to reuse the original BTC quote after expiry.",
+        "Replace the fixed 420 PLN settlement assumption with verification against each booking's persisted net price and linked provider invoice/session. Verify the expected currency and settlement rules for each rail. Keep verified, signed and idempotent settlement as the prerequisite for Cal confirmation; show the stored discount and total on the confirmation page and in appropriate receipts.",
+        "Reserve limited-use code capacity atomically with the payment attempt and consume it once on eligible settlement. Release unpaid reservations on definitive checkout expiry or cancellation. Duplicate submissions, webhook retries, provider switching and concurrent customers must not exceed the limit or redeem the code twice. A late payment after release requires reconciliation rather than automatic redemption or confirmation.",
+        "Freeze the price once checkout exists. Reject code changes on an active invoice/session; any replacement flow must first invalidate the old payment request and preserve one booking and one redemption. Refund calculations use the actual discounted amount paid. Obtain the owner's policy for whether cancellation or refund restores a code before implementing automatic restoration.",
+        "Provide a restricted operator command or existing admin mechanism to create, disable and inspect codes and usage without exposing credentials. Record code changes and redemptions for reconciliation. Rate-limit validation attempts and do not send submitted customer details to public logs.",
+        "Verify valid, unknown, expired, disabled, ineligible and exhausted codes; both discount types and rounding; invalid client totals; concurrent final-use attempts; abandoned checkout and slot expiry; provider switching; duplicate or late settlement; and refunds. Test EN/PL display and real discounted Stripe sandbox plus BTCPay test-network settlement before a live pilot."
+      ],
+      "notes": "Future enhancement scoped on November 5, 2026; no discount UI, code catalogue or payment behavior is implemented by this item. Implement after the baseline paid booking flow passes CC-33. Prefer a shared application-level price calculation over Stripe-only promotion codes so PLN and BTC have matching eligibility, usage limits and pricing. Owner decisions before implementation: campaign values, eligibility dates and limits, minimum payable total, and restoration policy after refunds or cancellation."
+    },
+    {
+      "id": "CC-39",
+      "title": "Persist booking price, currency and payment rail before production",
+      "phase": "Payment expansion",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [],
+      "status": "In progress",
+      "acceptance": [
+        "Store an immutable server-calculated amount/currency/version snapshot before checkout. Approved initial catalogue: PLN 420, EUR 95, GBP 80; new BTC bookings receive 10% off the PLN base. Existing checkouts keep their agreed price.",
+        "Validate both provider settlement and manual late-payment resolution against the stored snapshot; remove global fixed-price assumptions from creation, recovery, result UI and refunds.",
+        "Separate language, price currency, provider and rail (card/BLIK, Bitcoin on-chain, Lightning). Preserve existing client contracts through an explicit compatibility mapping; currency is not a payment method.",
+        "Migrate existing bookings conservatively with the known legacy 420 PLN price; retain payment IDs, tokens and provider associations. Test migration, tampered totals, switching, late settlement and duplicate notifications."
+      ],
+      "notes": "Stored immutable amount/currency/version snapshots now drive checkout creation, BTC recovery, automatic settlement, late-payment resolution and result display. Legacy records retain 420 PLN; approved EUR/GBP catalogue and 10% new-BTC pricing deployed/tested. Owner reports card-to-BTC discount passed. A fully explicit rail model and complete historical migration/refund acceptance remain to verify before closure."
+    },
+    {
+      "id": "CC-40",
+      "title": "Make production configuration explicit and verify recovery",
+      "phase": "Payment expansion",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-39",
+        "CC-33"
+      ],
+      "status": "In progress",
+      "acceptance": [
+        "Centralize validated public site/API/return origins, environment and Bitcoin network; eliminate hard-coded staging URLs and integration identifiers from the production path. Reject mismatched live/test configurations.",
+        "Isolate production and staging credentials, databases, stores and webhooks. Verify supported Node runtime on build host and VPS, backup restoration and rollback without losing paid-booking records.",
+        "Add bounded provider reconciliation for pending payments and unresolved late-payment cases after missed webhooks or restarts; reuse verified, idempotent decisions and never reclaim a released slot automatically.",
+        "Expose actionable operator failures for payment verified but Cal confirmation failed; exercise retry/recovery and establish an operator review procedure.",
+        "Complete remaining CC-33 scenarios and owner-approved low-value live pilot, including refund and webhook-outage recovery, before enabling real client invitations."
+      ],
+      "notes": "Environment-specific origin, Stripe mode, BTCPay identity and production database guards deployed to staging. Node 24 deployment preflight passed without old engine warnings. On 2026-11-07 owner reported Events-read preflight, SQLite backup/isolated restore, running BTC/Stripe recovery flags and HTTP400 unsigned-webhook check passed. Recovery is enabled; controlled missed-webhook tests are still pending. Production provisioning, runtime verification, off-server backup drill, operator retry evidence and live pilot remain open."
+    },
+    {
+      "id": "CC-41",
+      "title": "Evaluate Blink through BTCPay versus direct Lightning API",
+      "phase": "Payment expansion",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "S",
+      "dependencies": [],
+      "status": "Backlog",
+      "acceptance": [
+        "Test the official Blink BTCPay plugin against the actual Umbrel/BTCPay version; verify installation, account model, BTC wallet, minimum Read/Receive permissions and available test environment.",
+        "Prefer BTCPay as invoice authority if the plugin passes; document direct Blink adapter only as fallback, including authenticated callbacks, provider re-read, payment-hash correlation and recovery after missed events.",
+        "Record custody choice, fees, limits, liquidity/service availability, balance monitoring, withdrawal procedure and refund ownership. Choose BTC settlement explicitly; do not silently select Stablesats.",
+        "Document actual Lightning expiry and on-chain/LN concurrent-payment behavior before deciding how methods can coexist. No live activation as part of this investigation."
+      ],
+      "notes": "Planned 2026-11-06. See docs/PAYMENT-EXPANSION.md. Planning only; not implemented or deployed."
+    },
+    {
+      "id": "CC-42",
+      "title": "Add Lightning checkout and rail-specific payment status",
+      "phase": "Payment expansion",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "L",
+      "dependencies": [
+        "CC-39",
+        "CC-41"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Enable Lightning behind a feature flag after extending the current on-chain-only BTCPay adapter; do not assume installing the plugin alone enables application support.",
+        "Persist invoice and Lightning payment-hash association; verify amount, currency, reference and settled state server-side before confirming Cal exactly once.",
+        "Show Lightning waiting/paid states and payment reference without blockchain confirmations, block height or mining loader. Preserve on-chain confirmation UI.",
+        "Test expiry, payment at expiry, duplicate and out-of-order events, missing webhooks, restart, provider outage, invoice regeneration and both rails paid. Extra or late payments enter review; released slots require explicit resolution.",
+        "Run staging-compatible tests and a separately approved limited live pilot; provide disable and recovery procedures."
+      ],
+      "notes": "Planned 2026-11-06. See docs/PAYMENT-EXPANSION.md. Planning only; not implemented or deployed."
+    },
+    {
+      "id": "CC-43",
+      "title": "Approve multi-currency pricing and enable PLN EUR CHF GBP USD",
+      "phase": "Payment expansion",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "L",
+      "dependencies": [
+        "CC-39"
+      ],
+      "status": "In progress",
+      "acceptance": [
+        "Use owner-approved fixed ratios derived from one editable PLN/EUR/GBP anchor. Initial prices are PLN 420, EUR 95 and GBP 80. Obtain explicit prices before enabling CHF or USD charge currencies; USD payment equivalents are informational.",
+        "Let clients select charge currency independently from language and payment rail before checkout. Show the final charge currency and total clearly; disable currencies without approved prices.",
+        "Freeze price/currency once a payment request exists; replacement requires safe invalidation or review of the existing request. Preserve booking identity and prevent two payable checkouts.",
+        "Validate merchant-specific Stripe currency/method support, BTCPay rates and settlement/accounting needs. Offer BLIK only for eligible PLN checkouts; do not treat display conversion as a different charge currency.",
+        "Test each enabled currency across eligible rails, formatting, rounding, refunds, receipts, tampering and late reconciliation. Extend CC-38 discounts using the same pricing snapshot rather than a second price engine."
+      ],
+      "notes": "PLN 420, EUR 95 and GBP 80 approved, implemented and owner-tested on staging. One configurable anchor updates all approved fixed ratios; currency selection is a compact BTC/PLN/EUR/GBP row. BTC sats estimate and small USD equivalent are display-only; USD and CHF charge currencies remain disabled and unpriced. Multi-currency refund and additional rail acceptance remain open."
+    },
+    {
+      "id": "CC-44",
+      "title": "Centralize locale configuration and translation keys",
+      "phase": "Localization",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [],
+      "status": "Backlog",
+      "acceptance": [
+        "Keep existing /en/ and /pl/ public routes. Centralize supported locales, translated messages and equivalent-page mappings; audit hard-coded en/pl checks across pages, service and Cal integration.",
+        "Persist customer locale independently from price currency and rail; preserve it through invitations, provider redirects, payment result, review resolution and emails.",
+        "Use Intl formatting for money, dates and numbers with explicit customer timezone. Define honest fallback when a payment provider or Cal lacks a translation.",
+        "Test translation-key completeness, mobile text expansion and accessibility. Additional locales remain disabled until complete and reviewed; do not silently change language based on currency."
+      ],
+      "notes": "Planned 2026-11-06. See docs/PAYMENT-EXPANSION.md. Planning only; not implemented or deployed."
+    },
+    {
+      "id": "CC-45",
+      "title": "Roll out additional language directories and localized payment routes",
+      "phase": "Localization",
+      "priority": "P2",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-44"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Choose new languages based on demand and owner-approved translation capacity; use custody.consulting/{locale}/ with reviewed equivalent pages.",
+        "If moving utility routes under locale prefixes, preserve existing /payment and /payment/result links, checkout query tokens and invitation fragments through a tested compatibility route; fragments are not available to server redirects.",
+        "Publish reciprocal hreflang, self-canonicals and sitemap entries only for complete published translations; keep admin/private payment routes noindex and retain deliberate root chooser behavior.",
+        "Verify end-to-end booking, payment, emails and manual resolution in every enabled locale. Do not publish placeholder or unreviewed translations."
+      ],
+      "notes": "Planned 2026-11-06. See docs/PAYMENT-EXPANSION.md. Planning only; not implemented or deployed."
+    },
+    {
+      "id": "CC-46",
+      "title": "Verify missed-webhook recovery on staging",
+      "phase": "Quality",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-31",
+        "CC-32",
+        "CC-40"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Temporarily disable only the Stripe staging endpoint, complete one new sandbox checkout and verify the recovery worker confirms exactly one Cal booking and result without webhook delivery. Re-enable endpoint immediately afterward.",
+        "Repeat with the test-network BTCPay endpoint. Verify the slot is not released while an on-time payment awaits settlement.",
+        "Redeliver provider events after recovery; ensure no duplicate booking/confirmation or price change. Record timestamps and outcomes without publishing customer data or secrets."
+      ],
+      "notes": "Created during 2026-11-07 reconciliation. Not yet verified."
+    },
+    {
+      "id": "CC-47",
+      "title": "Verify off-server backup recovery and production code rollback",
+      "phase": "Quality",
+      "priority": "P0",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-40"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Retain an encrypted or access-controlled off-server database backup and separately protected configuration; prove restoration into an isolated environment.",
+        "Verify representative booking references, provider IDs, invitation and review/resolution records survive restoration. Never send test confirmations to real clients during a drill.",
+        "Exercise previous-code rollback against additive schema changes without rewinding the live payment database. Record procedures and evidence."
+      ],
+      "notes": "Created during 2026-11-07 reconciliation. Not yet verified."
     }
   ]
 }
