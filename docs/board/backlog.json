@@ -740,10 +740,10 @@
         "Centralize validated public site/API/return origins, environment and Bitcoin network; eliminate hard-coded staging URLs and integration identifiers from the production path. Reject mismatched live/test configurations.",
         "Isolate production and staging credentials, databases, stores and webhooks. Verify supported Node runtime on build host and VPS, backup restoration and rollback without losing paid-booking records.",
         "Add bounded provider reconciliation for pending payments and unresolved late-payment cases after missed webhooks or restarts; reuse verified, idempotent decisions and never reclaim a released slot automatically.",
-        "Expose actionable operator failures for payment verified but Cal confirmation failed; exercise retry/recovery and establish an operator review procedure.",
-        "Complete remaining CC-33 scenarios and owner-approved low-value live pilot, including refund and webhook-outage recovery, before enabling real client invitations."
+        "Expose actionable operator failures for payment verified but Cal confirmation failed; document the operator review procedure.",
+        "Complete remaining CC-33 scenarios and owner-approved low-value live pilot, including webhook-outage recovery, before enabling real client invitations."
       ],
-      "notes": "Production booking service and staff-only pages deployed with separate credentials, database, Cal event and webhooks. Owner verified the unpaid BTC expiry/resume flow and reports completing production payment tests on both Bitcoin on-chain and Lightning. Stripe Events-read preflight and unsigned webhook rejection passed. Staging Stripe missed-webhook recovery passed; CC-46 tracks remaining staging recovery evidence. Production refund, webhook-outage recovery, operator retry evidence and off-server backup/rollback drill remain open."
+      "notes": "Production booking service and staff-only pages deployed with separate credentials, database, Cal event and webhooks. Owner verified the unpaid BTC expiry/resume flow and reports completing production payment tests on both Bitcoin on-chain and Lightning. Stripe Events-read preflight and unsigned webhook rejection passed. Staging Stripe missed-webhook recovery passed; CC-46 tracks remaining staging recovery evidence. Owner waived production refund testing. Owner reports production webhook-outage recovery was already tested for both BTCPay and Stripe. Owner also waived the live operator retry drill for verified payments that fail to confirm in Cal. The off-server backup and isolated previous-code rollback drill passed under CC-47."
     },
     {
       "id": "CC-41",
@@ -869,13 +869,13 @@
       "dependencies": [
         "CC-40"
       ],
-      "status": "Backlog",
+      "status": "Done",
       "acceptance": [
         "Retain an encrypted or access-controlled off-server database backup and separately protected configuration; prove restoration into an isolated environment.",
         "Verify representative booking references, provider IDs, invitation and review/resolution records survive restoration. Never send test confirmations to real clients during a drill.",
         "Exercise previous-code rollback against additive schema changes without rewinding the live payment database. Record procedures and evidence."
       ],
-      "notes": "Created during 2026-11-07 reconciliation. Not yet verified."
+      "notes": "Owner verified on 2026-11-08 that the AES-256 encrypted production database backup restored off-server and passed SQLite integrity checks. The restored snapshot contained one booking, one linked payment and four invitations; it contained no review or resolution records. The previous production entry point opened the restored schema and created one isolated test invite with networking disabled. The live production service stayed active. A separate encrypted off-server backup of the production environment file passed decryption verification."
     }
   ]
 }
