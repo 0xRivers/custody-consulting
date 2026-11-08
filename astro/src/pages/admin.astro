@@ -3,86 +3,169 @@ import Base from '../layouts/Base.astro';
 import {buildEnvironment} from '../../environment.mjs';
 const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || process.env.BOOKING_PAGES_ENABLED === 'true');
 ---
-<Base title="Invite admin · Custody Consulting" noindex={true}>
-  <main aria-label="Payment invitations">
-    <section>
-      {enabled ? <>
-        <button id="connect" type="button">Connect with Nostr</button>
-        <p id="identity" hidden></p>
-        <form id="invite-form" hidden>
-          <label for="locale">Booking language</label>
-          <select id="locale"><option value="pl">Polski</option><option value="en">English</option></select>
-          <button id="create" type="submit">Create invitation</button>
-        </form>
-        <div id="sales-panel" hidden>
-          <h2>Sales</h2>
-          <button id="load-sales" type="button">Load sales</button>
-          <div id="sales-data"></div>
-          <div id="refund-tools" hidden>
-            <label for="refund-link">Existing BTCPay refund claim link</label>
-            <input id="refund-link" type="url" autocomplete="off" spellcheck="false" />
-            <button id="copy-refund" type="button">Copy public refund link</button>
-            <p>Share the claim link privately with the intended recipient. Approve payouts in BTCPay.</p>
+<Base title="Admin · Custody Consulting" noindex={true}>
+  <main aria-label="Custody Consulting admin">
+    {enabled ? <>
+      <div id="sign-in" class="sign-in">
+        <div>
+          <button id="connect" class="primary" type="button">Connect with Nostr</button>
+          <p id="status" class="status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div id="workspace" class="workspace" hidden>
+        <aside class="sidebar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">C</span>
+            <div><strong>Custody Consulting</strong><small>Admin workspace</small></div>
           </div>
+          <nav aria-label="Admin sections">
+            <button type="button" data-section="invitations" aria-controls="invitations-panel" aria-current="page">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+              Invitations
+            </button>
+            <button type="button" data-section="sales" aria-controls="sales-panel">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16M9 15v-4m5 4V7m5 8v-6"/></svg>
+              Sales
+            </button>
+            <button type="button" data-section="review" aria-controls="review-panel">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Zm0 6v4m0 3h.01"/></svg>
+              Payment review
+            </button>
+          </nav>
+          <div class="account">
+            <span id="identity"></span>
+            <button id="disconnect" type="button">Disconnect</button>
+          </div>
+        </aside>
+
+        <div class="content">
+          <div id="workspace-status"></div>
+          <section id="invitations-panel" aria-labelledby="invitations-title">
+            <header class="section-heading">
+              <h1 id="invitations-title">Invitations</h1>
+              <p>Create a private link for one Foundation booking.</p>
+            </header>
+            <div class="surface invitation">
+              <form id="invite-form">
+                <div>
+                  <label for="locale">Booking language</label>
+                  <select id="locale"><option value="pl">Polski</option><option value="en">English</option></select>
+                </div>
+                <button id="create" class="primary" type="submit">Create invitation</button>
+              </form>
+              <div id="result" class="invite-result" hidden>
+                <label for="invite-url">Private booking link</label>
+                <div class="field-action">
+                  <input id="invite-url" type="text" readonly />
+                  <button id="copy" type="button">Copy link</button>
+                </div>
+                <p id="expiry"></p>
+              </div>
+            </div>
+          </section>
+
+          <section id="sales-panel" aria-labelledby="sales-title" hidden>
+            <header class="section-heading">
+              <div><h1 id="sales-title">Sales</h1><p>Confirmed bookings and payment totals.</p></div>
+              <button id="load-sales" type="button">Load sales</button>
+            </header>
+            <div id="sales-data"></div>
+            <details id="refund-tools" class="surface refund-tools" hidden>
+              <summary>Refund claim link</summary>
+              <label for="refund-link">Existing BTCPay claim URL</label>
+              <div class="field-action">
+                <input id="refund-link" type="url" autocomplete="off" spellcheck="false" />
+                <button id="copy-refund" type="button">Copy public link</button>
+              </div>
+              <p>Share privately with the intended recipient. Approve payouts in BTCPay.</p>
+            </details>
+          </section>
+
+          <section id="review-panel" aria-labelledby="review-title" hidden>
+            <header class="section-heading">
+              <div><h1 id="review-title">Payment review</h1><p>Check payments that need manual follow-up.</p></div>
+              <button id="load-reviews" type="button">Load queue</button>
+            </header>
+            <div id="review-list"></div>
+          </section>
         </div>
-        <div id="review-panel" hidden>
-          <h2>Payments to review</h2>
-          <p>Late or unusual payments need a manual check. Review the invoice and Cal availability before arranging a new time or a refund.</p>
-          <button id="load-reviews" type="button">Load review queue</button>
-          <div id="review-list"></div>
-        </div>
-        <p id="status" role="status" aria-live="polite"></p>
-        <div id="result" hidden>
-          <label for="invite-url">Private booking link</label>
-          <input id="invite-url" type="text" readonly />
-          <button id="copy" type="button">Copy link</button>
-          <p id="expiry"></p>
-          <p>Share this link only with its intended recipient. It can be used for one booking.</p>
-        </div>
-      </> : <p>Invite administration is available on staging only.</p>}
-    </section>
+      </div>
+    </> : <div class="sign-in"><p>Invite administration is available on staging only.</p></div>}
   </main>
   <style>
-    main {max-width:44rem;margin:0 auto;padding:2rem 1.5rem;}
-    section {margin-top:3rem;padding:2rem;background:var(--navy-card);border:1px solid var(--line);border-radius:1rem;}
-    p {margin:1rem 0;color:var(--muted);}
-    main:has(#invite-form[hidden]) {
-      min-height: 100dvh;
-      box-sizing: border-box;
-      display: grid;
-      place-items: center;
-    }
-    section:has(#invite-form[hidden]) {
-      position: relative;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      background: transparent;
-      text-align: center;
-    }
-    section:has(#invite-form[hidden]) #connect {margin:0;}
-    section:has(#invite-form[hidden]) #status {
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      width: min(24rem, calc(100vw - 3rem));
-      transform: translateX(-50%);
-    }
-    #status:empty {margin:0;}
-    label {display:block;margin:1rem 0 .5rem;}
-    button,select,input {font:inherit;border-radius:.5rem;padding:.75rem;border:1px solid var(--line);}
-    input {width:100%;box-sizing:border-box;color:var(--text);background:var(--navy-soft);}
-    button {background:var(--orange);color:var(--ink);cursor:pointer;margin:.75rem .5rem 0 0;font-weight:700;}
-    button:disabled {opacity:.5;cursor:wait;}
-    select {background:var(--navy-card);color:inherit;}
-    #identity {overflow-wrap:anywhere;}
-    #review-panel,#sales-panel {margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem;}
-    #review-panel h2,#sales-panel h2 {font-size:1.2rem;}
-    #sales-data {overflow-wrap:anywhere;}
-    .review-card {padding:1rem;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;overflow-wrap:anywhere;}
-    .review-card h3 {color:var(--orange);font-size:1rem;margin:0;}
-    .review-card p {font-size:.85rem;margin:.6rem 0;}
     [hidden] {display:none!important;}
+    .sign-in {min-height:100dvh;display:grid;place-items:center;padding:1rem;text-align:center;}
+    .sign-in > div {position:relative;}
+    .sign-in .status {position:absolute;top:100%;left:50%;width:min(24rem,calc(100vw - 2rem));transform:translateX(-50%);}
+    .workspace {display:grid;grid-template-columns:15rem minmax(0,1fr);min-height:100dvh;}
+    .sidebar {position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;gap:2rem;padding:1.4rem 1rem;background:var(--navy-card);border-right:1px solid var(--line);}
+    .brand {display:flex;align-items:center;gap:.65rem;padding:0 .25rem;}
+    .brand strong,.brand small {display:block;}
+    .brand strong {font-size:.875rem;line-height:1.2;}
+    .brand small {font-size:.75rem;color:var(--muted);margin-top:.18rem;}
+    .brand-mark {display:grid;place-items:center;width:2rem;height:2rem;flex:none;border-radius:.5rem;background:var(--orange);color:var(--ink);font-weight:800;}
+    nav {display:grid;gap:.25rem;}
+    nav button {display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border-color:transparent;background:transparent;color:var(--muted);}
+    nav button[aria-current] {background:var(--navy-soft);border-color:var(--line);color:var(--white);}
+    nav svg {width:1.1rem;height:1.1rem;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+    nav button[aria-current] svg {color:var(--orange);}
+    .account {margin-top:auto;border-top:1px solid var(--line);padding:.75rem .25rem 0;display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .55rem;}
+    .account span {color:var(--muted);font-size:.75rem;font-family:ui-monospace,monospace;}
+    .account button {padding:.35rem .45rem;font-size:.75rem;background:transparent;border-color:transparent;}
+    .content {width:100%;max-width:76rem;min-width:0;padding:clamp(1rem,4vw,3rem);}
+    .section-heading {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:1.5rem;}
+    h1 {margin:0;font-size:clamp(1.75rem,4vw,2.4rem);line-height:1.15;letter-spacing:-.035em;}
+    p {color:var(--muted);margin:.5rem 0;}
+    button,select,input {font:inherit;border-radius:.5rem;border:1px solid var(--line);padding:.55rem .75rem;}
+    button {color:var(--white);background:var(--navy-card);font-weight:650;cursor:pointer;}
+    button:hover:not(:disabled) {border-color:var(--muted);}
+    button:disabled {opacity:.55;cursor:wait;}
+    button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible {outline:2px solid var(--orange);outline-offset:2px;}
+    .primary {background:var(--orange);border-color:transparent;color:var(--ink);}
+    input,select {min-width:0;background:var(--navy-soft);color:var(--white);}
+    input {width:100%;}
+    label {display:block;font-size:.875rem;font-weight:650;margin-bottom:.4rem;}
+    .surface,.content :global(.review-card) {background:var(--navy-card);border:1px solid var(--line);border-radius:.8rem;padding:1.25rem;}
+    .invitation {max-width:42rem;}
+    form,.field-action {display:flex;align-items:end;gap:.65rem;}
+    .field-action button {flex:none;}
+    .invite-result {margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--line);}
+    .invite-result p,.refund-tools p {font-size:.8rem;}
+    .status {margin:0 0 1rem;font-size:.875rem;color:var(--white);padding:.65rem .8rem;border:1px solid var(--line);border-radius:.5rem;background:var(--navy-card);}
+    .sign-in .status {margin:.65rem 0 0;}
+    .status:empty {display:none;}
+    .refund-tools {margin-top:1.25rem;}
+    .refund-tools summary {font-weight:650;cursor:pointer;}
+    .refund-tools label {margin-top:1rem;}
+    #review-list {display:grid;gap:.75rem;}
+    .content :global(.review-card) {overflow-wrap:anywhere;}
+    .content :global(.review-card h3) {margin:0 0 .6rem;font-size:1.05rem;}
+    .content :global(.review-card p) {font-size:.875rem;}
+    .content :global(.review-card label) {margin-top:1rem;}
+    .content :global(.review-card input) {max-width:20rem;}
+    .content :global(.review-card button) {margin:.65rem .5rem 0 0;}
+    :global(.sales-context) {font-size:.8rem;margin-bottom:.75rem;}
+    :global(.sales-grid) {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:.75rem;margin-bottom:1.25rem;}
+    :global(.sales-tile) {border:1px solid var(--line);background:var(--navy-card);border-radius:.8rem;padding:1rem;}
+    :global(.sales-tile strong) {display:block;font-size:1.45rem;margin:.25rem 0;}
+    :global(.sales-tile small) {display:block;color:var(--muted);}
+    :global(.sales-list) {border:1px solid var(--line);background:var(--navy-card);border-radius:.8rem;padding:1rem 1.25rem;}
+    :global(.sales-list h2) {font-size:1rem;margin:0 0 .5rem;}
+    :global(.sales-list details) {border-top:1px solid var(--line);padding:.6rem 0;overflow-wrap:anywhere;}
+    :global(.sales-list summary) {cursor:pointer;}
+    :global(.sales-list p) {font-size:.8rem;}
+    @media (max-width:43rem) {
+      .workspace {grid-template-columns:minmax(0,1fr);}
+      .sidebar {z-index:1;height:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.55rem;padding:.75rem 1rem;border-right:0;border-bottom:1px solid var(--line);}
+      .account {grid-column:2;grid-row:1;padding:0;border:0;margin:0;}
+      .account span,.brand small,nav svg {display:none;}
+      nav {grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.25rem;}
+      nav button {width:auto;font-size:.875rem;white-space:nowrap;}
+      .content {padding:1.25rem 1rem;}
+      .field-action {flex-wrap:wrap;}
+      .field-action input {flex-basis:100%;}
+    }
   </style>
   <script>
     import {generateSecretKey, getPublicKey, type EventTemplate} from 'nostr-tools/pure';
@@ -150,6 +233,29 @@ const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || pr
     // Listen before the tap so Amber can reply even while the browser is in the background.
     let pendingAmber = android && connect ? prepareAmber() : undefined;
     const form = document.getElementById('invite-form') as HTMLFormElement;
+    const workspace = document.getElementById('workspace');
+    const navigation = Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-section]'));
+    const loadedSections = new Set<string>();
+    for (const button of navigation) {
+      button.addEventListener('click', () => {
+        status.textContent = '';
+        for (const item of navigation) {
+          const active = item === button;
+          if (active) item.setAttribute('aria-current', 'page');
+          else item.removeAttribute('aria-current');
+          document.getElementById(item.getAttribute('aria-controls')!)!.hidden = !active;
+        }
+        const section = button.dataset.section!;
+        if (!loadedSections.has(section)) {
+          if (section === 'sales') document.getElementById('load-sales')!.click();
+          if (section === 'review') document.getElementById('load-reviews')!.click();
+        }
+      });
+    }
+    document.getElementById('disconnect')?.addEventListener('click', () => {
+      closeAmber?.();
+      location.reload();
+    });
     const status = document.getElementById('status')!;
     const create = document.getElementById('create') as HTMLButtonElement;
     const result = document.getElementById('result')!;
@@ -177,15 +283,7 @@ const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || pr
     async function connectSigner() {
       if (!connect || connect.disabled) return;
       connect.disabled=true;
-      form.hidden=true; result.hidden=true; pubkey='';
-      identity!.hidden=true; status.textContent='';
-      activeSigner=undefined; closeAmber?.(); closeAmber=undefined;
-      refundOrigin='';
-      document.getElementById('sales-panel')!.hidden=true;
-      document.getElementById('sales-data')!.replaceChildren();
-      document.getElementById('refund-tools')!.hidden=true;
-      (document.getElementById('refund-link') as HTMLInputElement).value='';
-      document.getElementById('review-panel')!.hidden=true;document.getElementById('review-list')!.replaceChildren();
+      status.textContent='';
       try {
         const provider = android ? await connectAmber() : browserSigner();
         if(!provider) throw new Error('No Nostr browser signer found. Enable a NIP-07 signer, or open this page on Android with Amber installed.');
@@ -193,9 +291,14 @@ const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || pr
         // Allowlist checked by the server; obtaining a public key is not authentication.
         await api({action:'admin-challenge',pubkey,locale:(document.getElementById('locale') as HTMLSelectElement).value});
         activeSigner=provider;
-        document.getElementById('sales-panel')!.hidden=false;
-        identity!.textContent=npubEncode(pubkey); identity!.hidden=false; form.hidden=false;document.getElementById('review-panel')!.hidden=false;
-        status.textContent='Account approved. Your signer will ask you to authorize each new invitation.';
+        const npub = npubEncode(pubkey);
+        identity!.textContent = npub.slice(0, 10)+'…'+npub.slice(-5);
+        identity!.title = npub;
+        workspace!.hidden = false;
+        document.getElementById('workspace-status')!.appendChild(status);
+        document.getElementById('sign-in')!.hidden = true;
+        status.textContent = '';
+        navigation[0].focus();
       } catch(error) {
         pubkey=''; closeAmber?.(); closeAmber=undefined;
         if (android) pendingAmber = prepareAmber();
@@ -226,10 +329,11 @@ const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || pr
       return provider.signEvent(challenge.event);
     }
     type Sale = {provider:string;settledRail:string|null;currency:string;minorUnits:number};
-    function saleLabel(sale:Sale) {
-      const method = sale.provider==='stripe' ? 'Stripe' : sale.settledRail==='lightning' ? 'Lightning' : sale.settledRail==='onchain' ? 'Bitcoin on-chain' : 'Bitcoin';
-      const amount = new Intl.NumberFormat(undefined,{style:'currency',currency:sale.currency}).format(sale.minorUnits/100);
-      return method+' · '+amount;
+    function saleMethod(sale:Sale) {
+      return sale.provider==='stripe' ? 'Stripe' : sale.settledRail==='lightning' ? 'Lightning' : sale.settledRail==='onchain' ? 'Bitcoin on-chain' : 'Bitcoin';
+    }
+    function saleAmount(sale:Sale) {
+      return new Intl.NumberFormat(undefined,{style:'currency',currency:sale.currency}).format(sale.minorUnits/100);
     }
     const loadSales = document.getElementById('load-sales') as HTMLButtonElement | null;
     loadSales?.addEventListener('click',async()=> {
@@ -241,23 +345,50 @@ const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || pr
         const event=await signedResolution('sales',{});
         const data=await api({action:'admin-sales',locale:'en',event});
         panel.replaceChildren();
-        const summary=document.createElement('p');
-        summary.textContent='Gross confirmed bookings · '+data.environment+'. Totals are before refunds and provider fees.';
-        panel.appendChild(summary);
+        const context=document.createElement('p');
+        context.className='sales-context';
+        context.textContent=data.environment+' · Gross totals before refunds and provider fees';
+        panel.appendChild(context);
+        const totals=document.createElement('div');
+        totals.className='sales-grid';
         for (const total of data.totals) {
-          const line=document.createElement('p');
-          line.textContent=saleLabel(total)+' · '+total.count+' bookings'+(total.satsCount ? ' · '+total.sats.toLocaleString()+' sats verified for '+total.satsCount+' of '+total.count : '');
-          panel.appendChild(line);
+          const tile=document.createElement('div');
+          tile.className='sales-tile';
+          const method=document.createElement('small');
+          method.textContent=saleMethod(total);
+          const amount=document.createElement('strong');
+          amount.textContent=saleAmount(total);
+          const count=document.createElement('small');
+          count.textContent=total.count+(total.count===1?' booking':' bookings');
+          tile.append(method,amount,count);
+          if (total.satsCount) {
+            const sats=document.createElement('small');
+            sats.textContent=total.sats.toLocaleString()+' sats · '+total.satsCount+' verified';
+            tile.appendChild(sats);
+          }
+          totals.appendChild(tile);
         }
-        const heading=document.createElement('h3');heading.textContent=data.recent.length?'Recent confirmed bookings':'No confirmed bookings';panel.appendChild(heading);
+        if (totals.childElementCount) panel.appendChild(totals);
+        const list=document.createElement('div');
+        list.className='sales-list';
+        const heading=document.createElement('h2');
+        heading.textContent=data.recent.length?'Recent bookings':'No confirmed bookings';
+        list.appendChild(heading);
         for (const sale of data.recent) {
-          const line=document.createElement('p');
-          line.textContent=saleLabel(sale)+' · '+sale.reference+' · '+sale.paymentId;
-          panel.appendChild(line);
+          const entry=document.createElement('details');
+          const summary=document.createElement('summary');
+          summary.textContent=saleAmount(sale)+' · '+saleMethod(sale);
+          const identifiers=document.createElement('p');
+          identifiers.textContent='Booking '+sale.reference+' · Payment '+sale.paymentId;
+          entry.append(summary,identifiers);
+          list.appendChild(entry);
         }
+        panel.appendChild(list);
         refundOrigin=data.refundOrigin || '';
         document.getElementById('refund-tools')!.hidden=!refundOrigin;
-        status.textContent='Sales loaded.';
+        loadedSections.add('sales');
+        loadSales.textContent='Refresh';
+        status.textContent='';
       } catch(error) {status.textContent=error instanceof Error?error.message:'Could not load sales.';}
       finally {busy=false;loadSales.disabled=false;connect!.disabled=false;create.disabled=false;}
     });
@@ -279,10 +410,8 @@ const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || pr
       busy=true;reviewsButton.disabled=true;create.disabled=true;connect!.disabled=true;
       const list=document.getElementById('review-list')!;list.replaceChildren();
       try {
-        const provider=activeSigner;if(!provider)throw new Error('Reconnect your Nostr signer.');
         status.textContent='Approve access to the review queue in your signer…';
-        const challenge=await api({action:'admin-challenge',pubkey,locale:'en',purpose:'reviews'});
-        const event=await provider.signEvent(challenge.event);
+        const event=await signedResolution('reviews',{});
         const data=await api({action:'admin-reviews',locale:'en',event});
         const labels:Record<string,string>={'late-payment':'Payment received after expiry','partial-payment':'Partial payment','overpayment':'Overpayment','invalid-payment':'Invalid payment','manually-marked':'Manually marked invoice','payment-check':'Payment needs checking'};
         for(const item of data.reviews) {
@@ -327,7 +456,14 @@ const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || pr
           }
           list.appendChild(card);
         }
-        status.textContent=data.reviews.length?'Review queue loaded. No bookings or payments were changed.':'No payments currently recorded for review.';
+        if (!data.reviews.length) {
+          const empty=document.createElement('p');
+          empty.textContent='No payments need review.';
+          list.appendChild(empty);
+        }
+        loadedSections.add('review');
+        reviewsButton.textContent='Refresh';
+        status.textContent='';
       } catch(error) {status.textContent=error instanceof Error?error.message:'Could not load reviews.';}
       finally {busy=false;reviewsButton.disabled=false;create.disabled=false;connect!.disabled=false;}
     });
