@@ -743,7 +743,7 @@
         "Expose actionable operator failures for payment verified but Cal confirmation failed; exercise retry/recovery and establish an operator review procedure.",
         "Complete remaining CC-33 scenarios and owner-approved low-value live pilot, including refund and webhook-outage recovery, before enabling real client invitations."
       ],
-      "notes": "Environment-specific origin, Stripe mode, BTCPay identity and production database guards deployed to staging. Node 24 deployment preflight passed without old engine warnings. On 2026-11-07 owner reported Events-read preflight, SQLite backup/isolated restore, running BTC/Stripe recovery flags and HTTP400 unsigned-webhook check passed. Recovery is enabled; controlled missed-webhook tests are still pending. Production provisioning, runtime verification, off-server backup drill, operator retry evidence and live pilot remain open."
+      "notes": "Production booking service and staff-only pages deployed with separate credentials, database, Cal event and webhooks. Owner verified the unpaid BTC expiry/resume flow and reports completing production payment tests on both Bitcoin on-chain and Lightning. Stripe Events-read preflight and unsigned webhook rejection passed. Staging Stripe missed-webhook recovery passed; CC-46 tracks remaining staging recovery evidence. Production refund, webhook-outage recovery, operator retry evidence and off-server backup/rollback drill remain open."
     },
     {
       "id": "CC-41",
