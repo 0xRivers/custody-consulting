@@ -1,0 +1,339 @@
+---
+import Base from '../layouts/Base.astro';
+import {buildEnvironment} from '../../environment.mjs';
+const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || process.env.BOOKING_PAGES_ENABLED === 'true');
+---
+<Base title="Invite admin · Custody Consulting" noindex={true}>
+  <main aria-label="Payment invitations">
+    <section>
+      {enabled ? <>
+        <button id="connect" type="button">Connect with Nostr</button>
+        <p id="identity" hidden></p>
+        <form id="invite-form" hidden>
+          <label for="locale">Booking language</label>
+          <select id="locale"><option value="pl">Polski</option><option value="en">English</option></select>
+          <button id="create" type="submit">Create invitation</button>
+        </form>
+        <div id="sales-panel" hidden>
+          <h2>Sales</h2>
+          <button id="load-sales" type="button">Load sales</button>
+          <div id="sales-data"></div>
+          <div id="refund-tools" hidden>
+            <label for="refund-link">Existing BTCPay refund claim link</label>
+            <input id="refund-link" type="url" autocomplete="off" spellcheck="false" />
+            <button id="copy-refund" type="button">Copy public refund link</button>
+            <p>Share the claim link privately with the intended recipient. Approve payouts in BTCPay.</p>
+          </div>
+        </div>
+        <div id="review-panel" hidden>
+          <h2>Payments to review</h2>
+          <p>Late or unusual payments need a manual check. Review the invoice and Cal availability before arranging a new time or a refund.</p>
+          <button id="load-reviews" type="button">Load review queue</button>
+          <div id="review-list"></div>
+        </div>
+        <p id="status" role="status" aria-live="polite"></p>
+        <div id="result" hidden>
+          <label for="invite-url">Private booking link</label>
+          <input id="invite-url" type="text" readonly />
+          <button id="copy" type="button">Copy link</button>
+          <p id="expiry"></p>
+          <p>Share this link only with its intended recipient. It can be used for one booking.</p>
+        </div>
+      </> : <p>Invite administration is available on staging only.</p>}
+    </section>
+  </main>
+  <style>
+    main {max-width:44rem;margin:0 auto;padding:2rem 1.5rem;}
+    section {margin-top:3rem;padding:2rem;background:var(--navy-card);border:1px solid var(--line);border-radius:1rem;}
+    p {margin:1rem 0;color:var(--muted);}
+    main:has(#invite-form[hidden]) {
+      min-height: 100dvh;
+      box-sizing: border-box;
+      display: grid;
+      place-items: center;
+    }
+    section:has(#invite-form[hidden]) {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      text-align: center;
+    }
+    section:has(#invite-form[hidden]) #connect {margin:0;}
+    section:has(#invite-form[hidden]) #status {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: min(24rem, calc(100vw - 3rem));
+      transform: translateX(-50%);
+    }
+    #status:empty {margin:0;}
+    label {display:block;margin:1rem 0 .5rem;}
+    button,select,input {font:inherit;border-radius:.5rem;padding:.75rem;border:1px solid var(--line);}
+    input {width:100%;box-sizing:border-box;color:var(--text);background:var(--navy-soft);}
+    button {background:var(--orange);color:var(--ink);cursor:pointer;margin:.75rem .5rem 0 0;font-weight:700;}
+    button:disabled {opacity:.5;cursor:wait;}
+    select {background:var(--navy-card);color:inherit;}
+    #identity {overflow-wrap:anywhere;}
+    #review-panel,#sales-panel {margin-top:2rem;border-top:1px solid var(--line);padding-top:1rem;}
+    #review-panel h2,#sales-panel h2 {font-size:1.2rem;}
+    #sales-data {overflow-wrap:anywhere;}
+    .review-card {padding:1rem;margin:1rem 0;border:1px solid var(--line);border-radius:.5rem;overflow-wrap:anywhere;}
+    .review-card h3 {color:var(--orange);font-size:1rem;margin:0;}
+    .review-card p {font-size:.85rem;margin:.6rem 0;}
+    [hidden] {display:none!important;}
+  </style>
+  <script>
+    import {generateSecretKey, getPublicKey, type EventTemplate} from 'nostr-tools/pure';
+    import {BunkerSigner, createNostrConnectURI} from 'nostr-tools/nip46';
+    import {npubEncode} from 'nostr-tools/nip19';
+    import {SimplePool} from 'nostr-tools/pool';
+    type SignedEvent = {pubkey:string;id:string;sig:string;kind:number;created_at:number;tags:string[][];content:string};
+    type AdminSigner = {getPublicKey:()=>Promise<string>;signEvent:(event:EventTemplate)=>Promise<SignedEvent>};
+    const browserSigner = () => (window as Window & {nostr?:AdminSigner}).nostr;
+    const android = /Android/i.test(navigator.userAgent);
+    const relays = ['wss://relay.nip46.com', 'wss://relay.nsec.app'];
+    let activeSigner: AdminSigner | undefined;
+    let closeAmber: (() => void) | undefined;
+    async function waitForAmber<T>(request: Promise<T>): Promise<T> {
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([request, new Promise<never>((_, reject) => {
+          timeout = setTimeout(() => reject(new Error('Amber did not respond in time. Open Amber or reconnect and try again.')), 110000);
+        })]);
+      } finally { clearTimeout(timeout); }
+    }
+    function prepareAmber() {
+      const key = generateSecretKey();
+      const pool = new SimplePool({maxWaitForConnection:8000});
+      const uri = createNostrConnectURI({
+        clientPubkey: getPublicKey(key),
+        relays,
+        secret: Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join(''),
+        perms: ['sign_event:27235'],
+        name: 'Custody Consulting Admin',
+        url: location.origin,
+      });
+      const attempt = {
+        intent: 'intent://' + uri.slice('nostrconnect://'.length) +
+          '#Intent;scheme=nostrconnect;package=com.greenart7c3.nostrsigner;end',
+        failed: false,
+        close: () => pool.destroy(),
+        signer: BunkerSigner.fromURI(key, uri, {pool, skipSwitchRelays:true}),
+      };
+      // The relay can fail before the user taps. Handle that rejection and retry on tap.
+      void attempt.signer.catch(() => { attempt.failed = true; });
+      return attempt;
+    }
+    async function connectAmber(): Promise<AdminSigner> {
+      if (pendingAmber?.failed) {
+        pendingAmber.close();
+        pendingAmber = undefined;
+      }
+      const attempt = pendingAmber ?? prepareAmber();
+      pendingAmber = undefined;
+      closeAmber = attempt.close;
+      status.textContent = 'Approve the connection in Amber.';
+      // Launch synchronously within the original button tap so Chrome allows the handoff.
+      location.href = attempt.intent;
+      const signer = await waitForAmber(attempt.signer.catch(() => {
+        throw new Error('Amber could not connect through the Nostr relays. Tap Connect with Nostr to retry.');
+      }));
+      return {
+        getPublicKey: () => waitForAmber(signer.getPublicKey()),
+        signEvent: event => waitForAmber(signer.signEvent(event)),
+      };
+    }
+    const connect = document.getElementById('connect') as HTMLButtonElement | null;
+    const identity = document.getElementById('identity');
+    // Listen before the tap so Amber can reply even while the browser is in the background.
+    let pendingAmber = android && connect ? prepareAmber() : undefined;
+    const form = document.getElementById('invite-form') as HTMLFormElement;
+    const status = document.getElementById('status')!;
+    const create = document.getElementById('create') as HTMLButtonElement;
+    const result = document.getElementById('result')!;
+    const url = document.getElementById('invite-url') as HTMLInputElement;
+    let pubkey = '', busy = false;
+    let refundOrigin = '';
+    const messages:Record<string,string> = {
+      RESOLUTION_BLOCKED:'This case cannot be resolved automatically. Check payment and original booking in BTCPay and Cal.',
+      RESOLUTION_NEEDS_REVIEW:'A previous booking attempt needs manual inspection. Do not create another replacement.',
+      RESOLUTION_PREVIEW_CHANGED:'The preview changed. Check availability and preview again.',
+      SLOT_UNAVAILABLE:'That appointment time is no longer available. Choose another agreed time.',
+      PAYMENT_NOT_READY:'The full payment must be verified as confirmed before resolving this booking.',
+      ADMIN_NOT_ALLOWED:'This Nostr account is not approved. Ask the site owner to add your npub.',
+      ADMIN_RATE_LIMIT:'Too many requests. Please try again later.',
+      ADMIN_CHALLENGE_EXPIRED:'The signing request expired or was already used. Please try again.',
+      ADMIN_INVALID_SIGNATURE:'The signature could not be verified. Please reconnect your signer.',
+    };
+    async function api(body:unknown) {
+      const prefix=location.pathname.startsWith('/lightning-pilot/')?'/lightning-pilot':'';
+      const response = await fetch(prefix+'/booking-api/checkout', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',signal:AbortSignal.timeout(15000)});
+      const data = await response.json();
+      if(!response.ok) throw new Error(messages[data.error] || 'Could not complete the request. Please try again.');
+      return data;
+    }
+    async function connectSigner() {
+      if (!connect || connect.disabled) return;
+      connect.disabled=true;
+      form.hidden=true; result.hidden=true; pubkey='';
+      identity!.hidden=true; status.textContent='';
+      activeSigner=undefined; closeAmber?.(); closeAmber=undefined;
+      refundOrigin='';
+      document.getElementById('sales-panel')!.hidden=true;
+      document.getElementById('sales-data')!.replaceChildren();
+      document.getElementById('refund-tools')!.hidden=true;
+      (document.getElementById('refund-link') as HTMLInputElement).value='';
+      document.getElementById('review-panel')!.hidden=true;document.getElementById('review-list')!.replaceChildren();
+      try {
+        const provider = android ? await connectAmber() : browserSigner();
+        if(!provider) throw new Error('No Nostr browser signer found. Enable a NIP-07 signer, or open this page on Android with Amber installed.');
+        pubkey=await provider.getPublicKey();
+        // Allowlist checked by the server; obtaining a public key is not authentication.
+        await api({action:'admin-challenge',pubkey,locale:(document.getElementById('locale') as HTMLSelectElement).value});
+        activeSigner=provider;
+        document.getElementById('sales-panel')!.hidden=false;
+        identity!.textContent=npubEncode(pubkey); identity!.hidden=false; form.hidden=false;document.getElementById('review-panel')!.hidden=false;
+        status.textContent='Account approved. Your signer will ask you to authorize each new invitation.';
+      } catch(error) {
+        pubkey=''; closeAmber?.(); closeAmber=undefined;
+        if (android) pendingAmber = prepareAmber();
+        status.textContent=error instanceof Error?error.message:'Could not connect.';
+      }
+      finally {connect.disabled=false;}
+    }
+    connect?.addEventListener('click', () => void connectSigner());
+    form?.addEventListener('submit',async event=> {
+      event.preventDefault(); if(busy || !pubkey)return;
+      busy=true;create.disabled=true;connect!.disabled=true;result.hidden=true;
+      try {
+        const provider=activeSigner;if(!provider)throw new Error('Reconnect your Nostr signer.');
+        const locale=(document.getElementById('locale') as HTMLSelectElement).value;
+        status.textContent='Approve the invitation request in your signer…';
+        const challenge=await api({action:'admin-challenge',pubkey,locale});
+        const signed=await provider.signEvent(challenge.event);
+        const invite=await api({action:'admin-invite',locale,event:signed});
+        url.value=invite.url;result.hidden=false;
+        document.getElementById('expiry')!.textContent='Valid until '+new Date(invite.expiresAt).toLocaleString()+'.';
+        status.textContent='Invitation created.';
+      } catch(error) {status.textContent=error instanceof Error?error.message:'Could not create an invitation.';}
+      finally {busy=false;create.disabled=false;connect!.disabled=false;}
+    });
+    async function signedResolution(purpose:string,request:Record<string,string>) {
+      const provider=activeSigner;if(!provider)throw new Error('Reconnect your Nostr signer.');
+      const challenge=await api({action:'admin-challenge',pubkey,locale:'en',purpose,request});
+      return provider.signEvent(challenge.event);
+    }
+    type Sale = {provider:string;settledRail:string|null;currency:string;minorUnits:number};
+    function saleLabel(sale:Sale) {
+      const method = sale.provider==='stripe' ? 'Stripe' : sale.settledRail==='lightning' ? 'Lightning' : sale.settledRail==='onchain' ? 'Bitcoin on-chain' : 'Bitcoin';
+      const amount = new Intl.NumberFormat(undefined,{style:'currency',currency:sale.currency}).format(sale.minorUnits/100);
+      return method+' · '+amount;
+    }
+    const loadSales = document.getElementById('load-sales') as HTMLButtonElement | null;
+    loadSales?.addEventListener('click',async()=> {
+      if (busy || !activeSigner) return;
+      busy=true;loadSales.disabled=true;connect!.disabled=true;create.disabled=true;
+      const panel=document.getElementById('sales-data')!;
+      try {
+        status.textContent='Approve access to sales in your signer…';
+        const event=await signedResolution('sales',{});
+        const data=await api({action:'admin-sales',locale:'en',event});
+        panel.replaceChildren();
+        const summary=document.createElement('p');
+        summary.textContent='Gross confirmed bookings · '+data.environment+'. Totals are before refunds and provider fees.';
+        panel.appendChild(summary);
+        for (const total of data.totals) {
+          const line=document.createElement('p');
+          line.textContent=saleLabel(total)+' · '+total.count+' bookings'+(total.satsCount ? ' · '+total.sats.toLocaleString()+' sats verified for '+total.satsCount+' of '+total.count : '');
+          panel.appendChild(line);
+        }
+        const heading=document.createElement('h3');heading.textContent=data.recent.length?'Recent confirmed bookings':'No confirmed bookings';panel.appendChild(heading);
+        for (const sale of data.recent) {
+          const line=document.createElement('p');
+          line.textContent=saleLabel(sale)+' · '+sale.reference+' · '+sale.paymentId;
+          panel.appendChild(line);
+        }
+        refundOrigin=data.refundOrigin || '';
+        document.getElementById('refund-tools')!.hidden=!refundOrigin;
+        status.textContent='Sales loaded.';
+      } catch(error) {status.textContent=error instanceof Error?error.message:'Could not load sales.';}
+      finally {busy=false;loadSales.disabled=false;connect!.disabled=false;create.disabled=false;}
+    });
+    document.getElementById('copy-refund')?.addEventListener('click',async()=> {
+      const input=document.getElementById('refund-link') as HTMLInputElement;
+      const claim=URL.canParse(input.value.trim()) ? new URL(input.value.trim()) : null;
+      if (!refundOrigin || !claim || !['http:','https:'].includes(claim.protocol) ||
+          claim.username || claim.password || !/^\/pull-payments\/[A-Za-z0-9]{1,100}\/?$/.test(claim.pathname)) {
+        status.textContent='Paste the existing BTCPay refund claim URL.';
+        return;
+      }
+      input.value=refundOrigin+claim.pathname;
+      try {await navigator.clipboard.writeText(input.value);status.textContent='Refund link copied.';}
+      catch {input.select();status.textContent='Copy the public refund link from the field.';}
+    });
+    const reviewsButton=document.getElementById('load-reviews') as HTMLButtonElement;
+    reviewsButton?.addEventListener('click',async()=> {
+      if(busy||!pubkey)return;
+      busy=true;reviewsButton.disabled=true;create.disabled=true;connect!.disabled=true;
+      const list=document.getElementById('review-list')!;list.replaceChildren();
+      try {
+        const provider=activeSigner;if(!provider)throw new Error('Reconnect your Nostr signer.');
+        status.textContent='Approve access to the review queue in your signer…';
+        const challenge=await api({action:'admin-challenge',pubkey,locale:'en',purpose:'reviews'});
+        const event=await provider.signEvent(challenge.event);
+        const data=await api({action:'admin-reviews',locale:'en',event});
+        const labels:Record<string,string>={'late-payment':'Payment received after expiry','partial-payment':'Partial payment','overpayment':'Overpayment','invalid-payment':'Invalid payment','manually-marked':'Manually marked invoice','payment-check':'Payment needs checking'};
+        for(const item of data.reviews) {
+          const card=document.createElement('article');card.className='review-card';
+          const heading=document.createElement('h3');heading.textContent=labels[item.reason]||labels['payment-check'];card.appendChild(heading);
+          for(const line of [
+            'Invoice: '+item.invoiceId,'Booking reference: '+item.reference,
+            'Original appointment: '+new Date(item.startsAt).toLocaleString(),
+            item.slotReleased?'Original slot was released. Check current availability before offering it again.':'Booking status needs checking in Cal.',
+            'BTCPay status at last webhook: '+item.invoiceStatus,
+            'Last detected: '+new Date(item.lastSeen).toLocaleString(),
+          ]) {const p=document.createElement('p');p.textContent=line;card.appendChild(p);}
+          if(item.reason==='late-payment') {
+            const label=document.createElement('label');label.textContent='Agreed appointment time ('+Intl.DateTimeFormat().resolvedOptions().timeZone+')';
+            const time=document.createElement('input');time.type='datetime-local';
+            const date=new Date(item.startsAt);time.value=new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);label.appendChild(time);card.appendChild(label);
+            const previewButton=document.createElement('button');previewButton.type='button';previewButton.textContent='Preview paid booking';card.appendChild(previewButton);
+            const previewArea=document.createElement('div');card.appendChild(previewArea);
+            time.addEventListener('input',()=>previewArea.replaceChildren());
+            previewButton.addEventListener('click',async()=> {
+              if(busy)return;busy=true;previewButton.disabled=true;previewArea.replaceChildren();
+              try {
+                const start=new Date(time.value).toISOString();
+                const signedPreview=await signedResolution('resolve-preview',{reference:item.reference,start});
+                const preview=await api({action:'admin-resolve-preview',locale:'en',event:signedPreview});
+                const summary=document.createElement('p');summary.textContent='Confirm '+preview.attendee.name+' ('+preview.attendee.email+') for '+new Date(preview.start).toLocaleString()+'. Email language: '+preview.attendee.language+'. The existing payment will be used; Cal will send a confirmation email.';previewArea.appendChild(summary);
+                const approve=document.createElement('button');approve.type='button';approve.textContent='Confirm appointment using existing payment';previewArea.appendChild(approve);
+                approve.addEventListener('click',async()=> {
+                  if(busy)return;busy=true;approve.disabled=true;
+                  try {
+                    const event=await signedResolution('resolve-confirm',{reference:item.reference,start:preview.start,previewHash:preview.previewHash});
+                    await api({action:'admin-resolve-confirm',locale:'en',event});
+                    previewArea.textContent='Appointment confirmed. Cal has handled the confirmation email. The client’s original result page now shows the confirmed appointment.';
+                    previewButton.hidden=true;time.disabled=true;
+                  } catch(error) {status.textContent=error instanceof Error?error.message:'Could not resolve booking.';approve.disabled=false;}
+                  finally {busy=false;}
+                });
+                status.textContent='Preview ready. Check the attendee and agreed time before confirming.';
+              } catch(error) {status.textContent=error instanceof Error?error.message:'Could not preview booking.';}
+              finally {busy=false;previewButton.disabled=false;}
+            });
+          }
+          list.appendChild(card);
+        }
+        status.textContent=data.reviews.length?'Review queue loaded. No bookings or payments were changed.':'No payments currently recorded for review.';
+      } catch(error) {status.textContent=error instanceof Error?error.message:'Could not load reviews.';}
+      finally {busy=false;reviewsButton.disabled=false;create.disabled=false;connect!.disabled=false;}
+    });
+    document.getElementById('copy')?.addEventListener('click',async()=> {
+      try {await navigator.clipboard.writeText(url.value);status.textContent='Link copied.';}
+      catch {url.select();status.textContent='Select and copy the link above.';}
+    });
+  </script>
+</Base>
