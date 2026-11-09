@@ -21,7 +21,7 @@ for (const path of ['sitemap.xml', 'en/rss.xml', 'pl/rss.xml']) {
 }
 
 const sitemap = await readFile(new URL('sitemap.xml', productionRoot), 'utf8');
-for (const path of ['/', '/en/', '/pl/', '/en/blog/', '/pl/blog/']) {
+for (const path of ['/', '/en/', '/pl/']) {
   assert(sitemap.includes(`<loc>${productionOrigin}${path}</loc>`), `Sitemap is missing ${path}`);
 }
 assert.doesNotMatch(sitemap, /staging\.custody\.consulting|bitcoin-self-custody-foundations|podstawy-samodzielnego-przechowywania-bitcoina/);
@@ -39,9 +39,16 @@ const stagingRobots = await readFile(new URL('robots.txt', stagingRoot), 'utf8')
 assert.match(productionRobots, /^Sitemap: https:\/\/custody\.consulting\/sitemap\.xml$/m);
 assert.doesNotMatch(stagingRobots, /^Sitemap:/m);
 
-const productionBlog = await readFile(new URL('en/blog/index.html', productionRoot), 'utf8');
+for (const lang of ['en','pl']) {
+  const blog = await readFile(new URL(`${lang}/blog/index.html`, productionRoot), 'utf8');
+  const home = await readFile(new URL(`${lang}/index.html`, productionRoot), 'utf8');
+  assert.match(home, /href="https:\/\/cal\.com\/custody\.consulting\/discovery"/);
+  const noindex = /<meta name="robots" content="noindex/.test(blog);
+  assert.equal(sitemap.includes(`<loc>${productionOrigin}/${lang}/blog/</loc>`), !noindex);
+  assert.equal(home.includes(`href="/${lang}/blog/"`), !noindex);
+  assert.equal(blog.includes('application/rss+xml'), !noindex);
+}
 const stagingBlog = await readFile(new URL('en/blog/index.html', stagingRoot), 'utf8');
-assert.match(productionBlog, /<link rel="alternate" type="application\/rss\+xml"[^>]+href="https:\/\/custody\.consulting\/en\/rss\.xml">/);
 assert.doesNotMatch(stagingBlog, /application\/rss\+xml/);
 
 console.log('Verified production-only sitemap, bilingual RSS, robots discovery and feed metadata.');

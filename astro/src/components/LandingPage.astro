@@ -1,6 +1,5 @@
 ---
 import { Image } from 'astro:assets';
-import { buildEnvironment } from '../../environment.mjs';
 import hero from '../../../src/assets/hero-vault.jpg';
 import foundationPhoto from '../../../src/assets/services/foundation.jpg';
 import essentialsPhoto from '../../../src/assets/services/essentials.jpg';
@@ -19,9 +18,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = getContent(lang);
 const alternate = alternateLocale(lang);
-const discoveryUrl = buildEnvironment(process.env.SITE_ENV).name === 'staging'
-  ? 'https://cal.com/custody.consulting/discovery'
-  : undefined;
+const discoveryUrl = 'https://cal.com/custody.consulting/discovery';
 const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : 'Book a free discovery call (15 min)';
 ---
 <Base
@@ -32,7 +29,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
   alternatePaths={[{ lang, path: `/${lang}/` }, { lang: alternate, path: `/${alternate}/` }]}
   xDefaultPath="/"
 >
-  <SiteHeader lang={lang} primaryAction={discoveryUrl ? { href: discoveryUrl, label: discoveryLabel } : undefined} />
+  <SiteHeader lang={lang} primaryAction={{ href: discoveryUrl, label: discoveryLabel }} />
 
   <main id="content">
     <section id="top" class="hero">
@@ -54,8 +51,8 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
         <h1>{t.hero.title}</h1>
         <p class="hero__lead">{t.hero.sub}</p>
         <div class="button-row">
-          <a class="button" href={discoveryUrl ?? '#services'}>{discoveryUrl ? discoveryLabel : t.hero.cta}</a>
-          <a class="button button--ghost" href={discoveryUrl ? '#services' : '#process'}>{discoveryUrl ? t.hero.cta : t.hero.cta2}</a>
+          <a class="button" href={discoveryUrl}>{discoveryLabel}</a>
+          <a class="button button--ghost" href="#services">{t.hero.cta}</a>
         </div>
         <ul class="signals" aria-label={lang === 'pl' ? 'Najważniejsze zasady' : 'Key principles'}>
           {t.hero.signals.map((signal) => <li><span class="dot"></span>{signal}</li>)}
@@ -160,16 +157,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
             {t.contact.prompts.map((prompt) => <li><span aria-hidden="true">→</span>{prompt}</li>)}
           </ul>
           <div class="contact-card__status">
-            {discoveryUrl ? (
-              <a class="button" href={discoveryUrl}>
-                {discoveryLabel}
-              </a>
-            ) : (
-              <>
-                <strong>{t.contact.status}</strong>
-                <p>{t.contact.availability}</p>
-              </>
-            )}
+            <a class="button" href={discoveryUrl}>{discoveryLabel}</a>
           </div>
         </aside>
       </div>
