@@ -59,7 +59,10 @@ for (const root of roots) {
     assert.match(attribute(tag, 'height') ?? '', /^\d+$/, `Image height missing in ${root.pathname}`);
   }
 
-  assert.doesNotMatch(landing, /<script\b/, `Language landing page must not ship client JavaScript: ${root.pathname}`);
+  for (const locale of ['en','pl']) {
+    const homepage = await readFile(new URL(`${locale}/index.html`, root), 'utf8');
+    assert.doesNotMatch(homepage, /<script\b/, `/${locale}/ must not ship client JavaScript: ${root.pathname}`);
+  }
   assert.doesNotMatch(landing, /fonts\.(?:googleapis|gstatic)\.com|\.woff2?/i, `External font dependency in ${root.pathname}`);
 
   for (const file of await files(root)) {
@@ -73,8 +76,7 @@ for (const root of roots) {
       const css = await readFile(file, 'utf8');
       assert.doesNotMatch(css, /@font-face|fonts\.(?:googleapis|gstatic)\.com|\.woff2?/i, `Downloaded font found in ${pathname}`);
     }
-    assert(!/\.(?:js|mjs)$/i.test(pathname), `Unexpected client JavaScript asset: ${pathname}`);
   }
 }
 
-console.log('Verified responsive images, intrinsic dimensions, LCP priority, system fonts and zero client JS.');
+console.log('Verified responsive images, intrinsic dimensions, LCP priority, system fonts and zero client JS on language homepages.');

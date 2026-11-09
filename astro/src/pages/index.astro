@@ -14,8 +14,11 @@ import Base from '../layouts/Base.astro';
 >
   <script is:inline>
     const requestedLanguage = new URL(window.location.href).searchParams.get('lang');
+    const fragment = window.location.hash;
     if (requestedLanguage === 'en' || requestedLanguage === 'pl') {
-      window.location.replace(`/${requestedLanguage}/${window.location.hash}`);
+      window.location.replace(`/${requestedLanguage}/${fragment}`);
+    } else if (['#services', '#approach', '#audiences', '#steps', '#faq', '#questions', '#contact'].includes(fragment)) {
+      window.location.replace(`/en/${fragment}`);
     }
   </script>
   <main class="gateway">

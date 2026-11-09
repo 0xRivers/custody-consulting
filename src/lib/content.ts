@@ -26,15 +26,26 @@ export const content = {
         { t: "Ciągłość dla Ciebie i bliskich", d: "Przeprowadzka, utrata urządzenia lub nagła nieobecność nie powinny zostawiać rodziny bez instrukcji. Uwzględnij dostęp awaryjny już na etapie planowania." },
       ],
     },
-    services: {
-      title: "Wsparcie na Twoim etapie",
-      sub: "Zacznij od konsultacji lub wybierz konkretny zakres pomocy. Nie musisz z góry wiedzieć, jaki portfel będzie odpowiedni.",
-      note: "Cena zależy od zakresu pomocy. Całkowity koszt ustalamy przed rozpoczęciem współpracy.",
+    audience: {
+      title: "Dla kogo jest ta usługa?",
+      sub: "Niezależnie od tego, na jakim jesteś etapie, zaczynamy od Twoich pytań i potrzeb.",
       items: [
-        { t: "Konsultacja startowa", p: "od 490 zł", d: "Rozmowa 1:1 (60 min) o obecnym sposobie przechowywania, obawach i priorytetach.", outcome: "Efekt: lista decyzji i kolejnych kroków." },
-        { t: "Portfel i kopie zapasowe", p: "od 1 900 zł", d: "Wsparcie przy konfiguracji portfela sprzętowego, przygotowaniu kopii i wykonaniu testowej transakcji.", outcome: "Efekt: przećwiczona obsługa i odzyskiwanie dostępu." },
-        { t: "Multisig i plan awaryjny", p: "od 4 900 zł", d: "Ocena, czy wiele podpisów ma sens w Twojej sytuacji. Jeśli tak: plan podziału kluczy, lokalizacji i odzyskiwania.", outcome: "Efekt: udokumentowane zasady dostępu i działania w razie problemów." },
-        { t: "Rodzina i firma", p: "wycena indywidualna", d: "Instrukcje dla bliskich lub zespołu, podział odpowiedzialności oraz procedury dostępu awaryjnego.", outcome: "Efekt: dokumentacja do omówienia z rodziną, zespołem i doradcą prawnym." },
+        {t:"Dopiero poznajesz bitcoina",d:"Chcesz zrozumieć podstawy, sposób działania portfeli i odpowiedzialność związaną z własnymi kluczami."},
+        {t:"Masz bitcoina na giełdzie",d:"Chcesz nauczyć się przenosić go do własnego portfela, przygotować kopię zapasową i sprawdzić odzyskiwanie dostępu."},
+        {t:"Przechowujesz już bitcoina samodzielnie",d:"Chcesz pogłębić wiedzę, przejrzeć obecne rozwiązanie i przećwiczyć scenariusze awaryjne."},
+        {t:"Planujesz dziedziczenie",d:"Rozumiesz self-custody i chcesz przygotować bliskich do odzyskania dostępu, zachowując bezpieczeństwo kluczy."},
+        {t:"Prowadzisz firmę",d:"Chcesz przyjmować płatności w bitcoinie lub utrzymywać go w rezerwach firmy, z jasnymi zasadami dostępu i ciągłości działania."},
+      ],
+    },
+    services: {
+      title: "Wybierz zakres wsparcia",
+      sub: "Od pierwszej rozmowy do praktycznej nauki i planu na przyszłość.",
+      note: "Zakres współpracy i całkowity koszt ustalamy przed rozpoczęciem pracy.",
+      items: [
+        {"t": "Foundation", "p": "", "meta": "1 godzina · konsultacja", "d": "Rozmowa 1:1 o Twoim doświadczeniu, pytaniach i sposobie przechowywania bitcoina. Wspólnie ustalamy priorytety i kolejny krok.", "outcome": "Wychodzisz z jasnym kierunkiem i listą praktycznych działań."},
+        {"t": "Self-Custody Essentials", "p": "", "meta": "7 godzin · kurs praktyczny", "d": "Praktyczny kurs konfiguracji portfeli, przygotowania kopii zapasowych i odzyskiwania dostępu. Pracujesz na własnych urządzeniach i ćwiczysz procedury krok po kroku.", "outcome": "Uczysz się samodzielnie obsługiwać portfel i odtwarzać do niego dostęp."},
+        {"t": "Wsparcie przy transakcjach", "p": "", "meta": "Wsparcie przy konkretnej operacji", "d": "Pomoc w przygotowaniu transakcji: sprawdzeniu sieci, adresu i opłaty oraz zrozumieniu statusu i potwierdzeń. Ty obsługujesz portfel i zatwierdzasz transfer.", "outcome": "Przechodzisz przez transakcję, rozumiejąc każdy krok."},
+        {"t": "Ciągłość dla rodziny i firmy", "p": "", "meta": "Planowanie i dokumentacja", "d": "Przygotuj instrukcje dla bliskich lub zespołu, podział odpowiedzialności i zasady dostępu awaryjnego. Uwzględnij dziedziczenie i sytuacje, gdy nie możesz działać osobiście.", "outcome": "Zyskujesz plan do przećwiczenia z bliskimi, zespołem i omówienia z doradcą prawnym."},
       ],
     },
     process: {
@@ -97,15 +108,26 @@ export const content = {
         { t: "Continuity for you and your family", d: "Moving home, losing a device or becoming unexpectedly unavailable should not leave your family without instructions. Include emergency access from the start." },
       ],
     },
-    services: {
-      title: "Support for where you are now",
-      sub: "Start with a consultation or choose a specific area of help. You do not need to know which wallet is right for you before we talk.",
-      note: "Prices depend on the scope of support. We agree the total cost before work begins.",
+    audience: {
+      title: "Who is this service for?",
+      sub: "Wherever you are with Bitcoin, we start with your questions and goals.",
       items: [
-        { t: "Starter consultation", p: "from 490 PLN", d: "A 1:1 conversation (60 minutes) about your current approach, concerns and priorities.", outcome: "You leave with decisions to consider and practical next steps." },
-        { t: "Wallets and backups", p: "from 1,900 PLN", d: "Guidance through hardware wallet setup, backup preparation and a test transaction.", outcome: "You practise operating your wallet and restoring access." },
-        { t: "Multisig and contingency planning", p: "from 4,900 PLN", d: "Assess whether multiple signatures suit your situation. If they do, plan key distribution, locations and recovery.", outcome: "You document access rules and what to do if something goes wrong." },
-        { t: "Family and business continuity", p: "custom quote", d: "Instructions for family or team members, clear responsibilities and emergency access procedures.", outcome: "You prepare documentation to discuss with family, colleagues and legal advisers." },
+        {t:"You’re new to Bitcoin",d:"You want to learn the basics, understand wallets and explore what it means to hold your own keys."},
+        {t:"You hold bitcoin on an exchange",d:"You want to learn how to move it to your own wallet, prepare a backup and check that you can restore access."},
+        {t:"You already use self-custody",d:"You want to deepen your knowledge, review your setup and practise what to do if something goes wrong."},
+        {t:"You’re planning inheritance",d:"You understand self-custody and want to help your family recover access when needed while keeping your keys secure."},
+        {t:"You run a business",d:"You want to accept bitcoin payments or hold bitcoin in your company’s reserves, with clear access controls and continuity procedures."},
+      ],
+    },
+    services: {
+      title: "Choose your level of support",
+      sub: "From your first conversation to practical skills and a plan for the future.",
+      note: "We agree the scope and total cost before work begins.",
+      items: [
+        {"t": "Foundation", "p": "", "meta": "1 hour · consultation", "d": "A focused 1:1 conversation about your experience, questions and current approach to Bitcoin. We identify your priorities and agree on a practical next step.", "outcome": "Leave with a clear direction and practical actions to take."},
+        {"t": "Self-Custody Essentials", "p": "", "meta": "7 hours · practical course", "d": "A hands-on course covering wallet setup, backups and recovery. Work on your own devices and practise the procedures step by step.", "outcome": "Build the skills to operate your wallet and restore access independently."},
+        {"t": "Transaction Support", "p": "", "meta": "Support for a specific transfer", "d": "Guidance as you prepare a transaction: checking the network, destination and fee, then understanding its status and confirmations. You operate the wallet and approve the transfer.", "outcome": "Work through your transaction with a clear understanding of each step."},
+        {"t": "Family & Business Continuity", "p": "", "meta": "Planning and documentation", "d": "Prepare instructions for family or team members, define responsibilities and plan emergency access. Address inheritance and situations where you cannot act yourself.", "outcome": "Create a plan to practise with family or colleagues and discuss with legal advisers."},
       ],
     },
     process: {

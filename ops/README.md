@@ -117,21 +117,32 @@ Private repositories need a GitHub plan supporting environments. If unavailable,
 remove `environment: production` from the workflow and configure repository
 secrets instead. Protect `main` with reviewed pull requests as appropriate.
 
-Checks run on pull requests. Successful main pushes deploy automatically.
-The runner sends the committed `dist/` with a version marker, atomically changes
-`current`, and checks the local backend. A failed activation restores the prior
-symlink. Deployments are serialized. Old releases are retained for rollback;
-monitor disk usage and remove old, inactive releases manually when appropriate.
-The pipeline does not run browser or translation quality tests.
+Checks run on pull requests. After approval under CC-25, manually run the
+production workflow on `main`. It builds the production Astro artifact once and
+transfers that checked artifact to the deployment job. Activation switches
+`current` atomically and checks the local backend. A failed activation restores
+the prior symlink. Retain the previous release for rollback.
+
+Before the first Astro deploy, a VPS administrator must install the updated
+`ops/activate-release` and `ops/activate-staging-release` as the existing
+`/usr/local/bin/custody-activate-release` and
+`/usr/local/bin/custody-staging-activate-release` commands, respectively. Keep
+copies of the installed helpers and record the active release in each
+environment. From the repository root, run
+`bash ops/install-activation-helpers.sh` using the VPS root login. It prints both
+backup paths and active releases. The new helpers accept previous legacy releases for rollback.
+Apply and verify production Caddy redirects at launch using [CC-24](../docs/URL-MIGRATION.md).
 
 Local deployment after committing is also supported:
 
 ```bash
+npm ci
+npm run build:astro:production
 DEPLOY_KEY="$PWD/.local/custody-deploy" DEPLOY_KNOWN_HOSTS="$PWD/.local/known_hosts" bash ops/deploy.sh
 ```
 
-A previously uploaded SHA is not overwritten. To retry its activation (including
-a CI rerun) or roll back, use step 5. A new content release needs a new commit.
+An identical upload can be retried. If the release SHA already exists with
+different contents, the deployment stops. For rollback, use step 5.
 
 ## 4. Route the domain through the existing public Caddy
 
