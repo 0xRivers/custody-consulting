@@ -13,5 +13,19 @@ http://:8008 {
     @mutable not path /_astro/*
     header @mutable Cache-Control "no-cache"
     header X-Robots-Tag "noindex, nofollow, noarchive"
+    @legacy_english {
+        method GET HEAD
+        path / /index.html
+        query lang=en
+        file /en/index.html
+    }
+    @legacy_polish {
+        method GET HEAD
+        path / /index.html
+        query lang=pl
+        file /pl/index.html
+    }
+    redir @legacy_english /en/ 301
+    redir @legacy_polish /pl/ 301
     file_server
 }

@@ -2,6 +2,11 @@
 import { Image } from 'astro:assets';
 import { buildEnvironment } from '../../environment.mjs';
 import hero from '../../../src/assets/hero-vault.jpg';
+import foundationPhoto from '../../../src/assets/services/foundation.jpg';
+import essentialsPhoto from '../../../src/assets/services/essentials.jpg';
+import transactionPhoto from '../../../src/assets/services/transactions.jpg';
+import continuityPhoto from '../../../src/assets/services/continuity.jpg';
+const servicePhotos=[foundationPhoto,essentialsPhoto,transactionPhoto,continuityPhoto];
 import Base from '../layouts/Base.astro';
 import SiteFooter from './SiteFooter.astro';
 import SiteHeader from './SiteHeader.astro';
@@ -59,6 +64,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
     </section>
 
     <section id="why" class="section shell">
+      <span id="approach" aria-hidden="true"></span>
       <p class="section-label">{t.why.label}</p>
       <h2>{t.why.title}</h2>
       <p class="section-intro">{t.why.sub}</p>
@@ -73,17 +79,35 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
       </div>
     </section>
 
+    <section id="who" class="section shell" aria-labelledby="who-title">
+      <span id="audiences" aria-hidden="true"></span>
+      <h2 id="who-title">{t.audience.title}</h2>
+      <p class="section-intro">{t.audience.sub}</p>
+      <div class="audience-grid">
+        {t.audience.items.map((item, index) => (
+          <article>
+            <span class="index" aria-hidden="true">0{index + 1}</span>
+            <h3>{item.t}</h3>
+            <p>{item.d}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
     <section id="services" class="section section--paper">
       <div class="shell">
         <h2>{t.services.title}<span class="accent">.</span></h2>
         <p class="section-intro">{t.services.sub}</p>
         <div class="services-grid">
-          {t.services.items.map((service) => (
-            <article>
-              <h3>{service.t}</h3>
-              <p>{service.d}</p>
-              <p class="service-outcome">{service.outcome}</p>
-              <p class="service-price">{service.p}</p>
+          {t.services.items.map((service, index) => (
+            <article class="service-card">
+              <Image src={servicePhotos[index]} alt="" class="service-photo" width={1100} widths={[480, 768, 1100]} sizes="(max-width: 760px) 100vw, 50vw" format="webp" quality={65} loading="lazy" decoding="async" />
+              <div class="service-body">
+                <p class="service-meta">{service.meta}</p>
+                <h3>{service.t}</h3>
+                <p class="service-description">{service.d}</p>
+                <p class="service-outcome">{service.outcome}</p>
+              </div>
             </article>
           ))}
         </div>
@@ -92,6 +116,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
     </section>
 
     <section id="process" class="section shell">
+      <span id="steps" aria-hidden="true"></span>
       <h2>{t.process.title}</h2>
       <ol class="process-grid">
         {t.process.steps.map((step, index) => (
@@ -110,6 +135,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
     </section>
 
     <section id="faq" class="section faq shell shell--narrow">
+      <span id="questions" aria-hidden="true"></span>
       <h2>{t.faq.title}</h2>
       <div class="faq-list">
         {t.faq.items.map((item) => (

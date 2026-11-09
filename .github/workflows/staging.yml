@@ -92,3 +92,5 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --retry 2 --max-time 20 --head https://staging.custody.consulting/ > "$RUNNER_TEMP/staging-headers"
           grep -Ei '^x-robots-tag:.*noindex' "$RUNNER_TEMP/staging-headers"
+      - name: Verify public staging routes
+        run: node ops/checks/url-migration.mjs https://staging.custody.consulting

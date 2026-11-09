@@ -1,0 +1,346 @@
+---
+import Base from '../../layouts/Base.astro';
+import { Image } from 'astro:assets';
+import logo from '../../../../src/assets/custody-logo-white.png';
+import { buildEnvironment } from '../../../environment.mjs';
+const isStaging = buildEnvironment(process.env.SITE_ENV).name === 'staging';
+const enabled = isStaging || process.env.BOOKING_PAGES_ENABLED === 'true';
+---
+<Base title="Foundation · Booking status" noindex={true}>
+  <main class="result-page">
+    <header class="result-header">
+      <Image src={logo} alt="Custody Consulting" width={128} widths={[128, 256]} sizes="128px" format="webp" loading="eager" />
+      {isStaging && <span id="test-label">Private test booking</span>}
+    </header>
+    <section class="result-card" aria-labelledby="result-title">
+      <div id="result-symbol" aria-hidden="true">…</div>
+      <p class="result-eyebrow">Foundation</p>
+      <div role="status" aria-live="polite">
+        <h1 id="result-title">Checking your booking</h1>
+        <p id="result-message">Please wait while we check your booking confirmation.</p>
+      </div>
+      <section id="bitcoin-progress" class="bitcoin-progress" aria-labelledby="payment-heading" hidden>
+        <div class="payment-heading"><h2 id="payment-heading">Bitcoin payment</h2><span id="transaction-status" class="status-pill"></span></div>
+        <ol class="payment-steps">
+          <li id="step-received"><span class="step-dot">1</span><span id="step-received-label">Payment received</span></li>
+          <li id="step-network"><span class="step-dot">2</span><span id="step-network-label">Network confirmation</span></li>
+          <li id="step-booking"><span id="step-booking-number" class="step-dot">3</span><span id="step-booking-label">Appointment confirmed</span></li>
+        </ol>
+        <div id="confirmation-state" class="confirmation-state" role="status" aria-live="polite">
+          <span id="confirmation-icon" class="confirmation-icon" aria-hidden="true">
+            <span class="chain-block chain-one"></span>
+            <span class="chain-track">
+              <span class="chain-block chain-new"></span>
+              <span class="chain-block chain-two"></span>
+              <span class="chain-block chain-three"></span>
+              <span class="chain-block chain-incoming"><span class="block-check">✓</span></span>
+            </span>
+          </span>
+          <div><strong id="confirmation-count"></strong><span id="confirmation-detail" class="confirmation-detail"></span><span id="confirmation-block" class="confirmation-detail" hidden></span></div>
+        </div>
+        <p id="confirmation-help" class="payment-help"></p>
+        <details id="transaction-details">
+          <summary id="transaction-details-label">Transaction details</summary>
+          <div id="transaction-list"></div>
+        </details>
+        <p id="payment-updated" class="payment-help"></p>
+      </section>
+      <dl class="result-summary">
+        <div><dt id="duration-label">Duration</dt><dd>60 min</dd></div>
+        <div><dt id="fee-label">Session fee</dt><dd id="result-price">420 PLN</dd></div>
+        <div id="appointment-row" hidden><dt id="appointment-label">Your appointment</dt><dd id="appointment-time"></dd></div>
+      </dl>
+      <button id="retry-expired-booking" type="button" hidden></button>
+      <p id="result-note">Please don’t submit another payment while confirmation is in progress.</p>
+      <a class="result-contact" href="mailto:info@custody.consulting" id="contact-link">Contact us</a>
+    </section>
+  </main>
+  <style>
+    .result-page { width: min(calc(100% - 3rem), 1140px); margin-inline: auto; padding-block: 1.25rem 3rem; }
+    .result-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+    .result-header img { width: 128px; height: auto; }
+    #test-label { font-size: 0.75rem; color: var(--muted); }
+    .result-card { max-width: 42rem; margin: clamp(2rem, 6vh, 4rem) auto 0; padding: clamp(1.5rem, 4vw, 2.5rem); border: 1px solid var(--line); border-radius: 1rem; background: var(--navy-card); }
+    #result-symbol { display: grid; place-items: center; width: 3rem; height: 3rem; margin-bottom: 1.5rem; border-radius: 50%; border: 1px solid var(--orange); color: var(--orange); font-size: 1.5rem; }
+    .result-eyebrow { margin-bottom: 0.6rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--orange); font-weight: 700; }
+    .result-card h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin-bottom: 0.8rem; line-height: 1.15; }
+    #result-message { color: var(--muted); margin-bottom: 1.5rem; font-size: 1rem; }
+    .result-summary { margin: 0; padding-block: 0.75rem; border-block: 1px solid var(--line); }
+    .result-summary > div { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding-block: 0.45rem; }
+    .result-summary dt { color: var(--muted); font-size: 0.85rem; }
+    .result-summary dd { margin: 0; text-align: right; font-size: 0.9rem; font-weight: 600; }
+    .bitcoin-progress {padding:1.25rem;margin:0 0 1.5rem;border:1px solid var(--line);border-radius:.75rem;background:rgba(0,0,0,.1);}
+    .payment-heading {display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;}
+    .payment-heading h2 {font-size:1rem;margin:0;}
+    .status-pill {font-size:.75rem;padding:.3rem .6rem;border-radius:2rem;background:rgba(255,155,20,.12);color:var(--orange);}
+    .payment-steps {list-style:none;padding:0;margin:1.25rem 0;display:grid;gap:.8rem;}
+    .payment-steps li {display:flex;align-items:center;gap:.65rem;color:var(--muted);font-size:.85rem;}
+    .step-dot {display:grid;place-items:center;width:1.6rem;height:1.6rem;border:1px solid var(--line);border-radius:50%;font-size:.75rem;flex-shrink:0;}
+    .payment-steps li.complete {color:var(--orange);}
+    .payment-steps li.complete .step-dot {border-color:var(--orange);background:rgba(255,155,20,.12);}
+    .payment-steps li.current {color:var(--orange);}
+    .payment-steps li.current .step-dot {border-color:var(--orange);}
+    #confirmation-state[hidden], #step-network[hidden] {display:none;}
+    .confirmation-state {display:flex;align-items:center;gap:.9rem;padding:1rem;border:1px solid var(--line);border-radius:.65rem;background:rgba(255,155,20,.04);}
+    .confirmation-state strong {display:block;font-size:.9rem;line-height:1.45;}
+    .confirmation-icon {position:relative;display:block;width:6.7rem;height:3.1rem;flex-shrink:0;color:var(--orange);}
+    .chain-block {position:absolute;top:1.35rem;width:1.1rem;height:1.1rem;border:1px solid var(--orange);border-radius:.2rem;background:rgba(255,155,20,.14);box-sizing:border-box;}
+    .chain-one {left:0;opacity:.35;}.chain-two {left:1.65rem;opacity:.55;}.chain-three {left:3.3rem;opacity:.8;}
+    .chain-new::before,.chain-two::before,.chain-three::before,.chain-incoming::before {content:'';position:absolute;right:100%;top:.45rem;width:.6rem;height:1px;background:var(--orange);}
+    .chain-incoming {left:4.95rem;background:var(--orange);color:var(--ink);display:grid;place-items:center;font-size:.8rem;font-weight:800;}
+    .loading .chain-block {background:transparent;opacity:.7;}
+    .chain-track {position:absolute;inset:0;}
+    .chain-new {display:none;left:0;}
+    .loading .chain-one {transform-origin:center bottom;animation:rectangle-grow 3s ease-in-out infinite;}
+    .loading .chain-track {clip-path:inset(0 .65rem 0 1.1rem);}
+    .loading .chain-new {display:block;}
+    .loading .chain-track .chain-block {animation:chain-shift 3s ease-in-out infinite;}
+    .block-check {opacity:0;}.complete .block-check {opacity:1;}
+    .confirmation-detail {display:block;font-size:.78rem;color:var(--muted);margin-top:.2rem;line-height:1.5;}
+    #confirmation-block {color:var(--orange);font-variant-numeric:tabular-nums;}
+    @keyframes rectangle-grow {
+      0%, 12%, 53%, 100% {transform:scaleY(1);background:transparent;}
+      34%, 39% {transform:scaleY(1.65);background:rgba(255,155,20,.15);}
+    }
+    @keyframes chain-shift {
+      0%, 53% {transform:translateX(0);}
+      82%, 100% {transform:translateX(1.65rem);}
+    }
+    @media(prefers-reduced-motion:reduce) {.loading .chain-block {animation:none;}}
+    @media(max-width:420px) {.confirmation-state {align-items:flex-start;flex-direction:column;gap:.5rem;}}
+    .payment-help {font-size:.8rem;color:var(--muted);margin:.65rem 0;line-height:1.5;}
+    #transaction-details {margin-top:1rem;border-top:1px solid var(--line);padding-top:.85rem;}
+    #transaction-details summary {font-size:.85rem;cursor:pointer;}
+    .transaction-row {margin-top:.85rem;}
+    .transaction-id {display:block;overflow-wrap:anywhere;font-size:.75rem;color:var(--muted);line-height:1.6;}
+    .copy-transaction {font:inherit;font-size:.75rem;color:inherit;border:1px solid var(--line);background:transparent;border-radius:.4rem;padding:.35rem .65rem;margin-top:.4rem;cursor:pointer;}
+    .result-page [hidden] { display: none !important; }
+    #retry-expired-booking { margin-top: 1.25rem; padding: .75rem 1.25rem; border: 0; border-radius: .5rem; background: var(--orange); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+    #result-note { margin-block: 1.25rem 0.75rem; font-size: 0.85rem; color: var(--muted); }
+    .result-contact { font-size: 0.85rem; text-underline-offset: 0.25em; }
+    .result-contact:hover { color: var(--orange); }
+    @media (max-width: 540px) { .result-page { width: calc(100% - 1.5rem); } .result-summary > div { flex-wrap: wrap; gap: 0.25rem; } }
+  </style>
+  {enabled && <script is:inline>
+    const prefix=location.pathname.startsWith('/lightning-pilot/')?'/lightning-pilot':'';
+    const params = new URL(location.href).searchParams;
+    const locale = params.get('lang') === 'pl' ? 'pl' : 'en';
+    const polish = locale === 'pl';
+    document.documentElement.lang = locale;
+    const text = polish ? {
+      checking: 'Sprawdzamy rezerwację', waiting: 'Czekamy na potwierdzenie płatności i rezerwacji. Ta strona zaktualizuje się automatycznie.',
+      confirmed: 'Dziękujemy!', confirmedMessage: 'Twoja konsultacja Foundation jest zarezerwowana. Szczegóły spotkania znajdziesz w wiadomości e-mail.',
+      review: 'Dziękujemy!', reviewMessage: 'Teraz sprawdzimy płatność i potwierdzimy datę oraz godzinę Twojej konsultacji Foundation. Wkrótce otrzymasz e-mail z potwierdzeniem terminu i szczegółami połączenia.', reviewNote: 'Na ten moment nie musisz nic robić ani ponawiać płatności. Jeśli masz pytania, napisz do nas.',
+      lateMessage:'Wykryliśmy płatność po wygaśnięciu faktury. Poprzedni termin mógł już zostać zwolniony. Sprawdzimy płatność i dostępność, a następnie skontaktujemy się z Tobą, aby ustalić termin lub dalsze kroki.',
+      released: 'Rezerwacja nie została potwierdzona', releasedMessage: 'Ten termin został zwolniony. Jeśli płatność została pobrana, skontaktuj się z nami przed ponowną rezerwacją.',
+      slow: 'Potwierdzenie trwa dłużej', slowMessage: 'Nie mamy jeszcze ostatecznego potwierdzenia. Możesz odświeżyć tę stronę za chwilę lub skontaktować się z nami.',
+      error: 'Nie możemy sprawdzić rezerwacji', errorMessage: 'Odśwież stronę lub skontaktuj się z nami. Nie dokonuj kolejnej płatności.',
+      note: 'Nie dokonuj kolejnej płatności w trakcie potwierdzania rezerwacji.', doneNote: 'Do zobaczenia na konsultacji.',
+      duration: 'Czas trwania', fee: 'Cena spotkania', appointment: 'Termin spotkania', contact: 'Skontaktuj się z nami', test: 'Prywatna rezerwacja testowa',
+      processing: 'Dziękujemy!', processingMessage: 'Czekamy na potwierdzenie w sieci Bitcoin. Termin zostanie potwierdzony po rozliczeniu płatności.',
+      partial: 'Płatność jest niepełna', partialMessage: 'Wykryto część płatności. Sprawdź pozostałą kwotę na oryginalnej fakturze BTC.',
+      partialNote: 'Nie twórz nowej rezerwacji ani nowej faktury, aby uzupełnić tę płatność.',
+      paymentConfirmedStatus:'Płatność potwierdzona',
+      confirmedReviewStatus:'Płatność potwierdzona · termin do ustalenia',
+      paymentHeading:'Płatność Bitcoin', receivedStep:'Płatność otrzymana', networkStep:'Potwierdzenie w sieci', bookingStep:'Termin potwierdzony',
+      networkWaiting:'Czekamy na potwierdzenie w sieci', networkChecking:'Sprawdzamy potwierdzenie w sieci', networkComplete:'Potwierdzenie w sieci otrzymane', networkWaitDetail:'Potrzebne jest jedno potwierdzenie. Nie musisz nic robić.', networkCheckDetail:'Płatność wykryta. Dokładny status potwierdzeń jest chwilowo niedostępny.', networkDoneDetail:'Wymagane potwierdzenie zostało zweryfikowane.', firstBlock:'Blok pierwszego potwierdzenia: ', confirmationTotal:'Liczba potwierdzeń: ',
+      confirmations:'Potwierdzenia', details:'Szczegóły transakcji', copyTx:'Kopiuj TXID', copied:'Skopiowano', copyFailed:'Zaznacz i skopiuj TXID',
+      awaitingPayment:'Oczekujemy na płatność', awaitingNetwork:'W trakcie potwierdzania', settledStatus:'Płatność rozliczona', reviewStatus:'Sprawdzamy płatność', expiredStatus:'Faktura wygasła',
+      networkHelp:'Płatność została wykryta. Czekamy na 1 potwierdzenie w sieci Bitcoin. Czas zależy od sieci — nie musisz płacić ponownie.',
+      settledHelp:'Płatność została rozliczona. Potwierdzenie terminu i szczegóły połączenia otrzymasz e-mailem.',
+      unknownCount:'Liczba potwierdzeń chwilowo niedostępna. Status płatności pochodzi z BTCPay.',
+      noTransaction:'TXID pojawi się tutaj, gdy BTCPay wykryje transakcję.', updated:'Ostatnia aktualizacja', autoUpdate:'Strona odświeża status automatycznie.', calmNote:'Możesz spokojnie poczekać — nie musisz ponawiać płatności.',
+
+    } : {
+      checking: 'Checking your booking', waiting: 'We’re waiting for payment and booking confirmation. This page will update automatically.',
+      confirmed: 'Thank you!', confirmedMessage: 'Your Foundation consultation is booked. Check your email for the meeting details.',
+      review: 'Thank you!', reviewMessage: 'We’ll now check your payment and confirm the date and time of your Foundation consultation. You’ll receive an email soon with your appointment confirmation and call details.', reviewNote: 'There’s nothing you need to do or pay again right now. If you have any questions, please get in touch.',
+      lateMessage:'We detected a payment after the invoice expired. Your original slot may already have been released. We’ll check the payment and availability, then contact you to arrange a time or the next steps.',
+      released: 'This booking was not confirmed', releasedMessage: 'The time slot has been released. If you were charged, contact us before booking again.',
+      slow: 'Confirmation is taking longer', slowMessage: 'We don’t have a final confirmation yet. Refresh this page shortly or contact us for help.',
+      error: 'We couldn’t check your booking', errorMessage: 'Refresh this page or contact us for help. Don’t submit another payment.',
+      note: 'Please don’t submit another payment while confirmation is in progress.', doneNote: 'We look forward to speaking with you.',
+      duration: 'Duration', fee: 'Session fee', appointment: 'Your appointment', contact: 'Contact us', test: 'Private test booking',
+      processing: 'Thank you!', processingMessage: 'We’re waiting for confirmation on the Bitcoin network. Your appointment will be confirmed once payment settles.',
+      partial: 'Payment is incomplete', partialMessage: 'Part of the payment has been detected. Check the remaining amount on your original BTC invoice.',
+      partialNote: 'Don’t create another booking or invoice to complete this payment.',
+      paymentConfirmedStatus:'Payment confirmed',
+      confirmedReviewStatus:'Payment confirmed · appointment under review',
+      paymentHeading:'Bitcoin payment', receivedStep:'Payment received', networkStep:'Network confirmation', bookingStep:'Appointment confirmed',
+      networkWaiting:'Waiting for network confirmation', networkChecking:'Checking network confirmation', networkComplete:'Network confirmation received', networkWaitDetail:'One confirmation is needed. There’s nothing you need to do.', networkCheckDetail:'Payment detected. Confirmation details are temporarily unavailable.', networkDoneDetail:'The required confirmation has been verified.', firstBlock:'First-confirmation block: ', confirmationTotal:'Confirmations: ',
+      confirmations:'Confirmations', details:'Transaction details', copyTx:'Copy TXID', copied:'Copied', copyFailed:'Select and copy the TXID',
+      awaitingPayment:'Awaiting payment', awaitingNetwork:'Confirming payment', settledStatus:'Payment settled', reviewStatus:'Checking payment', expiredStatus:'Invoice expired',
+      networkHelp:'Your payment has been detected. We’re waiting for 1 Bitcoin confirmation. Timing depends on the network — there’s no need to pay again.',
+      settledHelp:'Your payment has settled. Your appointment confirmation and call details will arrive by email.',
+      unknownCount:'Confirmation count is temporarily unavailable. Payment status is provided by BTCPay.',
+      noTransaction:'The TXID will appear here when BTCPay detects your transaction.', updated:'Last updated', autoUpdate:'This page updates automatically.', calmNote:'You can relax while we confirm your booking. There’s no need to pay again.',
+
+    };
+    const byId = id => document.getElementById(id);
+    for (const [id, key] of [['duration-label','duration'], ['fee-label','fee'], ['appointment-label','appointment'], ['contact-link','contact']]) byId(id).textContent = text[key];
+    const testLabel = byId('test-label');
+    if (testLabel) testLabel.textContent = text.test;
+    function show(title, message, symbol = '…') {
+      byId('result-title').textContent = title;
+      byId('result-message').textContent = message;
+      byId('result-symbol').textContent = symbol;
+      byId('result-note').textContent = text.note;
+    }
+    function renderPayment(result) {
+      if(result.price&&byId('result-price'))byId('result-price').textContent=new Intl.NumberFormat(locale,{style:'currency',currency:result.price.currency}).format(result.price.minorUnits/100);
+      const details=result.paymentDetails;
+      if(result.rail==='lightning') {
+        byId('bitcoin-progress').hidden=false;
+        byId('payment-heading').textContent=polish?'Płatność Lightning':'Lightning payment';
+        byId('step-network').hidden=true;
+        byId('confirmation-state').hidden=true;
+        byId('transaction-details').hidden=true;
+        byId('step-booking-number').textContent='2';
+        const settled=result.state==='confirmed'||(details?.invoiceStatus==='Settled'&&details.additionalStatus==='None');
+        const status=result.state==='reconcile'?text.reviewStatus:result.state==='released'?text.expiredStatus:settled?text.paymentConfirmedStatus:text.awaitingPayment;
+        byId('transaction-status').textContent=status;
+        byId('step-received-label').textContent=(settled?'✓ ':'')+text.receivedStep;
+        byId('step-received').className=settled?'complete':'current';
+        byId('step-booking-label').textContent=text.bookingStep;
+        byId('step-booking').className=result.state==='confirmed'?'complete':settled?'current':'';
+        return;
+      }
+      if(!details) return;
+      byId('bitcoin-progress').hidden=false;
+      const txs=Array.isArray(details.transactions)?details.transactions.filter(tx=>/^[a-f0-9]{64}$/.test(tx.txid)):[];
+      const settled=details.invoiceStatus==='Settled' && details.additionalStatus==='None';
+      const received=txs.length>0 || ['Processing','Settled'].includes(details.invoiceStatus);
+      const review=result.state!=='confirmed'&&(result.state==='reconcile'||details.additionalStatus!=='None'||details.invoiceStatus==='Invalid');
+      const exact=txs.length>0&&txs.every(tx=>Number.isSafeInteger(tx.confirmations)&&tx.confirmations>=0);
+      const count=exact?Math.min(...txs.map(tx=>tx.confirmations)):null;
+      const verifiedBlocks=txs.length>0&&txs.every(tx=>Number.isSafeInteger(tx.blockHeight)&&tx.blockHeight>0);
+      const networkConfirmed=settled||verifiedBlocks||(count!==null&&count>=1);
+      for(const [id,key] of [['payment-heading','paymentHeading'],['step-received-label','receivedStep'],['step-network-label','networkStep'],['step-booking-label','bookingStep'],['transaction-details-label','details']]) byId(id).textContent=text[key];
+      byId('transaction-status').textContent=review&&networkConfirmed?text.confirmedReviewStatus:review?text.reviewStatus:networkConfirmed?text.paymentConfirmedStatus:settled?text.settledStatus:details.invoiceStatus==='Expired'?text.expiredStatus:received?text.awaitingNetwork:text.awaitingPayment;
+      byId('step-received').className=received?'complete':'current';
+
+      byId('step-booking').className=result.state==='confirmed'?'complete':settled?'current':'';
+      byId('step-network').className=networkConfirmed?'complete':received?'current':'';
+      byId('step-received-label').textContent=(received?'✓ ':'')+text.receivedStep;
+      byId('step-network-label').textContent=(networkConfirmed?'✓ ':'')+text.networkStep;
+      byId('confirmation-count').textContent=networkConfirmed?text.networkComplete:!received?text.awaitingPayment:count===0?text.networkWaiting:text.networkChecking;
+      byId('confirmation-icon').className='confirmation-icon '+(networkConfirmed?'complete':'loading');
+      const heights=[...new Set(txs.filter(tx=>Number.isSafeInteger(tx.blockHeight)&&tx.blockHeight>0&&(tx.confirmations===null||tx.confirmations>0)).map(tx=>tx.blockHeight))];
+      byId('confirmation-block').hidden=heights.length===0;
+      byId('confirmation-block').textContent=heights.length?text.firstBlock+heights.map(height=>'#'+height).join(', '):'';
+      byId('confirmation-detail').textContent=networkConfirmed?(count!==null?text.confirmationTotal+count:text.networkDoneDetail):!received?text.noTransaction:count===0?text.networkWaitDetail:text.networkCheckDetail;
+      byId('confirmation-help').textContent=(review?text.reviewNote:networkConfirmed?text.settledHelp:settled?text.settledHelp:received?text.networkHelp:text.noTransaction);
+      const list=byId('transaction-list');list.replaceChildren();
+      if(!txs.length)list.textContent=text.noTransaction;
+      for(const tx of txs) {
+        const row=document.createElement('div');row.className='transaction-row';
+        const id=document.createElement('code');id.className='transaction-id';id.textContent=tx.txid;row.appendChild(id);
+        const button=document.createElement('button');button.type='button';button.className='copy-transaction';button.textContent=text.copyTx;
+        button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(tx.txid);button.textContent=text.copied;}catch{button.textContent=text.copyFailed;}});
+        row.appendChild(button);list.appendChild(row);
+      }
+      byId('payment-updated').textContent=text.updated+' · '+new Intl.DateTimeFormat(polish?'pl-PL':'en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date())+(['pending','reconcile'].includes(result.state)?' · '+text.autoUpdate:'');
+    }
+    let sessionId = params.get('session_id') || '';
+    let checkoutToken=params.get('checkout')||'';
+    try {
+      if(!params.has('session_id')&&!params.has('checkout')) {
+        const saved=JSON.parse(sessionStorage.getItem('custody-foundation-result'+prefix)||'null');
+        if(saved){sessionId=saved.sessionId||'';checkoutToken=saved.checkoutToken||'';}
+        else sessionId=sessionStorage.getItem('custody-foundation-result-session'+prefix)||'';
+      }
+      if (/^cs_(?:test|live)_[A-Za-z0-9]{1,250}$/.test(sessionId)||/^[A-Za-z0-9_-]{43}$/.test(checkoutToken)) {
+        sessionStorage.setItem('custody-foundation-result'+prefix,JSON.stringify({sessionId,checkoutToken}));
+        params.delete('session_id');
+        params.delete('checkout');
+        history.replaceState(null, '', location.pathname + '?' + params.toString());
+      }
+    } catch {}
+    async function check(attempt = 0) {
+      const bitcoin=/^[A-Za-z0-9_-]{43}$/.test(checkoutToken);
+      if (!bitcoin&&!/^cs_(?:test|live)_[A-Za-z0-9]{1,250}$/.test(sessionId)) { show(text.error, text.errorMessage, '?'); return; }
+      try {
+        const response = await fetch(prefix+'/booking-api/checkout', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({action:'status', ...(bitcoin?{checkoutToken}:{sessionId})}), cache:'no-store', signal:AbortSignal.timeout(10000),
+        });
+        if (!response.ok) throw new Error();
+        const result = await response.json();
+        renderPayment(result);
+        if (result.state === 'confirmed') {
+          if (result.appointmentStatus === 'cancelled') {
+            const title = polish ? 'Termin odwołany' : 'Appointment cancelled';
+            show(title, polish ? 'Sprawdź wiadomość e-mail z Cal, aby poznać szczegóły odwołania.' : 'Check your email from Cal for cancellation details.', '!');
+            byId('result-note').textContent = '';
+            byId('step-booking-label').textContent = title;
+            byId('step-booking').className = '';
+            byId('confirmation-help').textContent = '';
+            return;
+          }
+          if (!result.startsAt) {
+            show(polish ? 'Płatność potwierdzona' : 'Payment confirmed',
+              polish ? 'Sprawdź najnowszą wiadomość z Cal, aby potwierdzić termin.' : 'Check your latest Cal email for the appointment time.', '✓');
+            byId('result-note').textContent = '';
+            return;
+          }
+          show(text.confirmed, text.confirmedMessage, '✓');
+          byId('result-note').textContent = text.doneNote;
+          if (result.startsAt && Number.isFinite(Date.parse(result.startsAt))) {
+            byId('appointment-time').textContent = new Intl.DateTimeFormat(polish ? 'pl-PL' : 'en-GB', {
+              dateStyle:'long', timeStyle:'short',
+            }).format(new Date(result.startsAt)) + ' · ' + Intl.DateTimeFormat().resolvedOptions().timeZone;
+            byId('appointment-row').hidden = false;
+          }
+          return;
+        }
+        if (result.state === 'reconcile') {
+          show(text.review, result.reviewReason==='late-payment'?text.lateMessage:text.reviewMessage);
+          byId('result-note').textContent = text.reviewNote;
+          if(bitcoin && attempt<180)setTimeout(() => check(attempt + 1),10000);
+          return;
+        }
+        if (result.state === 'released') {
+          byId('bitcoin-progress').hidden = true;
+          show(text.released, text.releasedMessage, '!');
+          byId('result-note').textContent = '';
+          if (result.canRetry) {
+            show(polish ? 'Faktura wygasła' : 'Your invoice expired',
+              polish ? 'Nie wykryliśmy płatności. Termin został zwolniony. Wybierz termin i dokończ rezerwację konsultacji Foundation.'
+                : 'We didn’t detect a payment. Your slot was released. Choose a time to finish booking your Foundation consultation.', '!');
+            byId('result-note').textContent = polish ? 'Płatność została już wysłana?' : 'Already sent a payment?';
+            const retry = byId('retry-expired-booking');
+            retry.hidden = false;
+            retry.textContent = polish ? 'Dokończ rezerwację' : 'Finish booking';
+            retry.onclick = async () => {
+              retry.disabled = true;
+              try {
+                const response = await fetch(prefix + '/booking-api/checkout', {
+                  method: 'POST', headers: {'Content-Type':'application/json'},
+                  body: JSON.stringify({action:'retry-expired', checkoutToken}),
+                  cache: 'no-store', signal: AbortSignal.timeout(20000),
+                });
+                if (!response.ok) throw new Error();
+                const {invite} = await response.json();
+                if (!/^[A-Za-z0-9_-]{43}$/.test(invite || '')) throw new Error();
+                location.assign(prefix + '/payment/?lang=' + locale + '#invite=' + invite);
+              } catch {
+                retry.hidden = true;
+                show(text.released, text.releasedMessage, '!');
+                byId('result-note').textContent = '';
+              }
+            };
+          }
+          return;
+        }
+        if (result.state !== 'pending') throw new Error();
+        if (attempt >= (bitcoin?180:15)) { show(text.slow, text.slowMessage); return; }
+        if(bitcoin&&result.phase==='partial') {show(text.partial,text.partialMessage);byId('result-note').textContent=text.partialNote;}
+        else if(bitcoin&&result.rail!=='lightning'&&(result.phase==='processing'||result.paymentDetails?.invoiceStatus==='Processing')) {show(text.processing,text.processingMessage);byId('result-note').textContent=text.calmNote;}
+        else show(text.checking, text.waiting);
+        setTimeout(() => check(attempt + 1), bitcoin?10000:2000);
+      } catch { show(text.error, text.errorMessage, '?'); }
+    }
+    show(text.checking, text.waiting);
+    check();
+  </script>}
+</Base>

@@ -1,0 +1,197 @@
+---
+import Base from '../layouts/Base.astro';
+import { buildEnvironment } from '../../environment.mjs';
+import { Image } from 'astro:assets';
+import logo from '../../../src/assets/custody-logo-white.png';
+const isStaging = buildEnvironment(process.env.SITE_ENV).name === 'staging';
+const enabled = isStaging || process.env.BOOKING_PAGES_ENABLED === 'true';
+---
+<Base title="Foundation · Custody Consulting" noindex={true}>
+  <main class="booking-page" data-booking-ui={enabled ? 'native' : 'disabled'}>
+    <div class="booking-masthead">
+      <Image src={logo} alt="Custody Consulting" width={128} widths={[128, 256]} sizes="128px" format="webp" loading="eager" />
+      <div class="booking-tools">
+        {isStaging && <span class="booking-test"><span class="test-dot" aria-hidden="true"></span><span data-lang="en">Private test booking</span><span data-lang="pl" lang="pl" hidden>Prywatna rezerwacja testowa</span></span>}
+        <nav class="booking-languages" aria-label="Language / Język">
+          <a href="?lang=en" data-booking-language="en" lang="en" aria-label="English">EN</a>
+          <a href="?lang=pl" data-booking-language="pl" lang="pl" aria-label="Polski">PL</a>
+        </nav>
+      </div>
+    </div>
+    <header class="booking-header">
+      <div class="booking-heading">
+        <h1>Foundation</h1>
+        <p class="booking-intro" data-lang="en">Choose your time. Your call is confirmed after payment.</p>
+        <p class="booking-intro" data-lang="pl" lang="pl" hidden>Wybierz termin. Potwierdzimy spotkanie po opłaceniu.</p>
+      </div>
+      <dl class="booking-details">
+        <div><dt><span data-lang="en">Duration</span><span data-lang="pl" lang="pl" hidden>Czas trwania</span></dt><dd>60 min</dd></div>
+        <div><dt id="booking-fee-label"><span data-lang="en">Session fee</span><span data-lang="pl" lang="pl" hidden>Cena spotkania</span><span id="booking-fee-discount" hidden> −10%</span></dt><dd><small id="booking-original-price" hidden></small><span id="booking-price">420 PLN</span><small id="booking-price-equivalent" hidden></small></dd></div>
+      </dl>
+    </header>
+    {enabled ? (
+      <>
+        {isStaging && <p id="booking-test-note" class="booking-test-note" data-copy="testNote">Test checkout · PLN via Stripe. Bitcoin payments will be available separately.</p>}
+        <div id="foundation-calendar" class="booking-workspace" hidden>
+          <section class="calendar-panel" aria-labelledby="choose-time-title">
+            <h2 id="choose-time-title" data-copy="chooseTime">Choose a time</h2>
+            <div class="month-navigation">
+              <button id="previous-month" type="button" aria-label="Previous month">‹</button>
+              <h3 id="month-heading" aria-live="polite"></h3>
+              <button id="next-month" type="button" aria-label="Next month">›</button>
+            </div>
+            <div id="weekday-labels" class="calendar-grid weekday-labels" aria-hidden="true"></div>
+            <div id="calendar-days" class="calendar-grid" role="group" aria-labelledby="month-heading" aria-busy="false"></div>
+            <p id="calendar-message" class="field-help" role="status" aria-live="polite"></p>
+            <button id="calendar-retry" class="text-button" type="button" hidden data-copy="reload">Reload availability</button>
+          </section>
+          <section class="slots-panel" aria-labelledby="slots-heading">
+              <h3 id="slots-heading" data-copy="chooseDay">Choose an available day</h3>
+              <p class="field-help local-time-note"><span data-copy="localTime">Your local time</span> · <span id="local-timezone"></span></p>
+              <div id="time-slots" class="time-slots" role="group" aria-labelledby="slots-heading"></div>
+          </section>
+          <form id="booking-form" class="details-panel">
+            <h2 data-copy="yourDetails">Your details</h2>
+            <p id="selected-appointment" class="selected-appointment" data-copy="selectFirst">Select a day and time to continue.</p>
+            <div class="contact-fields">
+              <div><label for="booking-name" data-copy="name">Your name</label>
+              <input id="booking-name" name="name" autocomplete="name" required maxlength="150" /></div>
+              <div><label for="booking-email" data-copy="email">Email address</label>
+              <input id="booking-email" name="email" type="email" autocomplete="email" required maxlength="254" /></div>
+            </div>
+            <p class="field-help" data-copy="emailHelp">Your meeting details will be sent here.</p>
+            <details class="booking-notes">
+              <summary id="booking-notes-label" data-copy="notes">I have a specific question (optional)</summary>
+              <textarea id="booking-notes" name="notes" rows="2" maxlength="1500" aria-labelledby="booking-notes-label"></textarea>
+            </details>
+            <div class="payment-choice" role="group" aria-labelledby="payment-label">
+              <span id="payment-label" data-copy="payment">Payment</span>
+              <div class="payment-options">
+                <label><input id="payment-btc" type="radio" name="payment-method" value="BTC" disabled /><span id="payment-btc-label">BTC</span></label>
+                <label><input id="payment-pln" type="radio" name="payment-method" value="PLN" checked />PLN</label>
+                <label><input id="payment-eur" type="radio" name="payment-method" value="EUR" />EUR</label>
+                <label><input id="payment-gbp" type="radio" name="payment-method" value="GBP" />GBP</label>
+              </div>
+            </div>
+            <p id="bitcoin-discount" class="bitcoin-discount" hidden></p>
+            <p class="booking-terms" data-copy="terms">Cal.com handles scheduling and confirmation emails. Your slot is confirmed after payment. Unpaid checkout expires after 35 minutes.</p>
+            <p class="booking-terms" data-copy="bookingPolicy">You can cancel or reschedule up to 12 hours before your appointment. You’ll receive a payment receipt.</p>
+            <button id="book-and-pay" class="primary-button" type="submit" disabled data-copy="submit">Continue to payment</button>
+          </form>
+        </div>
+        <div class="booking-feedback">
+          <p id="payment-status" role="status" aria-live="polite"></p>
+          <button id="checkout-retry" class="primary-button" type="button" hidden data-copy="resume">Continue to payment</button>
+          <button id="switch-to-btc" class="text-button" type="button" hidden data-copy="switchBTC">Switch to BTC</button>
+          <p id="booking-help" hidden><a href="mailto:info@custody.consulting" data-copy="contact">Contact us</a></p>
+        </div>
+        <noscript>Please enable JavaScript to book. / Włącz JavaScript, aby zarezerwować termin.</noscript>
+      </>
+    ) : <p>Booking is available by invitation. / Rezerwacja jest dostępna na zaproszenie.</p>}
+  </main>
+  <style>
+    .booking-page { width: min(calc(100% - 3rem), 1140px); margin-inline: auto; padding-block: 1.25rem 2rem; }
+    .booking-page [hidden] { display: none !important; }
+    .booking-masthead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+    .booking-masthead img { width: 128px; height: auto; }
+    .booking-tools { display: flex; align-items: center; gap: 1.25rem; }
+    .booking-languages { display: flex; gap: 0.25rem; padding-left: 1rem; border-left: 1px solid var(--line); }
+    .booking-languages a { padding: 0.25rem 0.4rem; color: var(--muted); font-size: 0.75rem; text-decoration: none; border-radius: 0.25rem; }
+    .booking-languages a[aria-current="true"] { color: var(--white); background: var(--navy-soft); font-weight: 700; }
+    .booking-languages a:hover { color: var(--orange); }
+    .booking-test { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.75rem; }
+    .test-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+    .booking-header { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding-block: 1.25rem 1rem; }
+    .booking-header h1 { margin: 0 0 0.4rem; font-size: clamp(1.9rem, 4vw, 2.4rem); line-height: 1.15; letter-spacing: -0.035em; }
+    .booking-details { display: flex; gap: 1.5rem; margin: 0; white-space: nowrap; }
+    .booking-details > div + div { border-left: 1px solid var(--line); padding-left: 1.5rem; }
+    .booking-details dt { color: var(--muted); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .booking-details dd { margin: 0.15rem 0 0; font-size: 1.3rem; line-height: 1.3; font-weight: 650; }
+    #booking-original-price { display:block; color:var(--muted); font-size:.8rem; text-decoration:line-through; font-weight:400; }
+    #booking-original-price[hidden] { display:none; }
+    #booking-fee-label.is-bitcoin { color:var(--orange); }
+    #booking-fee-discount[hidden] { display:none; }
+    #booking-price-equivalent { display:block; margin-top:.2rem; color:var(--muted); font-size:.75rem; font-weight:400; }
+    #booking-price-equivalent[hidden] { display:none; }
+    .booking-currency { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+    .booking-intro { margin: 0; max-width: 40rem; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+    .booking-test-note { margin: 0 0 1rem; padding-left: 0.75rem; border-left: 2px solid var(--orange); color: var(--muted); font-size: 0.8rem; line-height: 1.5; }
+    .booking-test-note strong { color: var(--white); font-weight: 650; }
+    .booking-feedback { max-width: 48rem; margin-inline: auto; }
+    #payment-status:empty { display: none; }
+    #payment-status { margin-block: 1rem 0.6rem; font-size: 0.95rem; }
+    #checkout-retry { cursor: pointer; padding: 0.7rem 1rem; border: 1px solid var(--orange); border-radius: 0.5rem; background: var(--orange); color: var(--ink); font: inherit; font-weight: 700; }
+    #checkout-retry:focus-visible { outline: 2px solid var(--white); outline-offset: 4px; }
+    @media (max-width: 540px) {
+      .booking-page { width: calc(100% - 1.5rem); padding-top: 0.75rem; }
+      .booking-masthead img { width: 108px; }
+      .booking-test { font-size: 0.65rem; }
+      .booking-tools { gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
+      .booking-languages { padding-left: 0.5rem; }
+      .booking-header { flex-direction: column; align-items: flex-start; gap: 0.85rem; padding-top: 1rem; }
+      .booking-details { gap: 1.25rem; }
+      .booking-details > div + div { padding-left: 1.25rem; }
+      .booking-details dd { font-size: 1.1rem; }
+    }
+
+    .booking-workspace { display:grid; grid-template-columns:minmax(260px,340px) minmax(160px,190px) minmax(320px,1fr); border:1px solid var(--line); border-radius:0.9rem; background:var(--navy-card); overflow:hidden; }
+    .calendar-panel,.slots-panel,.details-panel { padding:1.25rem; min-width:0; }
+    .slots-panel { border-left:1px solid var(--line); }
+    .details-panel { border-left:1px solid var(--line); background:rgba(0,0,0,.12); }
+    .booking-workspace h2 { font-size:1.05rem; margin-bottom:1rem; }
+    .booking-workspace h3 { font-size:.95rem; margin:0; }
+    label { display:block; margin-bottom:.35rem; font-size:.85rem; }
+    .details-panel label { margin-top:1rem; }
+    input,textarea { width:100%; border:1px solid var(--line); border-radius:.45rem; background:var(--navy); color:var(--white); padding:.6rem .65rem; font:inherit; font-size:.85rem; }
+    textarea { resize:vertical; }
+    input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible { outline:2px solid var(--orange); outline-offset:3px; }
+    .field-help,.booking-terms { font-size:.75rem; color:var(--muted); line-height:1.5; margin:.5rem 0 0; }
+    .booking-terms { margin-block:.85rem; font-size:.65rem; }
+    .month-navigation { display:flex; align-items:center; justify-content:space-between; margin-block:.75rem; }
+    .month-navigation button { border:1px solid var(--line); border-radius:.4rem; background:transparent; color:var(--white); width:2.25rem; height:2.25rem; font-size:1.3rem; cursor:pointer; }
+    .calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:.3rem; }
+    .weekday-labels { color:var(--muted); font-size:.65rem; text-align:center; margin-bottom:.4rem; }
+    .calendar-grid :global(button) { min-height:2.1rem; padding:.25rem; border:1px solid transparent; border-radius:.4rem; background:var(--navy-soft); color:var(--white); font:inherit; font-size:.8rem; cursor:pointer; }
+    .calendar-grid :global(button:disabled) { background:transparent; color:var(--muted); opacity:.35; cursor:default; }
+    .calendar-grid :global(button[aria-pressed="true"]) { background:var(--orange); color:var(--ink); font-weight:750; }
+    .calendar-grid :global(button:not(:disabled):hover),.time-slots :global(button:hover) { border-color:var(--orange); }
+    .local-time-note { font-size:.65rem; overflow-wrap:anywhere; }
+    .time-slots { display:grid; grid-template-columns:1fr; gap:.3rem; margin-top:.6rem; padding:3px; }
+    .time-slots :global(button) { border:1px solid var(--line); background:var(--navy); border-radius:.35rem; color:var(--white); min-height:2rem; padding:.25rem .3rem; font:inherit; font-size:.8rem; line-height:1.25; cursor:pointer; }
+    .time-slots :global(button[aria-pressed="true"]) { border-color:var(--orange); background:var(--orange); color:var(--ink); font-weight:700; }
+    .selected-appointment { padding:.6rem .7rem; margin-bottom:.85rem; border-left:2px solid var(--orange); background:var(--navy-soft); color:var(--muted); font-size:.8rem; }
+    .contact-fields { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+    .contact-fields label { margin-top:0; }
+    .booking-notes { margin-top:.85rem; font-size:.8rem; color:var(--muted); }
+    .booking-notes summary { cursor:pointer; }
+    .booking-notes textarea { margin-top:.5rem; }
+    .payment-choice { display:flex; align-items:center; gap:.75rem; margin:.85rem 0 0; font-size:.8rem; }
+    .bitcoin-discount { color:var(--orange); font-size:.8rem; margin:.35rem 0 .75rem; }
+    .payment-options { display:flex; flex-wrap:wrap; gap:.35rem; }
+    .payment-options label { position:relative; display:flex; align-items:center; justify-content:center; margin:0; min-height:1.9rem; padding:.25rem .65rem; border:1px solid var(--line); border-radius:.35rem; font-size:.75rem; cursor:pointer; }
+    .payment-options label[hidden] { display:none; }
+    .payment-options label:has(input:checked) { border-color:var(--orange); background:var(--navy-soft); }
+    .payment-options label:has(input:focus-visible) { outline:2px solid var(--orange); outline-offset:3px; }
+    .payment-options input { position:absolute; opacity:0; width:1px; height:1px; margin:0; padding:0; }
+    .payment-options label:has(input:disabled) { opacity:.4; cursor:not-allowed; }
+    .primary-button { cursor:pointer; width:100%; padding:.85rem 1rem; border:1px solid var(--orange); border-radius:.5rem; background:var(--orange); color:var(--ink); font:inherit; font-weight:750; font-size:.95rem; }
+    button:disabled { cursor:default; opacity:.5; }
+    .text-button { padding:.5rem 0; border:0; background:none; color:var(--orange); font:inherit; font-size:.85rem; cursor:pointer; }
+    @media(max-width:1000px) {
+      .booking-workspace { grid-template-columns:minmax(260px,1fr) minmax(155px,.6fr); }
+      .details-panel { grid-column:1 / -1; border-left:0; border-top:1px solid var(--line); }
+    }
+    @media(max-width:540px) {
+      .booking-workspace { grid-template-columns:1fr; }
+      .slots-panel { border-left:0; border-top:1px solid var(--line); }
+      .time-slots { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .time-slots :global(button) { min-height:2.75rem; }
+      .calendar-panel,.slots-panel,.details-panel { padding:1rem; }
+      .contact-fields { grid-template-columns:1fr; }
+    }
+  </style>
+  <script>
+    import { mountFoundationBooking } from '../scripts/foundation-booking.js';
+    if (document.querySelector('[data-booking-ui="native"]')) mountFoundationBooking();
+  </script>
+</Base>

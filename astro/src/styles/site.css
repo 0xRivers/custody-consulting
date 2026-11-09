@@ -94,7 +94,7 @@ h3 { font-size: 1.3rem; }
 .section--paper { background: var(--paper); color: var(--ink); color-scheme: light; }
 .section--paper .section-intro { color: rgba(7, 23, 47, 0.72); }
 .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; margin-top: 3rem; }
-.services-grid article { display: flex; flex-direction: column; min-height: 19rem; padding: clamp(1.6rem, 4vw, 2.2rem); border: 1px solid var(--paper-line); }
+.services-grid article { display: flex; flex-direction: column; min-height: 15rem; padding: clamp(1.6rem, 4vw, 2.2rem); border: 1px solid var(--paper-line); }
 .services-grid article > p:first-of-type { color: rgba(7, 23, 47, 0.72); }
 .service-outcome { flex: 1; margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px solid var(--paper-line); font-size: 0.91rem; font-weight: 650; }
 .service-price { margin: 1.25rem 0 0; font-size: 1.2rem; font-weight: 850; }
@@ -257,3 +257,21 @@ h3 { font-size: 1.3rem; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+
+.audience-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:1.2rem; margin-top:2.5rem; }
+.audience-grid article { grid-column:span 2; border:1px solid var(--line); padding:clamp(1.5rem,3vw,2rem); }
+.audience-grid article:nth-last-child(-n+2) { grid-column:span 3; }
+.audience-grid h3 { margin:1rem 0 .8rem; }
+.audience-grid p { color:var(--muted); margin-bottom:0; }
+@media(max-width:760px) { .audience-grid { grid-template-columns:1fr; } .audience-grid article,.audience-grid article:nth-last-child(-n+2) { grid-column:auto; } }
+
+/* Service tiers: photography, duration, scope and a clear outcome. */
+.services-grid .service-card { padding:0; min-height:0; overflow:hidden; }
+.service-photo { display:block; width:100%; height:auto; aspect-ratio:2 / 1; object-fit:cover; filter:saturate(.7); }
+.service-card:first-child .service-photo { object-position:center 55%; }
+.service-body { padding:clamp(1.5rem,3vw,2.2rem); display:flex; flex-direction:column; flex:1; }
+.service-body .service-meta { margin:0 0 .8rem; color:#86500c; font-size:.73rem; font-weight:750; letter-spacing:.07em; text-transform:uppercase; }
+.service-body h3 { margin:0 0 1rem; }
+.service-body .service-description { color:rgba(7,23,47,.72); }
+.service-body .service-outcome { flex:0; margin-bottom:0; margin-top:auto; }
+.service-body .service-description { margin-bottom:1.5rem; }
