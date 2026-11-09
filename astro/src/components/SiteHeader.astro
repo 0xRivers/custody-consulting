@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import logo from '../../../src/assets/custody-logo-white.png';
 import { alternateLocale, getContent, type Locale } from '../lib/i18n';
+import { getBuildArticles } from '../lib/articles';
 
 interface Props {
   lang: Locale;
@@ -14,6 +15,7 @@ const t = getContent(lang);
 const action = primaryAction ?? { href: `/${lang}/#contact`, label: t.nav.cta };
 const alternate = alternateLocale(lang);
 const alternateName = alternate === 'pl' ? 'Polski' : 'English';
+const showBlog = (await getBuildArticles(lang)).length > 0;
 ---
 <a class="skip-link" href="#content">{lang === 'pl' ? 'Przejdź do treści' : 'Skip to content'}</a>
 <header class="site-header">
@@ -36,7 +38,7 @@ const alternateName = alternate === 'pl' ? 'Polski' : 'English';
       <a href={`/${lang}/#services`}>{t.nav.services}</a>
       <a href={`/${lang}/#process`}>{t.nav.process}</a>
       <a href={`/${lang}/#faq`}>{t.nav.faq}</a>
-      <a href={`/${lang}/blog/`}>{t.nav.blog}</a>
+      {showBlog && <a href={`/${lang}/blog/`}>{t.nav.blog}</a>}
     </nav>
     <div class="header__actions">
       <a class="language-link" href={alternateHref ?? `/${alternate}/`} hreflang={alternate} lang={alternate} aria-label={`${t.nav.language}: ${alternateName}`}>
@@ -50,7 +52,7 @@ const alternateName = alternate === 'pl' ? 'Polski' : 'English';
           <a href={`/${lang}/#services`}>{t.nav.services}</a>
           <a href={`/${lang}/#process`}>{t.nav.process}</a>
           <a href={`/${lang}/#faq`}>{t.nav.faq}</a>
-          <a href={`/${lang}/blog/`}>{t.nav.blog}</a>
+          {showBlog && <a href={`/${lang}/blog/`}>{t.nav.blog}</a>}
           <a href={action.href}>{action.label}</a>
         </nav>
       </details>

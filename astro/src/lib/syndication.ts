@@ -67,9 +67,10 @@ export function buildSitemapEntries(articles: ArticleLike[]): SitemapEntry[] {
 
   for (const locale of ['en', 'pl'] as const) {
     const localized = published.filter((article) => article.data.locale === locale);
+    entries.push({ path: localePaths[locale][0] });
+    if (!localized.length) continue;
     const latest = latestDate(localized);
     entries.push(
-      { path: localePaths[locale][0] },
       { path: localePaths[locale][1], lastmod: latest },
       ...paginatedPaths(localePaths[locale][1], localized),
     );

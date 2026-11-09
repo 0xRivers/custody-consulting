@@ -35,6 +35,7 @@ const alternatePagePath = page === 1 ? alternateBasePath : `${alternateBasePath}
   title={`${title} · Custody Consulting`}
   description={description}
   lang={lang}
+  noindex={allArticles.length === 0}
   canonicalPath={pageHref(page)}
   alternatePaths={!topic ? [{ lang, path: pageHref(page) }, { lang: alternate, path: alternatePagePath }] : []}
   xDefaultPath={!topic ? '/' : undefined}
