@@ -2,6 +2,7 @@
 import { render, type CollectionEntry } from 'astro:content';
 import SiteFooter from '../../../components/SiteFooter.astro';
 import SiteHeader from '../../../components/SiteHeader.astro';
+import ArticleShare from '../../../components/ArticleShare.astro';
 import Base from '../../../layouts/Base.astro';
 import { articlePath } from '../../../lib/article-rules';
 import { getBuildArticles } from '../../../lib/articles';
@@ -88,6 +89,7 @@ const structuredData = buildArticleStructuredData('https://custody.consulting', 
           <div><dt>{ui.published}</dt><dd><time datetime={article.data.publishedAt.toISOString()}>{formatDate.format(article.data.publishedAt)}</time></dd></div>
           {article.data.updatedAt && <div><dt>{ui.updated}</dt><dd><time datetime={article.data.updatedAt.toISOString()}>{formatDate.format(article.data.updatedAt)}</time></dd></div>}
         </dl>
+        <ArticleShare lang={lang} title={article.data.title} />
       </header>
 
       <div class="article-layout shell shell--article">
