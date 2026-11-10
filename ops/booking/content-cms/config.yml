@@ -1,0 +1,74 @@
+backend:
+  name: github
+  repo: 0xRivers/custody-consulting
+  branch: staging
+  base_url: https://custody.consulting
+  auth_endpoint: admin/content/auth
+
+site_url: https://custody.consulting
+display_url: https://custody.consulting/admin/
+publish_mode: editorial_workflow
+media_folder: astro/public/blog-media
+public_folder: /blog-media
+
+i18n:
+  structure: multiple_folders
+  locales: [en, pl]
+  default_locale: en
+
+collections:
+  - name: articles
+    label: Bilingual articles
+    folder: astro/src/content/blog
+    create: true
+    delete: false
+    extension: md
+    format: frontmatter
+    slug: "{{fields.translationKey}}"
+    i18n: true
+    fields:
+      - { label: Title, name: title, widget: string, i18n: true }
+      - { label: Summary, name: summary, widget: text, i18n: true }
+      - { label: Key answer, name: keyAnswer, widget: text, i18n: true }
+      - label: Language
+        name: locale
+        widget: select
+        options: [{ label: English, value: en }, { label: Polski, value: pl }]
+        hint: Select the language for the translation you are editing.
+        i18n: true
+      - label: Public URL slug
+        name: slug
+        widget: string
+        pattern: ['^[a-z0-9]+(?:-[a-z0-9]+)*$', Use lowercase words separated by hyphens.]
+        i18n: true
+      - { label: Author, name: author, widget: string, default: Custody Consulting, i18n: duplicate }
+      - { label: Publication date, name: publishedAt, widget: datetime, date_format: YYYY-MM-DD, time_format: false, format: YYYY-MM-DD, i18n: duplicate }
+      - { label: Last updated, name: updatedAt, widget: datetime, date_format: YYYY-MM-DD, time_format: false, format: YYYY-MM-DD, required: false, i18n: duplicate }
+      - label: Keep off the live site
+        name: draft
+        widget: boolean
+        default: true
+        i18n: duplicate
+        hint: Leave enabled for staging review. Turn it off only after both translations are approved.
+      - label: Shared translation key
+        name: translationKey
+        widget: string
+        pattern: ['^[a-z0-9]+(?:-[a-z0-9]+)*$', Use lowercase words separated by hyphens.]
+        i18n: duplicate
+        hint: Use the same key for English and Polish.
+      - label: Topics
+        name: topics
+        widget: list
+        i18n: true
+        min: 1
+        max: 5
+      - label: Sources
+        name: sources
+        widget: list
+        i18n: true
+        min: 1
+        max: 12
+        fields:
+          - { label: Source name, name: label, widget: string }
+          - { label: URL, name: url, widget: string }
+      - { label: Article, name: body, widget: markdown, i18n: true }
