@@ -9,7 +9,7 @@ locale: en
 slug: bitcoin-self-custody-foundations
 author: Custody Consulting
 publishedAt: 2026-11-03
-draft: true
+draft: false
 translationKey: self-custody-foundations
 topics:
   - foundations

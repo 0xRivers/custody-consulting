@@ -10,7 +10,7 @@ slug: podstawy-samodzielnego-przechowywania-bitcoina
 author: Custody Consulting
 publishedAt: 2026-11-03
 updatedAt: null
-draft: true
+draft: false
 translationKey: self-custody-foundations
 topics:
   - podstawy
