@@ -110,6 +110,7 @@ const structuredData = buildArticleStructuredData('https://custody.consulting', 
             <h2 id="article-sources-title">{ui.sources}</h2>
             <ul>{article.data.sources.map((source) => <li><a href={source.url} rel="noreferrer">{source.label}</a></li>)}</ul>
           </section>
+          <ArticleShare lang={lang} title={article.data.title} />
 
           <nav class="article-topics" aria-label={ui.topics}>
             {article.data.topics.map((topic) => <a href={`/${lang}/blog/topics/${topic}/`}>{topicLabel(topic)}</a>)}
