@@ -1,0 +1,17 @@
+[Unit]
+Description=Custody Consulting GitHub OAuth for the content editor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+DynamicUser=yes
+EnvironmentFile=/etc/custody-content-oauth.env
+ExecStart=/opt/custody-node24/bin/node /opt/custody-content-oauth/oauth.mjs
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -20,7 +20,7 @@ const blog = defineCollection({
       slug: routeSegment,
       author: z.string().trim().min(2).max(100),
       publishedAt: z.coerce.date(),
-      updatedAt: z.coerce.date().optional(),
+      updatedAt: z.preprocess((value) => value ?? undefined, z.coerce.date().optional()),
       draft: z.boolean().default(true),
       translationKey: routeSegment,
       topics: z.array(routeSegment).min(1).max(5),

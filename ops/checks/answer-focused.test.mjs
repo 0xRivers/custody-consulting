@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import { parse } from 'yaml';
 
 const contentRoot = new URL('../../astro/src/content/blog/', import.meta.url);
 
@@ -19,16 +20,16 @@ function parseArticle(source, pathname) {
   const match = source.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   assert(match, `Invalid frontmatter boundary in ${pathname}`);
   const [, frontmatter, body] = match;
-  const field = (name) => frontmatter.match(new RegExp(`^${name}:\\s*"([^"]+)"`, 'm'))?.[1];
+  const fields = parse(frontmatter);
   return {
     pathname,
     frontmatter,
     body,
-    locale: field('locale'),
-    translationKey: field('translationKey'),
-    keyAnswer: field('keyAnswer'),
+    locale: fields.locale,
+    translationKey: fields.translationKey,
+    keyAnswer: fields.keyAnswer,
     headings: [...body.matchAll(/^##\s+(.+)$/gm)].map((heading) => heading[1].trim()),
-    sourceCount: [...frontmatter.matchAll(/^\s+- label:/gm)].length,
+    sourceCount: Array.isArray(fields.sources) ? fields.sources.length : 0,
   };
 }
 

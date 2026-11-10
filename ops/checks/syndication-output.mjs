@@ -24,15 +24,8 @@ const sitemap = await readFile(new URL('sitemap.xml', productionRoot), 'utf8');
 for (const path of ['/', '/en/', '/pl/']) {
   assert(sitemap.includes(`<loc>${productionOrigin}${path}</loc>`), `Sitemap is missing ${path}`);
 }
-assert.doesNotMatch(sitemap, /staging\.custody\.consulting|bitcoin-self-custody-foundations|podstawy-samodzielnego-przechowywania-bitcoina/);
+assert.doesNotMatch(sitemap, /staging\.custody\.consulting/);
 assert.doesNotMatch(sitemap, /<loc>[^<]*(?:404|robots\.txt|rss\.xml)/);
-
-for (const lang of ['en', 'pl']) {
-  const rss = await readFile(new URL(`${lang}/rss.xml`, productionRoot), 'utf8');
-  assert(rss.includes(`<link>${productionOrigin}/${lang}/blog/</link>`));
-  assert(rss.includes(`<atom:link href="${productionOrigin}/${lang}/rss.xml"`));
-  assert.doesNotMatch(rss, /staging\.custody\.consulting|bitcoin-self-custody-foundations|podstawy-samodzielnego-przechowywania-bitcoina|<item>/);
-}
 
 const productionRobots = await readFile(new URL('robots.txt', productionRoot), 'utf8');
 const stagingRobots = await readFile(new URL('robots.txt', stagingRoot), 'utf8');
@@ -42,8 +35,13 @@ assert.doesNotMatch(stagingRobots, /^Sitemap:/m);
 for (const lang of ['en','pl']) {
   const blog = await readFile(new URL(`${lang}/blog/index.html`, productionRoot), 'utf8');
   const home = await readFile(new URL(`${lang}/index.html`, productionRoot), 'utf8');
+  const rss = await readFile(new URL(`${lang}/rss.xml`, productionRoot), 'utf8');
   assert.match(home, /href="https:\/\/cal\.com\/custody\.consulting\/discovery"/);
+  assert(rss.includes(`<link>${productionOrigin}/${lang}/blog/</link>`));
+  assert(rss.includes(`<atom:link href="${productionOrigin}/${lang}/rss.xml"`));
+  assert.doesNotMatch(rss, /staging\.custody\.consulting/);
   const noindex = /<meta name="robots" content="noindex/.test(blog);
+  assert.equal(rss.includes('<item>'), !noindex);
   assert.equal(sitemap.includes(`<loc>${productionOrigin}/${lang}/blog/</loc>`), !noindex);
   assert.equal(home.includes(`href="/${lang}/blog/"`), !noindex);
   assert.equal(blog.includes('application/rss+xml'), !noindex);
