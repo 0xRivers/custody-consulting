@@ -1,7 +1,7 @@
 ---
 title: "Bitcoin self-custody: the foundations "
 summary: A draft introduction to controlling bitcoin keys, making recoverable
-  backups and choosing a setup you can operate with confidence.
+  backups and choosing a setup you can operate with full confidence.
 keyAnswer: Bitcoin self-custody means controlling the keys needed to spend your
   bitcoin and maintaining a tested recovery path that does not depend on a
   custodian.
