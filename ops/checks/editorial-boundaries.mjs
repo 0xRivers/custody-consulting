@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { relative } from 'node:path';
 
 const contentRoot = new URL('../../astro/src/content/blog/', import.meta.url);
 const productionRoot = new URL('../../build/astro-production/', import.meta.url);
@@ -29,9 +29,12 @@ for (const file of await filesUnder(contentRoot)) {
   const match = source.match(/^---\s*\n([\s\S]*?)\n---/);
   assert(match, `Missing frontmatter in ${file.pathname}`);
   const data = match[1];
+  const filePath = relative(contentRoot.pathname, file.pathname);
+  const locale = scalar(data, 'locale');
+  assert.equal(filePath.split('/')[0], locale, `Article language must match its folder: ${filePath}`);
   articles.push({
-    file: relative(contentRoot.pathname, file.pathname),
-    locale: scalar(data, 'locale'),
+    file: filePath,
+    locale,
     slug: scalar(data, 'slug'),
     translationKey: scalar(data, 'translationKey'),
     draft: scalar(data, 'draft') === 'true',
@@ -50,8 +53,13 @@ for (const [translationKey, pair] of pairs) {
 
 const productionFiles = await filesUnder(productionRoot, '.html');
 const productionHtml = (await Promise.all(productionFiles.map((file) => readFile(file, 'utf8')))).join('\n');
+const syndication = await Promise.all(['sitemap.xml', 'en/rss.xml', 'pl/rss.xml'].map(
+  (path) => readFile(new URL(path, productionRoot), 'utf8'),
+));
 for (const article of articles.filter((candidate) => candidate.draft)) {
   assert(!productionHtml.includes(article.slug), `Draft slug ${article.slug} from ${article.file} leaked into production HTML`);
+  assert(!syndication.some((xml) => xml.includes(`/${article.locale}/blog/${article.slug}/`)),
+    `Draft URL for ${article.file} leaked into the production sitemap or a feed`);
 }
 
 console.log(`Verified ${articles.length} bilingual entries; ${articles.filter((article) => article.draft).length} drafts are absent from production HTML.`);
