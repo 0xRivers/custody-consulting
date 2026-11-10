@@ -5,6 +5,8 @@ set -euo pipefail
 : "${DEPLOY_KNOWN_HOSTS:?Set DEPLOY_KNOWN_HOSTS to the verified known_hosts file path}"
 host=${DEPLOY_HOST:-85.122.114.151}
 port=${DEPLOY_PORT:-22}
+deploy_user=${DEPLOY_USER:-custody-staging}
+[[ $deploy_user =~ ^[a-z_][a-z0-9_-]*$ ]]
 [[ $host =~ ^[a-zA-Z0-9.-]+$ && $port =~ ^[0-9]+$ ]]
 sha=$(git rev-parse HEAD)
 [[ $sha =~ ^[a-f0-9]{40}$ ]]
@@ -40,4 +42,4 @@ remote="release=$sha;"'
   fi
   /usr/local/bin/custody-staging-activate-release "$release"
 '
-tar -C "$stage" -czf - . | ssh "${ssh_args[@]}" "custody-staging@$host" "$remote"
+tar -C "$stage" -czf - . | ssh "${ssh_args[@]}" "$deploy_user@$host" "$remote"
