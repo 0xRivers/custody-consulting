@@ -1,11 +1,12 @@
 ---
 title: "How to test your Bitcoin backup safely"
-summary: "Plan a recovery check, understand what it proves, and record the result while keeping control of your Bitcoin recovery secrets."
-keyAnswer: "Use your wallet’s documented backup check or a separate compatible signing device. Confirm what the test proves, keep your working wallet available, and record the outcome without recording secrets."
+summary: "Check what your Bitcoin backup can recover, prepare a test and record what worked while keeping your working wallet available."
+keyAnswer: "Use your wallet’s documented backup check or recover on a separate compatible signing device. Keep the working wallet available and record exactly what you tested."
 locale: en
 slug: how-to-test-your-bitcoin-backup-safely
 author: Custody Consulting
 publishedAt: 2026-11-10
+updatedAt: 2026-11-10
 draft: true
 translationKey: test-bitcoin-backup
 topics:
@@ -23,117 +24,114 @@ sources:
     url: https://support.bitbox.swiss/en_US/hardware-wallet-backup-methods
 ---
 
-A useful recovery check answers a specific question. Can you read your backup?
-Does it match your signing device? Can you recover the intended wallet and use
-it without the original device? Decide which question you need to answer
-before starting.
+You have a backup. The next step is to find out whether you could use it.
+Checking that you can read the words is a start. Recovering the intended wallet
+on another device answers a different question. Choose what you want to check
+before you begin, and keep your working wallet available throughout.
 
-This article focuses on on-chain wallets whose keys you control. For a
-Lightning wallet, use its own recovery documentation because its backup
-requirements depend on the implementation. Begin with the
-[self-custody foundations](/en/blog/bitcoin-self-custody-foundations/) if you
-are still deciding who should control the keys.
+This guide covers on-chain wallets whose keys you control. For a Lightning
+wallet, follow its own recovery documentation. If you are still deciding how
+to manage your keys, start with the
+[self-custody foundations](/en/blog/bitcoin-self-custody-foundations/).
 
-## What should a recovery test prove?
+## What will this test tell you?
 
-There are several levels of checking. Choose a level deliberately and describe
-its limits in your notes.
+A backup check can cover anything from reading a physical copy to recovering
+and using a wallet. Record which check you performed so you know what still
+needs attention.
 
-| Check | What it can establish | What still needs checking |
+| Check | What you learn | What it leaves open |
 | --- | --- | --- |
-| Read the physical backup | The words or other backup material remain legible and accessible | Whether they recover the intended wallet |
-| Use a documented device backup check | Whether that backup matches the material held by the device, within the feature’s scope | Separate passphrases, other backup copies and recovery on another device |
-| Recover on a separate compatible signing device | Whether the chosen backup and configuration recreate the intended wallet | Whether all intended accounts and signing requirements have been tested |
+| Read the physical backup | You can find and read the words or other backup material | Whether it recovers the intended wallet |
+| Use your device’s documented backup check | Whether the backup matches the device, within that feature’s scope | Other copies, a separate passphrase and recovery on another device |
+| Recover on a separate compatible signing device | Whether the backup and configuration recreate the intended wallet | Accounts and signing requirements you have yet to test |
 
-For example, Trezor Safe 5 provides a backup check that compares entered backup
-material with the device’s existing wallet backup. Follow the current
-instructions for your exact model. A successful check has the scope described
-by that feature. [Trezor backup-check documentation](https://trezor.io/guides/backups-recovery/general-standards/check-backup-on-trezor-safe-5).
+For example, Trezor Safe 5 can compare an entered backup with the one held on
+the device. Use the instructions for your exact model, and check what the
+feature covers before interpreting the result.
+[Trezor backup-check documentation](https://trezor.io/guides/backups-recovery/general-standards/check-backup-on-trezor-safe-5).
 
-## What information does your wallet need for recovery?
+## What do you need to recover your wallet?
 
-Identify the backup format, original wallet application, relevant accounts and
-any optional passphrase. In BIP 39 wallets, a passphrase contributes to seed
-generation. A different passphrase produces a different seed, so seeing an
-empty wallet can be a reason to check your inputs and account configuration.
+Check which backup format your wallet uses, which application created it and
+which accounts you need to recover. If you use an optional passphrase, you
+will need that too. In a BIP 39 wallet, a different passphrase produces a
+different seed. If the recovered wallet looks empty, check the passphrase
+and account configuration before drawing conclusions.
 [BIP 39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki).
 
-Some setups also need information describing their addresses and spending
-conditions. For multisig, this can include the signing threshold, cosigner
-public keys and wallet descriptor. Preserve the wallet’s documented
-configuration export. Descriptors describe scripts and key derivation, and
-can contain sensitive information.
+Some wallets need additional configuration. For multisig, this can include
+the required number of signatures, cosigner public keys and a wallet
+descriptor. Keep the configuration export recommended by your wallet.
+Descriptors describe how the wallet creates its addresses and spending
+conditions, and may contain sensitive data.
 [BIP 380](https://github.com/bitcoin/bips/blob/master/bip-0380.mediawiki).
 
-Keep instructions usable by the person expected to recover the wallet.
-Explain where to find the required components, how to identify the correct
-wallet and which documentation applies. Protect any record that reveals
-addresses, balances or storage locations.
+Write instructions that the intended recovery person can follow. They need
+to know where to find the components and how to identify the correct wallet.
+Protect notes that reveal addresses, balances or storage locations.
 [Bitcoin Design’s backup guidance](https://bitcoin.design/guide/how-it-works/backups/).
 
-## How do you prepare a controlled test?
+## How do you prepare the test?
 
-Keep your working wallet available throughout the test. Avoid wiping your only
-working signing device to discover whether its backup works. If you are
-learning the recovery process, rehearse first with a separate practice wallet
-that holds no savings.
+Keep the working wallet available. Avoid resetting your only working signing
+device just to find out whether its backup works. If you are learning the
+process, first practise with a separate wallet that holds no savings.
 
-Before using a funded wallet’s backup, read the procedure for the exact
-device, backup format and application. Check which steps happen on the
-signing device and which happen on the connected computer. For a cold-storage
-hardware-wallet setup, choose a supported recovery method that keeps the
-recovery secrets on the signing device.
+Read the recovery instructions for your device, backup format and application
+before handling a funded wallet’s backup. Work out which steps take place on
+the signing device and which use the computer. For a hardware wallet used for
+offline storage, choose a supported method that keeps recovery secrets on
+the signing device.
 
-Prepare a private workspace. Put away cameras and stop screen sharing.
-Retrieve official documentation independently of messages or advertisements
+Choose a private place to work. Put cameras away and stop screen sharing.
+Open official documentation independently of messages or advertisements
 offering recovery help. Keep recovery words and passphrases out of websites,
-chat, email and consultation notes. A consultant can discuss your procedure
-without receiving them.
+chat, email and consultation notes. You can ask for help with the procedure
+while keeping those details private.
 
-Decide on a stopping point in advance. Stop if the device asks for an
-unexpected action, the documented flow differs from what you see, or you
-cannot explain which wallet you are checking. Resolve the uncertainty before
-continuing.
+Stop if the device asks for an unexpected action, the instructions differ
+from what you see or you are unsure which wallet you are checking. Find out
+why before continuing.
 
-## How do you interpret the result?
+## How do you check the result?
 
-Suppose your device verifies a microSD backup successfully, but your recovery
-plan depends on a handwritten copy and an optional passphrase. Those
-components still need their own checks. BitBox explicitly distinguishes
-between its backup check, written recovery words and passphrase verification.
+A successful microSD backup check may leave other parts of your plan untested.
+If you expect to recover from a handwritten copy, check that copy too.
+An optional passphrase also needs its own verification. BitBox explains
+these limits in its backup documentation.
 [BitBox backup documentation](https://support.bitbox.swiss/en_US/hardware-wallet-backup-methods).
 
-For a separate-device recovery, identify the intended account and compare
-receiving addresses using the trusted display of the working device and the
-recovered device’s own display. Use the same account, address type and
-address index for the comparison. A mismatch is a reason to stop.
+When recovering on a separate device, compare receiving addresses on both
+devices’ trusted displays. Use the same account, address type and address
+index. Stop if the addresses differ.
 
-Matching addresses checks wallet reconstruction for those addresses. A
-watch-only wallet can display addresses and balances without holding signing
-keys. If your test needs to establish spending ability, include a separate,
-deliberately planned signing check. A small on-chain transaction can incur
-fees and reveal relationships between addresses. In multisig, one recovered
-key alone does not demonstrate that the signing threshold can be met.
+Matching addresses shows that you have recreated those addresses. To check
+spending ability, plan a separate signing test. A watch-only wallet can show
+addresses and balances while holding no signing keys. With multisig, you
+also need to check that you can meet the required number of signatures.
+A small on-chain transaction can incur fees and reveal links between
+addresses.
 
-## What should you record and when should you repeat it?
+## What should you write down afterward?
 
-Write a brief test record with:
+Keep a short record of what you checked.
 
-- the date, device model and application version;
-- the backup copy or component checked, using a private reference;
-- the account and test scope, without copying secrets;
-- the observed result and any unresolved discrepancy;
-- the person responsible for the next review.
+- Date, device model and application version.
+- Backup copy or component checked, using a private reference.
+- Account and test scope, excluding secrets.
+- Result and any discrepancy you still need to investigate.
+- Person responsible for the next review.
 
-For example, record that a device backup check passed and that passphrase
-recovery remains untested. This makes the next task clear.
+Be specific about the limits. For example, you might record that the device
+backup check passed but passphrase recovery is still untested. That tells
+you where to pick up next time.
 
-Review the plan after changing a device, backup, passphrase, wallet
-configuration or intended recovery person. Revisit it when moving stored
-components or when your instructions become difficult to follow. Check the
-manufacturer’s preparation requirements before firmware updates.
+Review the plan after changing a device, backup, passphrase or wallet
+configuration, or changing who will recover it. Revisit the instructions
+after moving stored components or finding a step difficult to follow.
+Check the manufacturer’s preparation requirements before firmware updates.
 
-If you cannot identify the required components or define a controlled test,
-a [custody review](/en/#services) can help you map the procedure and its gaps.
-Bring questions and a description of your setup. Keep recovery secrets under
-your own control throughout the consultation.
+If you are unsure which parts your test should cover, bring your questions
+to a [custody review](/en/#services). We can work through your recovery
+procedure while you keep control of the recovery secrets.

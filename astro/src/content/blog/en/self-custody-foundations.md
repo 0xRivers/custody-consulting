@@ -1,14 +1,12 @@
 ---
-title: "Bitcoin self-custody: the foundations "
-summary: A draft introduction to controlling bitcoin keys, making recoverable
-  backups and choosing a setup you can operate with confidence
-keyAnswer: Bitcoin self-custody means controlling the keys needed to spend your
-  bitcoin and maintaining a tested recovery path that does not depend on a
-  custodian.
+title: "Bitcoin self-custody: the foundations"
+summary: "A practical introduction to Bitcoin self-custody, with questions to help you choose a setup, plan recovery and decide what to test."
+keyAnswer: "Bitcoin self-custody means holding the keys that let you spend your bitcoin. You also take responsibility for protecting those keys and recovering the wallet if your usual device stops working."
 locale: en
 slug: bitcoin-self-custody-foundations
 author: Custody Consulting
 publishedAt: 2026-11-03
+updatedAt: 2026-11-10
 draft: false
 translationKey: self-custody-foundations
 topics:
@@ -21,52 +19,80 @@ sources:
   - label: "BIP 39: Mnemonic code for generating deterministic keys"
     url: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 ---
-Self-custody is a responsibility model, not a product category. You control the
-keys, but you also own the failure modes. A workable setup balances protection
-against unauthorized spending with protection against accidental loss.
 
-## What does Bitcoin self-custody actually require?
+Keeping your own bitcoin means taking care of the keys that let you spend it.
+You also need a way back into the wallet if your usual device stops working.
+Both deserve attention before you move your savings.
 
-At minimum, self-custody requires a way to authorize transactions, a recoverable backup and a procedure you can follow when the normal device is unavailable.
-The signing device is only one component. The system also includes where backup material is kept, who can use it and how changes are documented.
+The setup has to work for you in everyday use and when something goes wrong.
+Think about who will use it, what they need to remember and how they would
+recover access under pressure.
 
-There is no universally safest arrangement. The right design depends on the amount at risk, the people involved, realistic threats and your ability to
-operate the setup correctly.
+## What do you need for self-custody?
 
-## What should a recovery path answer?
+You need a way to approve transactions, a backup you can recover from and
+instructions you can follow if your signing device is lost or damaged.
+A hardware wallet is one part of that setup. Where you keep the backup and
+who can reach it matter too.
 
-A recovery path should explain what happens when a device is lost, damaged or unavailable. Before choosing products, write down the decisions the system must support:
+Start with your circumstances. How much are you protecting? Who else needs
+to understand the setup? Which problems are you preparing for? The answers
+help you choose something you can manage, rather than collect features you
+may never use.
 
-* who is expected to recover the wallet and under which circumstances;
-* which components are required and whether any one location can expose them;
-* how you will confirm that instructions and backups remain usable; and
-* how the plan changes after death, incapacity, relocation or device failure.
+## What happens if you lose access to your device?
 
-A backup that has never been tested is an assumption, not a recovery plan. A test must not expose live recovery words to a website, support agent or
-consultant.
+Write down how you would recover the wallet while you still have time to
+check the details. Your plan should answer these questions.
 
-## How much complexity is appropriate?
+- Who will recover access, and in which circumstances?
+- Which backups and other information will they need?
+- Could someone who finds one stored item spend the bitcoin?
+- How will you check that the backup and instructions still work?
 
-More components can remove one single point of failure while adding coordination and recovery risks. These examples describe trade-offs, not prescriptions:
+Also consider what would happen if you became unable to manage the wallet.
+The person expected to help needs to understand their role and know how to
+find the instructions.
 
-| Example approach                                  | Operational burden | Main trade-off                                                                                   |
-| ------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------ |
-| One signing device with a separate offline backup | Lower              | Easier to rehearse, but the device and backup strategy need careful separation.                  |
-| Multiple independent signing devices              | Higher             | Can reduce reliance on one device or location, but recovery and coordination are more demanding. |
+Test the recovery process before relying on it. Keep your recovery words,
+private keys and backups out of websites, support messages and consultation
+notes. You can discuss the plan while keeping those details private.
 
-Prefer the simplest arrangement that meets a documented threat model and that the intended users can rehearse safely. Complexity that nobody can operate is not an additional security layer.
+## How complicated should your setup be?
 
-## What should you test before moving meaningful value? 
+Choose a setup you and the other people involved can operate confidently.
+Adding devices or storage locations gives you more to keep track of.
+The benefit depends on how those parts work together.
 
-Start with a small amount. Confirm that you can receive, verify and spend from the intended wallet, then rehearse recovery using a safe test procedure. Check that the restored wallet derives the expected addresses before treating the backup as dependable.
+| Approach | What you need to manage | What to think through |
+| --- | --- | --- |
+| One signing device with a separate offline backup | The device, its backup and recovery instructions | How to keep the backup accessible to the right person and protected from discovery |
+| Several signing devices across people or locations | Each device, its backup and the shared procedure | Who needs to be available, which components recovery requires and how you will rehearse together |
 
-Record what was tested, schedule periodic checks and review the plan after a device, location or responsible person changes. Never send seed words, private keys or wallet backups to someone offering to verify the setup.
+Start by writing down the risks you want to address. Then ask whether each
+extra component helps with a specific risk and whether you can explain its
+purpose to the person who would use it.
 
-## When can a custody review help?
+## What should you test before moving your savings?
 
-A structured review can expose assumptions and compare the plan with your stated risks. The [consulting services overview](/en/#services) explains the
-available scope. A legitimate review should work from architecture and
-procedures; it should not require your seed phrase, private keys or live backup material.
+Start with a small amount. Check that you can receive bitcoin in the intended
+wallet, verify the details and make a payment. Plan the recovery test so your
+working wallet remains available throughout.
 
-This article remains an editorial draft and must not appear in the production
-build until its technical and editorial review is complete.
+When you restore a wallet, check that it produces the expected addresses.
+Write down which parts you tested and which still need checking. A successful
+address comparison and a successful spending test answer different questions.
+
+Review your notes after changing a device, moving a backup or changing who
+will help with recovery. Someone offering to check the setup should be able
+to explain the procedure without receiving your recovery words or private keys.
+
+## When would a custody review help?
+
+A review can help when you have the pieces but are unsure how they fit
+together. You might want someone to walk through your recovery instructions
+or question what would happen if one device or person became unavailable.
+
+Our [consultation services](/en/#services) cover the setup and the procedures
+around it. Bring your questions and a description of how you manage access.
+Your recovery words, private keys and backup material stay with you.
