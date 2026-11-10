@@ -46,6 +46,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Compare public pages for IndexNow
+        id: indexnow
+        continue-on-error: true
+        run: node ops/indexnow.mjs prepare build/astro-production "$RUNNER_TEMP/indexnow.json"
       - name: Deploy over verified SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_DEPLOY_KEY }}
@@ -67,3 +71,7 @@ jobs:
           actual=$(curl --fail --silent --show-error --retry 2 --max-time 20 "https://custody.consulting/version.txt?expected=$GITHUB_SHA")
           test "$actual" = "$GITHUB_SHA"
           node ops/checks/url-migration.mjs https://custody.consulting
+      - name: Notify IndexNow of changed public URLs
+        if: steps.indexnow.outcome == 'success'
+        continue-on-error: true
+        run: node ops/indexnow.mjs submit "$RUNNER_TEMP/indexnow.json"
