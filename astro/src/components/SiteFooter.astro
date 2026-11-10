@@ -7,17 +7,19 @@ interface Props { lang: Locale }
 const { lang } = Astro.props;
 const t = getContent(lang);
 ---
-<footer class="site-footer shell">
-  <Image
-    src={logo}
-    alt="Custody Consulting"
-    class="footer-logo"
-    width={256}
-    format="webp"
-    quality={80}
-    loading="lazy"
-    decoding="async"
-  />
-  <p>{t.footer}</p>
-  <p>© {new Date().getFullYear()} Custody Consulting</p>
+<footer class="site-footer">
+  <div class="site-footer__inner shell">
+    <Image
+      src={logo}
+      alt="Custody Consulting"
+      class="footer-logo"
+      width={256}
+      format="webp"
+      quality={80}
+      loading="lazy"
+      decoding="async"
+    />
+    <p>{t.footer}</p>
+    <p>© {new Date().getFullYear()} Custody Consulting</p>
+  </div>
 </footer>
