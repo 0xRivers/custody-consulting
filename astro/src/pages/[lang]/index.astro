@@ -1,0 +1,15 @@
+---
+import LandingPage from '../../components/LandingPage.astro';
+import { locales, type Locale } from '../../lib/i18n';
+
+export function getStaticPaths() {
+  return locales.map((lang) => ({ params: { lang }, props: { lang } }));
+}
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+---
+<LandingPage lang={lang} />

@@ -10,13 +10,34 @@ sha=$(git rev-parse HEAD)
 [[ $sha =~ ^[a-f0-9]{40}$ ]]
 # Never deploy a dirty working tree under a clean commit identifier.
 [[ -z $(git status --porcelain --untracked-files=normal) ]] || { echo 'Commit all source changes first.' >&2; exit 1; }
-node --check dist/app.js
-[[ -s dist/index.html ]]
+build_dir=${DEPLOY_BUILD_DIR:-build/astro-staging}
+for route in index.html en/index.html pl/index.html en/blog/index.html pl/blog/index.html; do
+  [[ -s "$build_dir/$route" ]]
+done
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
-cp -a dist/. "$stage/"
-printf 'User-agent: *\nDisallow: /\n' > "$stage/robots.txt"
+cp -a "$build_dir"/. "$stage/"
+printf '%s\n' "staging" > "$stage/astro-release.txt"
+# Keep staging crawlable so search engines can see the noindex directive.
+printf 'User-agent: *\nAllow: /\n' > "$stage/robots.txt"
 printf '%s\n' "$sha" > "$stage/version.txt"
 ssh_args=(-F /dev/null -i "$DEPLOY_KEY" -p "$port" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$DEPLOY_KNOWN_HOSTS" -o ConnectTimeout=15)
-# mkdir refuses to replace an existing release; a rollback uses activation only.
-tar -C "$stage" -czf - . | ssh "${ssh_args[@]}" "custody-staging@$host" "set -eu; mkdir /srv/custody-consulting-staging/releases/$sha; tar -xzf - -C /srv/custody-consulting-staging/releases/$sha; /usr/local/bin/custody-staging-activate-release $sha"
+# Keep incomplete uploads out of releases and allow retries of an identical artifact.
+remote="release=$sha;"'
+  set -euo pipefail
+  base=/srv/custody-consulting-staging
+  target=$base/releases/$release
+  upload=$(mktemp -d "$base/.upload.XXXXXX")
+  trap '"'"'rm -rf -- "$upload"'"'"' EXIT
+  tar -xzf - -C "$upload"
+  exec 9>"$base/.upload.lock"
+  flock -w 60 9
+  if [[ -e $target ]]; then
+    diff -qr "$upload" "$target"
+  else
+    chmod 0755 "$upload"
+    mv -T -- "$upload" "$target"
+  fi
+  /usr/local/bin/custody-staging-activate-release "$release"
+'
+tar -C "$stage" -czf - . | ssh "${ssh_args[@]}" "custody-staging@$host" "$remote"

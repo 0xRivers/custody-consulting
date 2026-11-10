@@ -1,0 +1,38 @@
+{
+  "name": "custody-consulting",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "build:astro:staging": "SITE_ENV=staging astro build --root astro --config astro.config.mjs",
+    "build:astro:production": "SITE_ENV=production astro build --root astro --config astro.config.mjs",
+    "test:astro:contract": "node --test ops/checks/astro-environment.test.mjs ops/checks/article-rules.test.mjs ops/checks/metadata.test.mjs ops/checks/syndication.test.mjs ops/checks/structured-data.test.mjs ops/checks/answer-focused.test.mjs ops/checks/performance-source.test.mjs",
+    "check:editorial-boundaries": "node ops/checks/editorial-boundaries.mjs",
+    "check:metadata-output": "node ops/checks/metadata-output.mjs",
+    "check:syndication-output": "node ops/checks/syndication-output.mjs",
+    "check:structured-data-output": "node ops/checks/structured-data-output.mjs",
+    "check:answer-focused-output": "node ops/checks/answer-focused-output.mjs",
+    "check:performance-output": "node ops/checks/performance-output.mjs"
+  },
+  "dependencies": {
+    "nostr-tools": "2.25.2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "stripe": "23.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.2.1",
+    "@types/node": "22.16.5",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "astro": "7.4.5",
+    "tailwindcss": "4.2.1",
+    "tw-animate-css": "1.3.4",
+    "typescript": "5.8.3",
+    "vite": "7.3.7"
+  }
+}

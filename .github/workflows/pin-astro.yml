@@ -1,0 +1,95 @@
+name: Verify Astro static builds
+on:
+  push:
+    branches: [staging]
+    paths:
+      - '.github/workflows/pin-astro.yml'
+      - 'astro/**'
+      - 'ops/checks/astro-environment.test.mjs'
+      - 'ops/checks/article-rules.test.mjs'
+      - 'ops/checks/editorial-boundaries.mjs'
+      - 'ops/checks/metadata.test.mjs'
+      - 'ops/checks/metadata-output.mjs'
+      - 'ops/checks/syndication.test.mjs'
+      - 'ops/checks/syndication-output.mjs'
+      - 'ops/checks/structured-data.test.mjs'
+      - 'ops/checks/structured-data-output.mjs'
+      - 'ops/checks/answer-focused.test.mjs'
+      - 'ops/checks/answer-focused-output.mjs'
+      - 'ops/checks/performance-output.mjs'
+      - 'ops/checks/performance-source.test.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pin-astro-staging
+  cancel-in-progress: false
+jobs:
+  pin:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install the exact dependency graph
+        run: npm ci
+      - name: Verify environment contract and both static builds
+        run: |
+          set -euo pipefail
+          npm run test:astro:contract
+          npm run build:astro:staging
+          npm run build:astro:production
+          npm run check:editorial-boundaries
+          npm run check:metadata-output
+          npm run check:syndication-output
+          npm run check:structured-data-output
+          npm run check:answer-focused-output
+          npm run check:performance-output
+          test -s build/astro-staging/index.html
+          test -s build/astro-staging/en/index.html
+          test -s build/astro-staging/pl/index.html
+          test -s build/astro-staging/404.html
+          test -s build/astro-staging/en/blog/index.html
+          test -s build/astro-staging/pl/blog/index.html
+          test -s build/astro-staging/en/blog/bitcoin-self-custody-foundations/index.html
+          test -s build/astro-staging/pl/blog/podstawy-samodzielnego-przechowywania-bitcoina/index.html
+          test -s build/astro-staging/en/blog/topics/foundations/index.html
+          test -s build/astro-staging/pl/blog/topics/podstawy/index.html
+          test -s build/astro-production/index.html
+          test -s build/astro-production/en/index.html
+          test -s build/astro-production/pl/index.html
+          test -s build/astro-production/404.html
+          test -s build/astro-production/en/blog/index.html
+          test -s build/astro-production/pl/blog/index.html
+          grep -Eiq '<meta[^>]+name="robots"[^>]+noindex' build/astro-staging/index.html
+          grep -Eiq '<meta[^>]+name="robots"[^>]+noindex' build/astro-staging/en/index.html
+          grep -Eiq '<html[^>]+lang="en"' build/astro-production/en/index.html
+          grep -Eiq '<html[^>]+lang="pl"' build/astro-production/pl/index.html
+          grep -Fq 'href="/pl/"' build/astro-production/en/index.html
+          grep -Fq 'href="/en/"' build/astro-production/pl/index.html
+          grep -Fq 'Your bitcoin. Your keys. A clear plan.' build/astro-production/en/index.html
+          grep -Fq 'Twój bitcoin. Twoje klucze. Jasny plan.' build/astro-production/pl/index.html
+          grep -Fq 'Bitcoin self-custody means controlling the keys' build/astro-staging/en/blog/bitcoin-self-custody-foundations/index.html
+          grep -Fq 'Samodzielne przechowywanie bitcoina oznacza kontrolę' build/astro-staging/pl/blog/podstawy-samodzielnego-przechowywania-bitcoina/index.html
+          grep -Fq 'No reviewed articles are published yet.' build/astro-production/en/blog/index.html
+          grep -Fq 'Nie opublikowaliśmy jeszcze artykułów po przeglądzie.' build/astro-production/pl/blog/index.html
+          grep -Eiq '<meta[^>]+name="robots"[^>]+noindex' build/astro-production/404.html
+          grep -Eiq '<meta[^>]+name="robots"[^>]+noindex' build/astro-staging/en/blog/bitcoin-self-custody-foundations/index.html
+          test ! -e build/astro-production/en/blog/bitcoin-self-custody-foundations/index.html
+          test ! -e build/astro-production/pl/blog/podstawy-samodzielnego-przechowywania-bitcoina/index.html
+          test ! -e build/astro-production/en/blog/topics/foundations/index.html
+          test ! -e build/astro-production/pl/blog/topics/podstawy/index.html
+          if grep -R -Fq 'bitcoin-self-custody-foundations' build/astro-production; then
+            echo 'Draft article metadata leaked into the production artifact.' >&2
+            exit 1
+          fi
+          if grep -Eiq '<meta[^>]+name="robots"[^>]+noindex' build/astro-production/index.html; then
+            echo 'Production artifact must not contain noindex.' >&2
+            exit 1
+          fi
+          npm audit

@@ -4,8 +4,9 @@ Production: main -> custody.consulting -> 127.0.0.1:8004.
 Staging: staging -> staging.custody.consulting -> 127.0.0.1:8008.
 Staging has its own Unix account, SSH key, service, configuration, release tree
 and rollback history. Its key cannot write production releases. Staging is
-publicly accessible; robots.txt and X-Robots-Tag discourage indexing but are not
-access controls. Do not put private data on it.
+publicly accessible; HTML noindex metadata and X-Robots-Tag exclude it from compliant search
+indexing but are not access controls. Crawling is allowed so crawlers can see
+noindex. Do not put private data on it.
 
 Run local commands from the custody-site repository.
 
@@ -36,8 +37,14 @@ git push -u origin staging
 ```
 
 The main push deploys production's unchanged website. The staging push triggers
-staging.yml and deploys the same initial site to the separate backend. Future
-work on staging deploys there; main continues to deploy production.
+staging.yml, builds the Astro site with `SITE_ENV=staging` and deploys only
+`build/astro-staging/` to the separate backend. Future work on staging deploys
+there; main continues to deploy the tracked production artifact.
+
+The release bundle currently includes an empty `app.js` compatibility marker
+because the root-installed activation helper still checks for the legacy Vite
+entrypoint. Astro pages do not reference it. Remove the marker only after a
+planned root maintenance change updates that helper.
 
 5. Verify staging's workflow succeeds, then add its public proxy route:
 

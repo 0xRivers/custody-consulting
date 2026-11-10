@@ -1,0 +1,77 @@
+name: Editorial production gate
+on:
+  push:
+    branches: [staging]
+    paths:
+      - '.github/CODEOWNERS'
+      - '.github/pull_request_template.md'
+      - '.github/workflows/editorial-review.yml'
+      - 'astro/**'
+      - 'ops/checks/article-rules.test.mjs'
+      - 'ops/checks/editorial-boundaries.mjs'
+      - 'ops/checks/metadata.test.mjs'
+      - 'ops/checks/metadata-output.mjs'
+      - 'ops/checks/syndication.test.mjs'
+      - 'ops/checks/syndication-output.mjs'
+      - 'ops/checks/structured-data.test.mjs'
+      - 'ops/checks/structured-data-output.mjs'
+      - 'ops/checks/answer-focused.test.mjs'
+      - 'ops/checks/answer-focused-output.mjs'
+      - 'ops/checks/performance-output.mjs'
+      - 'ops/checks/performance-source.test.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/lib/content.ts'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  editorial-review:
+    name: Editorial review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Require the staging promotion branch
+        if: github.event_name == 'pull_request'
+        run: test "$GITHUB_HEAD_REF" = staging
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:astro:contract
+      - run: npm run build:astro:staging
+      - run: npm run build:astro:production
+      - run: npm run check:editorial-boundaries
+      - run: npm run check:metadata-output
+      - run: npm run check:syndication-output
+      - run: npm run check:structured-data-output
+      - run: npm run check:answer-focused-output
+      - run: npm run check:performance-output
+      - name: Verify editorial publication boundaries
+        run: |
+          set -euo pipefail
+          test -s build/astro-staging/en/blog/index.html
+          test -s build/astro-staging/pl/blog/index.html
+          test -s build/astro-production/en/blog/index.html
+          test -s build/astro-production/pl/blog/index.html
+          grep -Eiq '<meta[^>]+name="robots"[^>]+noindex' build/astro-staging/en/blog/index.html
+          if grep -R -Fq 'Draft preview' build/astro-production; then
+            echo 'Draft marker leaked into the production artifact.' >&2
+            exit 1
+          fi
+          if grep -R -Fq 'Podgląd szkicu' build/astro-production; then
+            echo 'Polish draft marker leaked into the production artifact.' >&2
+            exit 1
+          fi
+      - name: Add reviewer handoff
+        run: |
+          {
+            echo '## Editorial review handoff'
+            echo
+            echo 'Review the deployed staging branch at https://staging.custody.consulting/.'
+            echo 'Approve only after the bilingual checklist in docs/AUTHORING.md is complete.'
+            echo 'This workflow does not deploy production.'
+          } >> "$GITHUB_STEP_SUMMARY"

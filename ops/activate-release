@@ -6,7 +6,16 @@ base=/srv/custody-consulting
 exec 9>"$base/.deploy.lock"
 flock -w 60 9
 path="$base/releases/$release"
-[[ -f "$path/index.html" && -f "$path/app.js" && -f "$path/version.txt" ]]
+[[ -s "$path/index.html" && -s "$path/version.txt" ]]
+if [[ -e "$path/astro-release.txt" ]]; then
+  [[ $(cat "$path/astro-release.txt") == "production" ]]
+  for route in en pl en/blog pl/blog; do
+    [[ -s "$path/$route/index.html" ]]
+  done
+else
+  # Previously published releases remain eligible for rollback.
+  [[ -f "$path/app.js" ]]
+fi
 [[ $(cat "$path/version.txt") == "$release" ]]
 previous=$(readlink "$base/current" || true)
 # Release directory must already exist; rename on the same filesystem is atomic.

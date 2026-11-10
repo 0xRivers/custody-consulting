@@ -8,6 +8,23 @@ http://:8004 {
     bind 127.0.0.1
     root * /srv/custody-consulting/current
     encode zstd gzip
-    header Cache-Control "no-cache"
+    @immutable path /_astro/*
+    header @immutable Cache-Control "public, max-age=31536000, immutable"
+    @mutable not path /_astro/*
+    header @mutable Cache-Control "no-cache"
+    @legacy_english {
+        method GET HEAD
+        path / /index.html
+        query lang=en
+        file /en/index.html
+    }
+    @legacy_polish {
+        method GET HEAD
+        path / /index.html
+        query lang=pl
+        file /pl/index.html
+    }
+    redir @legacy_english /en/ 301
+    redir @legacy_polish /pl/ 301
     file_server
 }

@@ -1,0 +1,44 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../../../src/assets/custody-logo-white.png';
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Custody Consulting — Bitcoin self-custody guidance"
+  description="Bitcoin self-custody consulting in English and Polish for clients across Europe."
+  lang="en"
+  bodyClass="gateway-page"
+  canonicalPath="/"
+  alternatePaths={[{ lang: 'en', path: '/en/' }, { lang: 'pl', path: '/pl/' }]}
+  xDefaultPath="/"
+>
+  <script is:inline>
+    const requestedLanguage = new URL(window.location.href).searchParams.get('lang');
+    const fragment = window.location.hash;
+    if (requestedLanguage === 'en' || requestedLanguage === 'pl') {
+      window.location.replace(`/${requestedLanguage}/${fragment}`);
+    } else if (['#services', '#approach', '#audiences', '#steps', '#faq', '#questions', '#contact'].includes(fragment)) {
+      window.location.replace(`/en/${fragment}`);
+    }
+  </script>
+  <main class="gateway">
+    <Image
+      src={logo}
+      alt="Custody Consulting"
+      class="gateway__logo"
+      width={384}
+      format="webp"
+      quality={80}
+      loading="eager"
+      decoding="async"
+    />
+    <p class="eyebrow"><span class="dot"></span>Bitcoin self-custody consulting · Europe</p>
+    <h1>Choose your language<br /><span>Wybierz język</span></h1>
+    <p>Practical guidance for protecting access to your bitcoin, in English or Polish.</p>
+    <nav aria-label="Choose language" class="gateway__choices">
+      <a href="/en/" lang="en"><strong>English</strong><span>Continue in English →</span></a>
+      <a href="/pl/" lang="pl"><strong>Polski</strong><span>Przejdź do strony po polsku →</span></a>
+    </nav>
+    <p class="gateway__note">Your keys remain private · Twoje klucze pozostają prywatne</p>
+  </main>
+</Base>
