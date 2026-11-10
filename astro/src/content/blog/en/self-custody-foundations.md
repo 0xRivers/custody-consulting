@@ -56,7 +56,7 @@ More components can remove one single point of failure while adding coordination
 
 Prefer the simplest arrangement that meets a documented threat model and that the intended users can rehearse safely. Complexity that nobody can operate is not an additional security layer.
 
-## What should you test before moving meaningful value?
+## What should you test before moving meaningful value? 
 
 Start with a small amount. Confirm that you can receive, verify and spend from the intended wallet, then rehearse recovery using a safe test procedure. Check that the restored wallet derives the expected addresses before treating the backup as dependable.
 
