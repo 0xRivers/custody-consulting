@@ -4,15 +4,20 @@ import type { Locale } from '../lib/i18n';
 interface Props { lang: Locale; title: string }
 const { lang, title } = Astro.props;
 const labels = lang === 'pl'
-  ? { share: 'Udostępnij', copy: 'Kopiuj link', copied: 'Link skopiowany.', manual: 'Zaznacz i skopiuj link.', url: 'Link do artykułu', failed: 'Nie udało się otworzyć udostępniania. Użyj przycisku Kopiuj link.' }
-  : { share: 'Share article', copy: 'Copy link', copied: 'Link copied.', manual: 'Select and copy the link.', url: 'Article link', failed: 'Sharing could not open. Use Copy link.' };
+  ? { share: 'Udostępnij artykuł', copied: 'Link skopiowany.', manual: 'Zaznacz i skopiuj link.', url: 'Link do artykułu' }
+  : { share: 'Share article', copied: 'Link copied.', manual: 'Select and copy the link.', url: 'Article link' };
 ---
 <div class="article-share" data-article-share data-title={title}
-  data-copied={labels.copied} data-manual={labels.manual} data-failed={labels.failed}>
-  <div class="article-share__buttons" hidden>
-    <button type="button" data-share hidden>{labels.share}</button>
-    <button type="button" data-copy>{labels.copy}</button>
-  </div>
+  data-copied={labels.copied} data-manual={labels.manual}>
+  <button type="button" data-share aria-label={labels.share} title={labels.share}>
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+    </svg>
+  </button>
   <p class="article-share__status" role="status" aria-live="polite"></p>
   <label class="article-share__manual" hidden>
     {labels.url}
@@ -22,43 +27,37 @@ const labels = lang === 'pl'
 
 <script>
   for (const container of document.querySelectorAll<HTMLElement>('[data-article-share]')) {
-    const buttons = container.querySelector<HTMLElement>('.article-share__buttons')!;
-    const share = container.querySelector<HTMLButtonElement>('[data-share]')!;
-    const copy = container.querySelector<HTMLButtonElement>('[data-copy]')!;
+    const button = container.querySelector<HTMLButtonElement>('[data-share]')!;
     const status = container.querySelector<HTMLElement>('[role="status"]')!;
     const manual = container.querySelector<HTMLElement>('.article-share__manual')!;
     const input = container.querySelector<HTMLInputElement>('input')!;
     const url = new URL(location.pathname, location.origin).href;
-    const data = { title: container.dataset.title, url };
-    buttons.hidden = false;
-    share.hidden = typeof navigator.share !== 'function';
 
-    share.addEventListener('click', async () => {
-      share.disabled = true;
+    button.addEventListener('click', async () => {
+      button.disabled = true;
       status.textContent = '';
+      manual.hidden = true;
       try {
-        await navigator.share(data);
-      } catch (error) {
-        if (!(error instanceof Error && error.name === 'AbortError')) {
-          status.textContent = container.dataset.failed!;
+        if (typeof navigator.share === 'function') {
+          try {
+            await navigator.share({ title: container.dataset.title, url });
+            return;
+          } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+          }
+        }
+        try {
+          await navigator.clipboard.writeText(url);
+          status.textContent = container.dataset.copied!;
+        } catch {
+          manual.hidden = false;
+          input.value = url;
+          input.focus();
+          input.select();
+          status.textContent = container.dataset.manual!;
         }
       } finally {
-        share.disabled = false;
-      }
-    });
-
-    copy.addEventListener('click', async () => {
-      status.textContent = '';
-      try {
-        await navigator.clipboard.writeText(url);
-        manual.hidden = true;
-        status.textContent = container.dataset.copied!;
-      } catch {
-        manual.hidden = false;
-        input.value = url;
-        input.focus();
-        input.select();
-        status.textContent = container.dataset.manual!;
+        button.disabled = false;
       }
     });
   }
@@ -66,15 +65,17 @@ const labels = lang === 'pl'
 
 <style>
   .article-share { margin-top: 1.5rem; }
-  .article-share__buttons { display: flex; flex-wrap: wrap; gap: 0.75rem; }
   .article-share [hidden] { display: none; }
   button {
-    min-height: 2.75rem;
-    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0.5rem;
     border: 1px solid var(--ink);
     background: transparent;
     color: var(--ink);
-    font-weight: 700;
     cursor: pointer;
   }
   button:hover { background: #ece9df; }
