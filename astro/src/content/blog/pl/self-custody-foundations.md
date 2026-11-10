@@ -1,22 +1,25 @@
 ---
 title: "Samodzielne przechowywanie bitcoina: podstawy"
-summary: "Wstępny materiał o kontroli nad kluczami, kopiach możliwych do odtworzenia i wyborze rozwiązania, które potrafisz obsługiwać."
-keyAnswer: "Samodzielne przechowywanie bitcoina oznacza kontrolę nad kluczami potrzebnymi do wydawania środków oraz sprawdzoną ścieżkę odzyskiwania bez zależności od powiernika."
-locale: "pl"
-slug: "podstawy-samodzielnego-przechowywania-bitcoina"
-author: "Custody Consulting"
+summary: Wstępny materiał o kontroli nad kluczami, kopiach możliwych do
+  odtworzenia i wyborze rozwiązania, które potrafisz obsługiwać.
+keyAnswer: Samodzielne przechowywanie bitcoina oznacza kontrolę nad kluczami
+  potrzebnymi do wydawania środków oraz sprawdzoną ścieżkę odzyskiwania bez
+  zależności od powiernika.
+locale: pl
+slug: podstawy-samodzielnego-przechowywania-bitcoina
+author: Custody Consulting
 publishedAt: 2026-11-03
 draft: true
-translationKey: "self-custody-foundations"
+translationKey: self-custody-foundations
 topics:
-  - "podstawy"
+  - podstawy
 sources:
-  - label: "Biała księga Bitcoina"
-    url: "https://bitcoin.org/bitcoin.pdf"
+  - label: Biała księga Bitcoina
+    url: https://bitcoin.org/bitcoin.pdf
   - label: "BIP 32: Hierarchiczne portfele deterministyczne"
-    url: "https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki"
+    url: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
   - label: "BIP 39: Kod mnemoniczny do generowania kluczy deterministycznych"
-    url: "https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki"
+    url: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 ---
 
 Samodzielne przechowywanie to model odpowiedzialności, a nie kategoria produktu.
