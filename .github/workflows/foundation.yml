@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - name: Install the exact dependency graph
+        run: npm ci
       - name: Check Astro environment contract
         run: npm run test:astro:contract
       - name: Capture public baseline and verify staging exclusion
@@ -35,9 +37,9 @@ jobs:
           npm audit --json > build/foundation/npm-audit.json || audit_status=$?
           cat build/foundation/npm-audit.json
           exit "$audit_status"
-      - name: Clean install and build
+      - name: Build website
         if: always()
-        run: npm ci && npm run build
+        run: npm run build
       - name: Retain evidence even when checks fail
         if: always()
         uses: actions/upload-artifact@v4

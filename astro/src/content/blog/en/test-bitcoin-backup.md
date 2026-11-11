@@ -5,9 +5,9 @@ keyAnswer: "Use your wallet’s documented backup check or recover on a separate
 locale: en
 slug: how-to-test-your-bitcoin-backup-safely
 author: Custody Consulting
-publishedAt: 2026-11-10
-updatedAt: 2026-11-10
-draft: true
+publishedAt: 2026-11-11
+updatedAt: 2026-11-11
+draft: false
 translationKey: test-bitcoin-backup
 topics:
   - foundations

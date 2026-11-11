@@ -5,9 +5,9 @@ keyAnswer: "Skorzystaj z funkcji sprawdzania kopii lub odtwórz portfel na osobn
 locale: pl
 slug: jak-bezpiecznie-sprawdzic-kopie-portfela-bitcoin
 author: Custody Consulting
-publishedAt: 2026-11-10
-updatedAt: 2026-11-10
-draft: true
+publishedAt: 2026-11-11
+updatedAt: 2026-11-11
+draft: false
 translationKey: test-bitcoin-backup
 topics:
   - foundations
@@ -25,7 +25,7 @@ sources:
 ---
 
 Masz już kopię zapasową. Teraz warto sprawdzić, czy potrafisz z niej
-skorzystać. Odczytanie zapisanych słów to początek. Odtworzenie właściwego
+skorzystać. Odczytanie zapisanej frazy kluczowej to początek. Odtworzenie właściwego
 portfela na innym urządzeniu sprawdza kolejny element planu. Zanim zaczniesz,
 ustal cel próby i przez cały czas zachowaj dostęp do działającego portfela.
 
@@ -43,7 +43,7 @@ wiedzieć, co jeszcze wymaga uwagi.
 
 | Rodzaj sprawdzenia | Czego się dowiesz | Co pozostaje do sprawdzenia |
 | --- | --- | --- |
-| Odczyt fizycznej kopii | Czy możesz znaleźć i odczytać słowa lub inny zapis kopii | Czy kopia pozwala odtworzyć właściwy portfel |
+| Odczyt fizycznej kopii | Czy możesz znaleźć i odczytać frazę kluczową lub inny zapis kopii | Czy kopia pozwala odtworzyć właściwy portfel |
 | Funkcja sprawdzania kopii w urządzeniu | Czy kopia jest zgodna z danymi urządzenia w zakresie opisanym dla tej funkcji | Pozostałe kopie, dodatkowe hasło passphrase i odzyskiwanie na innym urządzeniu |
 | Odtworzenie na osobnym, zgodnym urządzeniu podpisującym | Czy kopia wraz z konfiguracją odtwarza właściwy portfel | Konta i warunki podpisywania, których jeszcze nie sprawdzono |
 
@@ -56,8 +56,9 @@ i sprawdź zakres tej funkcji, zanim ocenisz wynik.
 
 Sprawdź format kopii, nazwę aplikacji, w której powstał portfel, oraz konta,
 które chcesz odzyskać. Jeśli używasz dodatkowego hasła passphrase, ono
-również będzie potrzebne. W portfelu BIP 39 inne hasło prowadzi do innego
-ziarna portfela. Gdy odtworzony portfel wygląda na pusty, sprawdź
+również będzie potrzebne. W portfelu BIP 39 ta sama fraza kluczowa z innym hasłem passphrase
+otworzy inny portfel. Aby odzyskać właściwy portfel, potrzebujesz
+dokładnie tego samego hasła, którego użyto przy jego tworzeniu. Gdy odtworzony portfel wygląda na pusty, sprawdź
 passphrase i konfigurację kont, zanim wyciągniesz wnioski.
 [BIP 39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki).
 
@@ -89,7 +90,7 @@ dane potrzebne do odzyskania dostępu pozostają na urządzeniu podpisującym.
 
 Wybierz prywatne miejsce pracy. Odłóż aparaty i wyłącz udostępnianie ekranu.
 Otwórz oficjalną dokumentację niezależnie od wiadomości lub reklam
-z ofertą pomocy w odzyskiwaniu. Zachowaj frazę odzyskiwania i passphrase
+z ofertą pomocy w odzyskiwaniu. Zachowaj frazę kluczową i passphrase
 poza stronami internetowymi, czatem, pocztą i notatkami z konsultacji.
 Możesz poprosić o wyjaśnienie procedury, zachowując te dane dla siebie.
 
@@ -101,7 +102,7 @@ sprawdzasz. Wyjaśnij przyczynę, zanim przejdziesz dalej.
 
 Poprawna weryfikacja kopii na karcie microSD może pozostawić inne elementy
 planu bez sprawdzenia. Jeśli zamierzasz odzyskiwać portfel z odręcznie
-zapisanych słów, sprawdź również tę kopię. Osobnej weryfikacji wymaga też
+zapisanej frazy kluczowej, sprawdź również tę kopię. Osobnej weryfikacji wymaga też
 dodatkowe hasło passphrase. BitBox opisuje te ograniczenia w swojej
 dokumentacji kopii zapasowych.
 [Dokumentacja kopii BitBox](https://support.bitbox.swiss/en_US/hardware-wallet-backup-methods).
