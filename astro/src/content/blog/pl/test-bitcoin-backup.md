@@ -10,7 +10,7 @@ updatedAt: 2026-11-11
 draft: false
 translationKey: test-bitcoin-backup
 topics:
-  - podstawy
+  - foundations
 sources:
   - label: "Bitcoin Design: Bitcoin backups"
     url: https://bitcoin.design/guide/how-it-works/backups/

@@ -9,13 +9,14 @@
     "preview": "vite preview",
     "build:astro:staging": "SITE_ENV=staging astro build --root astro --config astro.config.mjs",
     "build:astro:production": "SITE_ENV=production astro build --root astro --config astro.config.mjs",
-    "test:astro:contract": "node --test ops/checks/astro-environment.test.mjs ops/checks/article-rules.test.mjs ops/checks/metadata.test.mjs ops/checks/syndication.test.mjs ops/checks/structured-data.test.mjs ops/checks/answer-focused.test.mjs ops/checks/performance-source.test.mjs",
+    "test:astro:contract": "node --test ops/checks/astro-environment.test.mjs ops/checks/article-rules.test.mjs ops/checks/metadata.test.mjs ops/checks/syndication.test.mjs ops/checks/structured-data.test.mjs ops/checks/answer-focused.test.mjs ops/checks/performance-source.test.mjs ops/checks/topics.test.mjs",
     "check:editorial-boundaries": "node ops/checks/editorial-boundaries.mjs",
     "check:metadata-output": "node ops/checks/metadata-output.mjs",
     "check:syndication-output": "node ops/checks/syndication-output.mjs",
     "check:structured-data-output": "node ops/checks/structured-data-output.mjs",
     "check:answer-focused-output": "node ops/checks/answer-focused-output.mjs",
-    "check:performance-output": "node ops/checks/performance-output.mjs"
+    "check:performance-output": "node ops/checks/performance-output.mjs",
+    "test:publishing": "node --test ops/publishing/*.test.mjs"
   },
   "dependencies": {
     "nostr-tools": "2.25.2",

@@ -1,7 +1,7 @@
 # Editorial workflow and author guide
 
 Git is the publishing source of truth. Articles are Markdown or MDX files in
-`astro/src/content/blog/<locale>/`; no external CMS is currently connected.
+`astro/src/content/blog/<locale>/`; the content editor saves changes through GitHub.
 Every change is reviewed as code and content before it can reach production.
 
 ## 1. Start a draft
@@ -94,12 +94,14 @@ gate` workflow builds both environments and confirms that draft material cannot
 leak into the production artifact. Never bypass a failed gate by deleting a
 fixture, weakening noindex checks or deploying manually.
 
-Merging into `main` starts a production deployment, but the protected
-`production` environment pauses it for a separate manual owner approval. This
-second action is a deliberate solo-operator release checkpoint, not an
-independent peer review. During the current rollout, `main` still deploys the
-legacy production artifact; the Astro production cutover is a separate release
-item and must not be inferred from an article merge.
+Merging into `main` automatically starts the Astro production deployment. The
+protected `production` environment pauses it for manual owner approval. This
+second action is a solo-operator release checkpoint, not an independent peer
+review. There is no manual workflow command in the normal publication flow.
+
+The publishing assistant can prepare the promotion PR and synchronize branch
+history once its repository App is configured. See [Publishing](PUBLISHING.md) for
+one-time setup, review scope, failure handling and the in-admin publishing roadmap.
 
 ### Repository protection required
 

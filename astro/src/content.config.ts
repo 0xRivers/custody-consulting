@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { topicForLocale } from './lib/topics';
 
 const routeSegment = z
   .string()
@@ -31,6 +32,12 @@ const blog = defineCollection({
     })
     .strict()
     .superRefine((article, context) => {
+      for (const [index, topic] of article.topics.entries()) {
+        try { topicForLocale(topic, article.locale); }
+        catch (error) {
+          context.addIssue({ code: 'custom', path: ['topics', index], message: (error as Error).message });
+        }
+      }
       if (article.updatedAt && article.updatedAt < article.publishedAt) {
         context.addIssue({
           code: 'custom',
@@ -38,7 +45,11 @@ const blog = defineCollection({
           message: 'updatedAt cannot be earlier than publishedAt.',
         });
       }
-    }),
+    })
+    .transform(article => ({
+      ...article,
+      topics: [...new Set(article.topics.map(topic => topicForLocale(topic, article.locale).slug))],
+    })),
 });
 
 export const collections = { blog };

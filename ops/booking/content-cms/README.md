@@ -4,7 +4,8 @@ The editor lives at `/admin/content/` and uses Decap's GitHub editorial
 workflow against `staging`. The public Astro site remains static. Decap
 approval merges content to staging. The Astro `draft` flag controls whether
 each translated pair is eligible for the production build, and the production
-deploy still requires manual dispatch.
+deploy starts automatically after the production promotion is merged, and still
+requires the protected environment approval. See [Publishing](../../../docs/PUBLISHING.md).
 
 Both translations use the same Markdown filename under their language
 folders. Set the **Language** field to match the translation being edited.
