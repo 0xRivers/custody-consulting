@@ -56,7 +56,7 @@ i sprawdź zakres tej funkcji, zanim ocenisz wynik.
 
 Sprawdź format kopii, nazwę aplikacji, w której powstał portfel, oraz konta,
 które chcesz odzyskać. Jeśli używasz dodatkowego hasła passphrase, ono
-również będzie potrzebne. W portfelu BIP 39 ta sama seed phrase z innym hasłem passphrase
+również będzie potrzebne. W portfelu BIP 39 ta sama fraza kluczowa z innym hasłem passphrase
 otworzy inny portfel. Aby odzyskać właściwy portfel, potrzebujesz
 dokładnie tego samego hasła, którego użyto przy jego tworzeniu. Gdy odtworzony portfel wygląda na pusty, sprawdź
 passphrase i konfigurację kont, zanim wyciągniesz wnioski.
