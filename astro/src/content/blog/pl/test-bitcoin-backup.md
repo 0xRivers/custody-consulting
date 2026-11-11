@@ -6,7 +6,7 @@ locale: pl
 slug: jak-bezpiecznie-sprawdzic-kopie-portfela-bitcoin
 author: Custody Consulting
 publishedAt: 2026-11-10
-updatedAt: 2026-11-10
+updatedAt: 2026-11-11
 draft: true
 translationKey: test-bitcoin-backup
 topics:
@@ -56,8 +56,9 @@ i sprawdź zakres tej funkcji, zanim ocenisz wynik.
 
 Sprawdź format kopii, nazwę aplikacji, w której powstał portfel, oraz konta,
 które chcesz odzyskać. Jeśli używasz dodatkowego hasła passphrase, ono
-również będzie potrzebne. W portfelu BIP 39 inne hasło prowadzi do innego
-ziarna portfela. Gdy odtworzony portfel wygląda na pusty, sprawdź
+również będzie potrzebne. W portfelu BIP 39 ta sama seed phrase z innym hasłem passphrase
+otworzy inny portfel. Aby odzyskać właściwy portfel, potrzebujesz
+dokładnie tego samego hasła, którego użyto przy jego tworzeniu. Gdy odtworzony portfel wygląda na pusty, sprawdź
 passphrase i konfigurację kont, zanim wyciągniesz wnioski.
 [BIP 39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki).
 
