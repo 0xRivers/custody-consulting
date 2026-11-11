@@ -1,0 +1,87 @@
+---
+import type { Locale } from '../lib/i18n';
+
+interface Props { lang: Locale; title: string }
+const { lang, title } = Astro.props;
+const labels = lang === 'pl'
+  ? { share: 'Udostępnij artykuł', copied: 'Link skopiowany.', manual: 'Zaznacz i skopiuj link.', url: 'Link do artykułu' }
+  : { share: 'Share article', copied: 'Link copied.', manual: 'Select and copy the link.', url: 'Article link' };
+---
+<div class="article-share" data-article-share data-title={title}
+  data-copied={labels.copied} data-manual={labels.manual}>
+  <button type="button" data-share aria-label={labels.share} title={labels.share}>
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" />
+    </svg>
+  </button>
+  <p class="article-share__status" role="status" aria-live="polite"></p>
+  <label class="article-share__manual" hidden>
+    {labels.url}
+    <input type="url" readonly />
+  </label>
+</div>
+
+<script>
+  for (const container of document.querySelectorAll<HTMLElement>('[data-article-share]')) {
+    const button = container.querySelector<HTMLButtonElement>('[data-share]')!;
+    const status = container.querySelector<HTMLElement>('[role="status"]')!;
+    const manual = container.querySelector<HTMLElement>('.article-share__manual')!;
+    const input = container.querySelector<HTMLInputElement>('input')!;
+    const url = new URL(location.pathname, location.origin).href;
+
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      status.textContent = '';
+      manual.hidden = true;
+      try {
+        if (typeof navigator.share === 'function') {
+          try {
+            await navigator.share({ title: container.dataset.title, url });
+            return;
+          } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') return;
+          }
+        }
+        try {
+          await navigator.clipboard.writeText(url);
+          status.textContent = container.dataset.copied!;
+        } catch {
+          manual.hidden = false;
+          input.value = url;
+          input.focus();
+          input.select();
+          status.textContent = container.dataset.manual!;
+        }
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .article-share { margin-top: 1.5rem; }
+  .article-share [hidden] { display: none; }
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0.5rem;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button:hover { background: #ece9df; }
+  button:focus-visible, input:focus-visible { outline: 2px solid #794000; outline-offset: 3px; }
+  button:disabled { cursor: wait; }
+  .article-share__status { min-height: 1.6em; margin: 0.4rem 0 0; font-size: 0.85rem; }
+  .article-share__manual { display: grid; gap: 0.4rem; max-width: 36rem; font-size: 0.85rem; }
+  input { width: 100%; min-width: 0; padding: 0.6rem; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); }
+</style>
