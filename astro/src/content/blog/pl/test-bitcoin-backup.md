@@ -5,9 +5,9 @@ keyAnswer: "Skorzystaj z funkcji sprawdzania kopii lub odtwórz portfel na osobn
 locale: pl
 slug: jak-bezpiecznie-sprawdzic-kopie-portfela-bitcoin
 author: Custody Consulting
-publishedAt: 2026-11-10
+publishedAt: 2026-11-11
 updatedAt: 2026-11-11
-draft: true
+draft: false
 translationKey: test-bitcoin-backup
 topics:
   - foundations
