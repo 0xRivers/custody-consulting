@@ -1,0 +1,30 @@
+name: Prepare production review
+on:
+  workflow_run:
+    workflows: [Check and deploy staging]
+    types: [completed]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: custody-production-review
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == '0xRivers/custody-consulting' && (github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'staging' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    steps:
+      # Never execute staging/PR code in this privileged workflow.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare review and synchronize branch history
+        env:
+          RELEASE_APP_ID: ${{ vars.CONTENT_RELEASE_APP_ID }}
+          RELEASE_APP_PRIVATE_KEY: ${{ secrets.CONTENT_RELEASE_APP_PRIVATE_KEY }}
+        run: node ops/publishing/release-assistant.mjs

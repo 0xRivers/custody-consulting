@@ -1,4 +1,5 @@
 import type { Locale } from './i18n';
+import { topicRegistry } from './topics';
 
 export const blogUi = {
   en: {
@@ -46,6 +47,11 @@ export const blogUi = {
 } as const satisfies Record<Locale, Record<string, string>>;
 
 export function topicLabel(topic: string): string {
+  for (const item of topicRegistry) {
+    for (const locale of ['en', 'pl'] as const) {
+      if (item[locale].slug === topic) return item[locale].label;
+    }
+  }
   return topic
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
