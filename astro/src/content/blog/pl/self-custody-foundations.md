@@ -1,15 +1,12 @@
 ---
 title: "Samodzielne przechowywanie bitcoina: podstawy"
-summary: Wstępny materiał o kontroli nad kluczami, kopiach możliwych do
-  odtworzenia i wyborze rozwiązania, które potrafisz obsługiwać.
-keyAnswer: Samodzielne przechowywanie bitcoina oznacza kontrolę nad kluczami
-  potrzebnymi do wydawania środków oraz sprawdzoną ścieżkę odzyskiwania bez
-  zależności od powiernika.
+summary: "Jak wybrać sposób samodzielnego przechowywania bitcoina, przygotować plan odzyskiwania i sprawdzić, czy potrafisz z niego skorzystać."
+keyAnswer: "Samodzielne przechowywanie bitcoina oznacza kontrolę nad kluczami pozwalającymi wydawać środki. Odpowiadasz też za ich ochronę i odzyskanie portfela, gdy przestanie działać Twoje urządzenie."
 locale: pl
 slug: podstawy-samodzielnego-przechowywania-bitcoina
 author: Custody Consulting
 publishedAt: 2026-11-03
-updatedAt: null
+updatedAt: 2026-11-10
 draft: false
 translationKey: self-custody-foundations
 topics:
@@ -23,71 +20,84 @@ sources:
     url: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki
 ---
 
-Samodzielne przechowywanie to model odpowiedzialności, a nie kategoria produktu.
-Kontrolujesz klucze, ale odpowiadasz też za możliwe awarie. Dobre rozwiązanie
-równoważy ochronę przed nieuprawnionym wydaniem środków z ochroną przed ich
-przypadkową utratą.
+Samodzielne przechowywanie bitcoina oznacza, że to Ty dbasz o klucze
+pozwalające wydawać środki. Potrzebujesz też sposobu odzyskania dostępu,
+gdy przestanie działać urządzenie, którego używasz na co dzień. Warto
+przemyśleć obie sprawy, zanim przeniesiesz do portfela oszczędności.
 
-## Czego naprawdę wymaga samodzielne przechowywanie bitcoina?
+Wybrany sposób przechowywania powinien sprawdzać się w codziennym użyciu
+i w razie problemów. Zastanów się, kto będzie z niego korzystać, co musi
+pamiętać i czy poradzi sobie z odzyskaniem dostępu w stresującej sytuacji.
 
-Potrzebujesz co najmniej sposobu autoryzowania transakcji, kopii umożliwiającej
-odzyskanie portfela oraz procedury na wypadek niedostępności podstawowego
-urządzenia. Urządzenie podpisujące jest tylko jednym elementem. System obejmuje
-też miejsce przechowywania kopii, osoby uprawnione do jej użycia i sposób
-dokumentowania zmian.
+## Czego potrzebujesz, żeby samodzielnie przechowywać bitcoina?
 
-Nie istnieje jeden najbezpieczniejszy układ dla wszystkich. Projekt zależy od
-wartości środków, zaangażowanych osób, realistycznych zagrożeń i umiejętności
-poprawnej obsługi.
+Potrzebujesz sposobu zatwierdzania transakcji, kopii pozwalającej odtworzyć
+portfel oraz instrukcji na wypadek utraty lub uszkodzenia urządzenia
+podpisującego. Portfel sprzętowy jest jednym z elementów. Znaczenie ma też
+to, gdzie trzymasz kopię i kto może do niej dotrzeć.
 
-## Na jakie pytania powinna odpowiadać ścieżka odzyskiwania?
+Zacznij od swojej sytuacji. Jaką kwotę chcesz chronić? Kto jeszcze powinien
+rozumieć, jak korzystać z portfela? Na jakie problemy chcesz się przygotować?
+Odpowiedzi pomogą wybrać rozwiązanie, które potrafisz obsłużyć, i ocenić,
+których funkcji rzeczywiście potrzebujesz.
 
-Ścieżka odzyskiwania powinna wyjaśniać, co zrobić po utracie, uszkodzeniu lub
-niedostępności urządzenia. Przed wyborem produktów zapisz decyzje, które system
-ma obsługiwać:
+## Co zrobisz, jeśli stracisz dostęp do urządzenia?
 
-- kto i w jakich okolicznościach ma odzyskać portfel;
-- które elementy są niezbędne i czy jedna lokalizacja może je ujawnić;
-- jak sprawdzisz, czy instrukcje i kopie nadal działają; oraz
-- jak plan zmienia się po śmierci, utracie sprawności, przeprowadzce lub awarii
-  urządzenia.
+Zapisz sposób odzyskania portfela, kiedy masz jeszcze czas spokojnie
+sprawdzić szczegóły. Plan powinien odpowiadać na kilka pytań.
 
-Kopia, której nigdy nie sprawdzono, jest założeniem, a nie planem odzyskiwania.
-Test nie może ujawniać prawdziwych słów odzyskiwania stronie internetowej,
-pracownikowi wsparcia ani konsultantowi.
+- Kto ma odzyskać dostęp i w jakiej sytuacji?
+- Jakich kopii i dodatkowych informacji będzie potrzebować?
+- Czy osoba, która znajdzie jeden z przechowywanych elementów, może wydać bitcoiny?
+- Jak sprawdzisz, czy kopia i instrukcja nadal działają?
 
-## Jaki poziom złożoności jest odpowiedni?
+Przemyśl również sytuację, w której nie będziesz w stanie samodzielnie
+zająć się portfelem. Osoba, która ma pomóc, powinna znać swoją rolę
+oraz wiedzieć, jak znaleźć instrukcję.
 
-Większa liczba elementów może usunąć pojedynczy punkt awarii, a jednocześnie
-zwiększyć ryzyko błędu przy koordynacji i odzyskiwaniu. Poniższe przykłady
-pokazują kompromisy, a nie gotowe zalecenia:
+Sprawdź procedurę odzyskiwania, zanim zaczniesz na niej polegać. Zachowaj
+frazę odzyskiwania, klucze prywatne i kopie poza stronami internetowymi,
+wiadomościami do pomocy technicznej oraz notatkami z konsultacji. Możesz
+omówić cały plan, zachowując te dane dla siebie.
 
-| Przykładowe rozwiązanie | Obciążenie operacyjne | Główny kompromis |
+## Jak skomplikowane powinno być rozwiązanie?
+
+Wybierz sposób przechowywania, który Ty i pozostałe zaangażowane osoby
+potraficie sprawnie obsłużyć. Kolejne urządzenia i miejsca przechowywania
+oznaczają więcej rzeczy do dopilnowania. Korzyść zależy od tego,
+jak te elementy ze sobą współpracują.
+
+| Rozwiązanie | Czego trzeba dopilnować | Co warto przemyśleć |
 | --- | --- | --- |
-| Jedno urządzenie podpisujące i oddzielna kopia offline | Niższe | Łatwiejsze ćwiczenie, ale urządzenie i kopia wymagają starannego rozdzielenia. |
-| Wiele niezależnych urządzeń podpisujących | Wyższe | Mniejsza zależność od jednego urządzenia lub miejsca, ale trudniejsza koordynacja i odzyskiwanie. |
+| Jedno urządzenie podpisujące z osobną kopią offline | Urządzenia, kopii i instrukcji odzyskiwania | Jak zapewnić dostęp właściwej osobie i ochronić kopię przed znalezieniem przez kogoś innego |
+| Kilka urządzeń podpisujących u różnych osób lub w różnych miejscach | Każdego urządzenia, jego kopii oraz wspólnej procedury | Kto musi być dostępny, czego wymaga odzyskanie portfela i jak wspólnie przećwiczyć tę procedurę |
 
-Wybierz najprostsze rozwiązanie zgodne z udokumentowanym modelem zagrożeń,
-które zamierzeni użytkownicy potrafią bezpiecznie przećwiczyć. Złożoność, której
-nikt nie umie obsłużyć, nie jest dodatkową warstwą bezpieczeństwa.
+Najpierw zapisz, przed jakimi zagrożeniami chcesz się chronić. Przy każdym
+dodatkowym elemencie sprawdź, czy pomaga rozwiązać konkretny problem
+oraz czy potrafisz wyjaśnić jego rolę osobie, która ma z niego korzystać.
 
-## Co przetestować przed przeniesieniem istotnej kwoty?
+## Co sprawdzić przed przeniesieniem oszczędności?
 
-Zacznij od małej kwoty. Sprawdź odbiór, weryfikację i wydawanie środków z
-wybranego portfela, a następnie przećwicz odzyskiwanie według bezpiecznej
-procedury testowej. Zanim uznasz kopię za wiarygodną, potwierdź, że odtworzony
-portfel wyznacza oczekiwane adresy.
+Zacznij od małej kwoty. Sprawdź, czy potrafisz odebrać bitcoiny we właściwym
+portfelu, zweryfikować dane i wykonać płatność. Zaplanuj próbę odzyskiwania
+tak, żeby przez cały czas zachować dostęp do działającego portfela.
 
-Zapisz zakres testu, zaplanuj okresowe kontrole i przejrzyj plan po zmianie
-urządzenia, miejsca lub odpowiedzialnej osoby. Nigdy nie wysyłaj nikomu słów
-odzyskiwania, kluczy prywatnych ani kopii portfela do „weryfikacji”.
+Po odtworzeniu sprawdź, czy portfel wyznacza oczekiwane adresy. Zapisz,
+które elementy udało się przetestować, a które nadal czekają na sprawdzenie.
+Zgodność adresów i możliwość wydania środków to dwa osobne wyniki próby.
 
-## Kiedy przegląd konfiguracji może pomóc?
+Wróć do notatek po zmianie urządzenia, przeniesieniu kopii lub zmianie
+osoby, która ma pomóc w odzyskiwaniu. Osoba oferująca przegląd konfiguracji
+powinna umieć omówić procedurę bez otrzymywania Twojej frazy odzyskiwania
+ani kluczy prywatnych.
 
-Uporządkowany przegląd może ujawnić założenia i porównać plan z opisanymi
-ryzykami. [Zakres usług konsultingowych](/pl/#services) przedstawia dostępne
-obszary współpracy. Rzetelny przegląd powinien dotyczyć architektury i procedur;
-nie powinien wymagać słów odzyskiwania, kluczy prywatnych ani prawdziwych kopii.
+## Kiedy warto skorzystać z przeglądu?
 
-Ten materiał pozostaje szkicem i nie może trafić do wersji produkcyjnej przed
-zakończeniem przeglądu technicznego i redakcyjnego.
+Przegląd może pomóc, gdy masz już potrzebne elementy, ale chcesz sprawdzić,
+czy tworzą spójną całość. Możesz poprosić o przejście przez instrukcję
+odzyskiwania albo omówienie sytuacji, w której zabraknie jednego urządzenia
+lub jednej z zaangażowanych osób.
+
+W ramach [konsultacji](/pl/#services) omawiamy konfigurację portfela
+i sposób korzystania z niego. Przygotuj pytania i opis tego, jak zarządzasz
+dostępem. Fraza odzyskiwania, klucze prywatne i kopie pozostają u Ciebie.
