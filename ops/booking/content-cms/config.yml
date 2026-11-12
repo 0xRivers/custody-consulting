@@ -56,12 +56,18 @@ collections:
         pattern: ['^[a-z0-9]+(?:-[a-z0-9]+)*$', Use lowercase words separated by hyphens.]
         i18n: duplicate
         hint: Use the same key for English and Polish.
-      - label: Topics
+      - label: Topic / Temat
         name: topics
-        widget: list
-        i18n: true
+        widget: select
+        multiple: true
         min: 1
-        max: 5
+        max: 3
+        i18n: duplicate
+        hint: Choose once for both languages. Public labels and URLs are translated automatically.
+        options:
+          - { label: Foundations / Podstawy, value: foundations }
+          - { label: Recovery / Odzyskiwanie, value: recovery }
+          - { label: Continuity / Ciągłość, value: continuity }
       - label: Sources
         name: sources
         widget: list

@@ -7,6 +7,7 @@ on:
       - '.github/pull_request_template.md'
       - '.github/workflows/editorial-review.yml'
       - 'astro/**'
+      - 'ops/publishing/**'
       - 'ops/checks/article-rules.test.mjs'
       - 'ops/checks/editorial-boundaries.mjs'
       - 'ops/checks/metadata.test.mjs'
@@ -41,15 +42,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: npm run test:astro:contract
-      - run: npm run build:astro:staging
-      - run: npm run build:astro:production
-      - run: npm run check:editorial-boundaries
-      - run: npm run check:metadata-output
-      - run: npm run check:syndication-output
-      - run: npm run check:structured-data-output
-      - run: npm run check:answer-focused-output
-      - run: npm run check:performance-output
+      - run: bash ops/publishing/verify-builds.sh
       - name: Verify editorial publication boundaries
         run: |
           set -euo pipefail

@@ -10,7 +10,7 @@ updatedAt: 2026-11-10
 draft: false
 translationKey: self-custody-foundations
 topics:
-  - podstawy
+  - foundations
 sources:
   - label: Biała księga Bitcoina
     url: https://bitcoin.org/bitcoin.pdf
