@@ -46,7 +46,6 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
                 ['articles','Articles','M5 3h10l4 4v14H5zM8 12h8m-8 4h6'],
                 ['applications','Mentor applications','M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8l2 2 3-3'],
                 ['access','Roles and access','M12 3l8 4v6c0 5-8 8-8 8s-8-3-8-8V7l8-4Z'],
-                ['mentor-sales','Mentor sales','M4 4v16h16M9 15v-4m5 4V7m5 8v-6'],
                 ['mentor-invitations','Mentor invitations','M3 5h18v14H3zM3 7l9 6 9-6'],
               ].map(([section,label,path])=><button type="button" data-section={section} data-network-nav hidden aria-controls="network-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={path}/></svg>{label}</button>)}
             </>}
@@ -59,7 +58,6 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
 
         <div class="content">
           <div id="workspace-status"></div>
-          {mentorNetworkEnabled && <section id="network-panel" hidden aria-labelledby="network-panel-title"><header class="section-heading"><h1 id="network-panel-title">Mentor workspace</h1></header><MentorWorkspace embedded /></section>}
           <section id="invitations-panel" aria-labelledby="invitations-title">
             <header class="section-heading">
               <h1 id="invitations-title">Invitations</h1>
@@ -86,10 +84,10 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
 
           <section id="sales-panel" aria-labelledby="sales-title" hidden>
             <header class="section-heading">
-              <div><h1 id="sales-title">Sales</h1><p>Confirmed bookings and payment totals.</p></div>
+              <div><h1 id="sales-title">Sales</h1><p id="sales-scope">Confirmed bookings and payment totals.</p></div>
               <button id="load-sales" type="button">Load sales</button>
             </header>
-            <div id="sales-data"></div>
+            <div id="booking-sales-tools" hidden><h2 class="sales-subheading">Payments and recent bookings</h2><div id="sales-data"></div>
             <details id="refund-tools" class="surface refund-tools" hidden>
               <summary>Refund claim link</summary>
               <label for="refund-link">Existing BTCPay claim URL</label>
@@ -99,7 +97,10 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
               </div>
               <p>Share privately with the intended recipient. Approve payouts in BTCPay.</p>
             </details>
+            </div>
           </section>
+
+          {mentorNetworkEnabled && <section id="network-panel" hidden aria-labelledby="network-panel-title"><header class="section-heading"><h1 id="network-panel-title">Mentor workspace</h1></header><MentorWorkspace embedded /></section>}
 
           <section id="review-panel" aria-labelledby="review-title" hidden>
             <header class="section-heading">
@@ -128,6 +129,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     .nav-group{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:1rem .75rem .35rem;}
     #network-panel{background:#f4f5f7;color:#14243a;padding:clamp(1rem,3vw,1.75rem);border-radius:.8rem;}
     #network-panel h1{color:#102139;}
+    .sales-subheading{font-size:1.15rem;letter-spacing:0;margin-bottom:1rem;}
     nav button {display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border-color:transparent;background:transparent;color:var(--muted);}
     nav a {display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;border:1px solid transparent;border-radius:.5rem;color:var(--muted);text-decoration:none;font-weight:650;}
     nav a:hover {border-color:var(--line);color:var(--white);}
@@ -274,13 +276,24 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
         const selectedPanel=button.getAttribute('aria-controls');
         for(const panelId of new Set(navigation.map(item=>item.getAttribute('aria-controls')!)))document.getElementById(panelId)!.hidden=panelId!==selectedPanel;
         const section = button.dataset.section!;
+        document.querySelector<HTMLElement>('#network-panel>.section-heading')?.removeAttribute('hidden');
         if(button.hasAttribute('data-network-nav')){
           document.getElementById('network-panel-title')!.textContent=button.textContent!.trim();
           const detail:{section:string;ready?:Promise<void>}={section};window.dispatchEvent(new CustomEvent('custody:network-section',{detail}));
           try{await detail.ready;status.textContent='';}catch(error){status.textContent=error instanceof Error?error.message:'Could not open section.';}
         }
+        if(section==='sales'){
+          if(networkSalesAccess){
+            document.getElementById('network-panel')!.hidden=false;
+            document.getElementById('network-panel-title')!.textContent='Sales attribution';
+            document.querySelector<HTMLElement>('#network-panel>.section-heading')!.hidden=true;
+            const detail:{section:string;ready?:Promise<void>}={section:'sales'};
+            window.dispatchEvent(new CustomEvent('custody:network-section',{detail}));
+            try{await detail.ready;}catch(error){status.textContent=error instanceof Error?error.message:'Could not open sales.';}
+          }
+          document.getElementById('load-sales')!.click();
+        }
         if (!loadedSections.has(section)) {
-          if (section === 'sales') document.getElementById('load-sales')!.click();
           if (section === 'review') document.getElementById('load-reviews')!.click();
         }
       });
@@ -297,6 +310,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     const url = document.getElementById('invite-url') as HTMLInputElement;
     let pubkey = '', busy = false;
     let refundOrigin = '';
+    let staffSalesAccess=false,networkSalesAccess=false,salesRefreshing=false;
     const messages:Record<string,string> = {
       RESOLUTION_BLOCKED:'This case cannot be resolved automatically. Check payment and original booking in BTCPay and Cal.',
       RESOLUTION_NEEDS_REVIEW:'A previous booking attempt needs manual inspection. Do not create another replacement.',
@@ -336,12 +350,16 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
           if(contentNostr)await api({action:'admin-content-session',locale,event:await provider.signEvent(challenge.event)});
           bookingAccess=true;
         }catch(error){if(!mentorNetwork)throw error;}
+        staffSalesAccess=bookingAccess;
+        networkSalesAccess=!!(networkAccount?.superAdmin||networkAccount?.roles.some(r=>r.role==='mentor'));
+        document.getElementById('booking-sales-tools')!.hidden=!staffSalesAccess;
+        document.getElementById('sales-scope')!.textContent=staffSalesAccess?'Confirmed bookings, payment totals and mentor attribution.':networkAccount?.superAdmin?'All mentor-attributed and unassigned sales.':'Your attributed bookings and sales.';
         for(const button of navigation){
-          if(!button.hasAttribute('data-network-nav'))button.hidden=!bookingAccess;
+          if(button.dataset.section==='sales')button.hidden=!(staffSalesAccess||networkSalesAccess);
+          else if(!button.hasAttribute('data-network-nav'))button.hidden=!bookingAccess;
           else {const section=button.dataset.section;const roles=networkAccount?.roles.map(r=>r.role)||[];
             button.hidden=!(networkAccount?.superAdmin||
               (section==='articles'&&roles.includes('editor'))||
-              (section==='mentor-sales'&&roles.some(r=>r==='mentor'))||
               (section==='mentor-invitations'&&roles.includes('mentor')));
           }
         }
@@ -395,7 +413,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
       return new Intl.NumberFormat(undefined,{style:'currency',currency:sale.currency}).format(sale.minorUnits/100);
     }
     const loadSales = document.getElementById('load-sales') as HTMLButtonElement | null;
-    loadSales?.addEventListener('click',async()=> {
+    async function loadBookingSales() {
       if (busy || !activeSigner) return;
       busy=true;loadSales.disabled=true;connect!.disabled=true;create.disabled=true;
       const panel=document.getElementById('sales-data')!;
@@ -450,6 +468,23 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
         status.textContent='';
       } catch(error) {status.textContent=error instanceof Error?error.message:'Could not load sales.';}
       finally {busy=false;loadSales.disabled=false;connect!.disabled=false;create.disabled=false;}
+    }
+
+    loadSales?.addEventListener('click',async()=>{
+      if(salesRefreshing||busy||!activeSigner)return;
+      salesRefreshing=true;loadSales.disabled=true;
+      let networkError='';
+      try{
+        if(networkSalesAccess){
+          const detail:{ready?:Promise<void>}={};
+          window.dispatchEvent(new CustomEvent('custody:network-sales-refresh',{detail}));
+          try{if(!detail.ready)throw new Error('Sales workspace is still loading. Try again.');await detail.ready;}
+          catch(error){networkError=error instanceof Error?error.message:'Could not load attributed sales.';}
+        }
+        if(staffSalesAccess)await loadBookingSales();
+        if(networkError)status.textContent=networkError;
+        else if(!staffSalesAccess)status.textContent='';
+      }finally{salesRefreshing=false;loadSales.disabled=false;loadSales.textContent='Refresh sales';}
     });
     document.getElementById('copy-refund')?.addEventListener('click',async()=> {
       const input=document.getElementById('refund-link') as HTMLInputElement;

@@ -73,7 +73,7 @@ const enabled=process.env.MENTOR_NETWORK_ENABLED==='true';
 .connect-row{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem;min-width:0}
 @media(max-width:40rem){.network-admin{width:calc(100% - 2rem);padding-top:1.5rem}.network-masthead .shell{width:calc(100% - 2rem)}.network-admin form{grid-template-columns:minmax(0,1fr);gap:1rem}.connect-row>.btn{flex:1 1 auto}.network-admin :global(.review-actions .btn){flex:1 1 8rem}.pilot-badge{font-size:.7rem}.back-link{margin-bottom:1.25rem}}
 @media(prefers-reduced-motion:reduce){.network-admin :global(.btn){transition:none}}
-.network-admin.embedded{width:100%;max-width:none;padding:0;color:#14243a}.network-admin.embedded>.back-link,.network-admin.embedded>.eyebrow,.network-admin.embedded>h1,.network-admin.embedded>.network-intro,.network-admin.embedded>.connection-card{display:none}.network-admin.embedded section{margin-top:0}.network-admin.embedded form{max-width:none}
+.network-admin.embedded{width:100%;max-width:none;padding:0;color:#14243a}.network-admin.embedded>.back-link,.network-admin.embedded>.eyebrow,.network-admin.embedded>h1,.network-admin.embedded>.network-intro,.network-admin.embedded>.connection-card{display:none}.network-admin.embedded section{margin-top:0}.network-admin.embedded form{max-width:none}.network-admin.embedded #network-sales-refresh{display:none}
 .role-options{grid-column:1/-1;margin:0;padding:1rem;border:1px solid #c8d1dc;border-radius:8px}.role-options legend{padding:0 .4rem;font-size:.9rem;font-weight:700}.role-options .check{padding:.75rem;min-height:64px;border-radius:6px;cursor:pointer}.role-options .check:hover{background:#f0f3f7}.role-options small{display:block;color:#475569;font-weight:400}.role-options strong{display:block}.network-admin #role-form>label{grid-column:1/-1}#roles-section>h3{margin-top:2rem}</style>
 <script>
 import { npubEncode } from 'nostr-tools/nip19';
@@ -95,18 +95,19 @@ let networkIdentity:{superAdmin:boolean;roles:Array<{role:string}>}|undefined;
 async function activateNetwork(connectedSigner:NostrSigner,sessionReady=false){
 signer=connectedSigner;npub=npubEncode(await signer.getPublicKey());const identity=await (async()=>{if(!sessionReady)await signed('session-start');return signed('my-status');})();document.getElementById('network-identity')!.textContent=npub;document.getElementById('network-workspace')!.hidden=false;document.getElementById('network-logout')!.hidden=false;document.getElementById('super-admin-panels')!.hidden=!identity.superAdmin;if(identity.superAdmin||identity.roles.some((r:{role:string})=>r.role==='editor')){if(!embedded)await signed('content-session-start');document.getElementById('content-editor-panel')!.hidden=false;}if(identity.superAdmin){await loadMembers();await loadApplications();}
 document.getElementById('mentor-invitation-panel')!.hidden=!(identity.superAdmin||identity.roles.some((r:{role:string})=>r.role==='mentor'));
-if(identity.superAdmin||identity.roles.some((r:{role:string})=>r.role==='mentor'))await loadSales();
-networkIdentity=identity;
+if(!embedded&&(identity.superAdmin||identity.roles.some((r:{role:string})=>r.role==='mentor')))await loadSales();
+networkIdentity=identity;document.getElementById('network-sales-title')!.textContent=identity.superAdmin?'Sales by mentor':'Your sales';
 }
 let contentConnected=false;
 async function showNetworkSection(section:string){
  if(!networkIdentity)throw new Error('Connect with Nostr first.');
- const map:Record<string,string[]>={articles:['content-editor-panel'],applications:['applications-section'],access:['roles-section'],'mentor-sales':['network-sales-section'],'mentor-invitations':['mentor-invitation-panel']};
+ const map:Record<string,string[]>={articles:['content-editor-panel'],applications:['applications-section'],access:['roles-section'],sales:['network-sales-section'],'mentor-invitations':['mentor-invitation-panel']};
  const targets=map[section]||[];
  for(const card of document.querySelectorAll<HTMLElement>('.network-admin section'))card.hidden=!targets.includes(card.id);
  document.getElementById('super-admin-panels')!.hidden=!networkIdentity.superAdmin;
  if(section==='articles'){if(!contentConnected){await signed('content-session-start');contentConnected=true;}}
 }
+window.addEventListener('custody:network-sales-refresh',((event:CustomEvent)=>{event.detail.ready=loadSales();}) as EventListener);
 window.addEventListener('custody:network-connect',((event:CustomEvent)=>{event.detail.ready=activateNetwork(event.detail.signer,true);}) as EventListener);
 window.addEventListener('custody:network-section',((event:CustomEvent)=>{event.detail.ready=showNetworkSection(event.detail.section);}) as EventListener);
 if(enabled){document.getElementById('network-logout')?.addEventListener('click',()=>void task(async()=>{await api({action:'mentor-network-logout'});close();signer=undefined;npub='';await fetch('/admin/content/session',{method:'DELETE'});document.getElementById('content-editor-panel')!.hidden=true;document.getElementById('network-workspace')!.hidden=true;document.getElementById('network-logout')!.hidden=true;document.getElementById('network-identity')!.textContent='';for(const id of ['applications','members','network-sales'])document.getElementById(id)!.replaceChildren();}));document.getElementById('network-connect')?.addEventListener('click',()=>void task(async()=>{close();const connected=await connectNostrSigner(message);close=connected.close;await activateNetwork(connected.signer);}));document.getElementById('network-sales-refresh')?.addEventListener('click',()=>void task(loadSales));document.getElementById('applications-refresh')?.addEventListener('click',()=>void task(loadApplications));

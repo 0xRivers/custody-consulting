@@ -42,3 +42,18 @@ First installation stopped before activation because the npm subshell PATH hid
 /usr/sbin/runuser. The corrected installer retains system administration paths.
 An exported wrapper calling /usr/sbin/runuser can resume the already uploaded,
 checksum-verified package without modifying its contents.
+
+## Unified Sales view
+
+Sales and Mentor sales now share one sidebar item and one refresh control. Booking
+operators retain their separately allowlisted payment totals, recent bookings and
+refund-link tools. The business root sees all mentor attribution including unassigned
+sales, and mentors see only their own attribution. Editors without another applicable
+permission see no Sales entry. The existing backend enforces both read boundaries;
+this integration adds no payment permissions and does not change booking behavior.
+The two read operations are kept separate inside the unified view; figures are not
+summed across the payment summary and attribution breakdown.
+
+Enabled staging build, 22 static contract tests and 18 mentor permission/session
+tests pass. Built-page inspection confirms one Sales navigation item, unique IDs
+and valid panel targets. Browser/signer journey verification remains manual.
