@@ -24,7 +24,7 @@ chmod --reference="$current" "$candidate"
 (
  cd "$candidate"
  umask 022
- export PATH=/opt/custody-node24/bin:/usr/bin:/bin
+ export PATH=/opt/custody-node24/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
  npm ci --omit=dev --ignore-scripts --no-audit --no-fund
  check=$(mktemp -d /tmp/custody-two-roles-check.XXXXXX)
  chown custody-booking:custody-booking "$check"

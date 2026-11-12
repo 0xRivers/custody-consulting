@@ -37,3 +37,8 @@ The combined staging update packages matching service dependencies, links export
 as the service account before stopping staging, backs up SQLite, and updates the
 private static pages. Failures restore code/pages/configuration without rewinding
 the payments database. Production configuration is not changed.
+
+First installation stopped before activation because the npm subshell PATH hid
+/usr/sbin/runuser. The corrected installer retains system administration paths.
+An exported wrapper calling /usr/sbin/runuser can resume the already uploaded,
+checksum-verified package without modifying its contents.
