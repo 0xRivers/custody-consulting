@@ -104,3 +104,19 @@ Previous code: /opt/custody-booking-staging-before-v2-20261112T184222Z.
 Database backup: /root/custody-staging-backup-20261112T182524Z.
 MENTOR_NETWORK_ENABLED=false remains enforced by 96-mentor-pilot.conf.
 Frontend installation, content proxy routing and real signer checks remain pending.
+
+## Dashboard readability correction
+
+The initial page inherited white foreground text and a dark color-scheme from the
+public site while drawing white dashboard cards. Its btn classes lacked a usable
+base style; scoped rules did not reach dynamically created controls. The update
+sets an explicit light body, ink text, navy actions, readable labels/options,
+compact headings, global-in-dashboard control rules, keyboard focus and responsive
+single-column forms. Hidden account panels retain display:none.
+
+Enabled staging build, interactive-ID preservation and shell syntax checks pass.
+Seven explicit text/control palette pairs measure at least 5.04:1. Browser visual
+QA remains pending: local ChromeDriver cannot create a Chrome session. No rendered
+screenshot or full accessibility pass is claimed. Static-only archive installation
+atomically switches the separate private-page symlink, retains prior pages and
+rolls back if the served new page cannot be verified. No backend restart is used.
