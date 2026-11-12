@@ -47,6 +47,7 @@ request JSON. Both issuers retain rate limits and one-time signed operations.
 - Covered ledger deduplication, orphan/resolved reviews, pagination beyond 25 rows,
   literal bound search, request validation, mentor isolation and private fields.
 - Covered dedicated signature purpose/filter binding and session actor/revocation.
+- 58 targeted content, permission and ledger tests passed; 48 booking-module tests and the full release suite also passed. These runs overlap and are not additive.
 - Existing booking-resolution, staff/invitation and role tests remain applicable.
 - Inspected source states: default, loading, empty, filtered-empty, error, hover,
   disabled, pressed, expanded detail, preview invalidation and confirmation.
