@@ -1,6 +1,6 @@
-export function createArticleAccess({isGlobalEditor,canDraftAll=()=>false}) {
+export function createArticleAccess({isGlobalEditor,canDraftAll=()=>false,canPublish=()=>false}) {
   return actor=>{
     if(typeof actor!=='string'||!/^[a-f0-9]{64}$/.test(actor))throw Object.assign(new Error('Content access denied.'),{status:403});
-    return {global:!!isGlobalEditor(actor),workspaceAll:!!canDraftAll(actor),articleIds:[]};
+    return {global:!!isGlobalEditor(actor),workspaceAll:!!canDraftAll(actor),articleIds:[],canPublish:!!canPublish(actor)};
   };
 }

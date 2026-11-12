@@ -8,7 +8,7 @@ const enabled=process.env.MENTOR_NETWORK_ENABLED==='true';
   {enabled ? <>
     <p class="network-intro">Review applications, assign roles and track confirmed bookings.</p>
     <div class="connection-card"><div class="connection-copy"><h2>Your workspace</h2><p>Connect your Nostr signer to see the tools available to your account.</p></div><div class="connect-row"><button type="button" id="network-connect" class="btn btn-primary">Connect with Nostr</button><button type="button" id="network-logout" class="btn" hidden>Sign out</button><span id="network-identity"></span></div><p id="network-status" role="status" aria-live="polite"></p></div>
-    <div id="network-workspace" hidden><section id="content-editor-panel" hidden><h2>Articles</h2><p>Edit and preview English and Polish articles.</p><a class="btn" href="/admin/content/nostr/workspace/">Open article workspace</a></section>
+    <div id="network-workspace" hidden><section id="content-editor-panel" hidden><h2>Articles</h2><p>Edit and preview English and Polish articles.</p><a class="btn" href="/admin/articles/">Open article workspace</a></section>
       <div id="super-admin-panels" hidden>
 
         <section id="applications-section" aria-labelledby="applications-title"><h2 id="applications-title">Mentor applications</h2><p>Approve candidates as mentors. Editor access is assigned separately.</p><button type="button" id="applications-refresh" class="btn">Refresh applications</button><div id="applications"></div></section>

@@ -920,14 +920,14 @@
       "dependencies": [
         "CC-50"
       ],
-      "status": "Backlog",
+      "status": "In progress",
       "acceptance": [
         "Provide Save draft, EN/PL preview, exact revision review, owner approval, deployment progress and verified-live result in one accessible workspace.",
         "Preserve bilingual pairs, topics, URLs and dates; detect conflicts and invalidate approval when revision or complete release scope changes.",
         "Prove GitHub production approval integration without bypassing protection or silently including unrelated engineering changes; make failures and rollback actionable.",
         "Validate mobile, keyboard, enlarged text and error recovery; verify a real approved release and restore. Publishing can ship before mentor operations."
       ],
-      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
+      "notes": "Implemented locally 2026-11-12: /admin/articles, bilingual draft creation and owner-signed Publish/Unpublish with durable protected-release progress. Old editor entry redirects. Publication remains setup-gated until GitHub App Actions write and the obsolete-candidate workflow guard are configured. Automated tests and static builds pass; staging package installation, real browser/signer journeys and a complete approved production release remain pending. See docs/ARTICLE-PUBLISHING.md."
     },
     {
       "id": "CC-52",

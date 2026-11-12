@@ -25,7 +25,7 @@ export async function github(path, token, body, method = body ? 'POST' : 'GET') 
   return response.json();
 }
 
-export async function installationToken() {
+export async function installationToken({actions=false}={}) {
   const appId = process.env.CONTENT_GITHUB_APP_ID;
   const keyFile = process.env.CONTENT_GITHUB_APP_KEY_FILE;
   if (!/^\d+$/.test(appId ?? '') || !keyFile) {
@@ -39,8 +39,9 @@ export async function installationToken() {
   if (installation.repository_selection !== 'selected' || installation.suspended_at) {
     throw new Error('Use an active installation with only the selected repository.');
   }
+  if(actions&&installation.permissions?.actions!=='write')throw Object.assign(new Error('Publishing setup required: grant this repository-scoped GitHub App Actions read/write, then approve the updated installation.'),{status:409});
   return (await github(`/app/installations/${installation.id}/access_tokens`, jwt, {
     repositories: ['custody-consulting'],
-    permissions: { contents: 'write', pull_requests: 'write' },
+    permissions: { contents: 'write', pull_requests: 'write',...(actions?{actions:'write'}:{}) },
   })).token;
 }

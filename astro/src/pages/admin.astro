@@ -231,7 +231,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
         if(button.hasAttribute('data-network-nav')){
           document.getElementById('network-panel-title')!.textContent=button.textContent!.trim();
           const detail:{section:string;ready?:Promise<void>}={section};window.dispatchEvent(new CustomEvent('custody:network-section',{detail}));
-          try{await detail.ready;status.textContent='';}catch(error){status.textContent=error instanceof Error?error.message:'Could not open section.';}
+          try{await detail.ready;status.textContent='';if(section==='articles')location.assign('/admin/articles/');}catch(error){status.textContent=error instanceof Error?error.message:'Could not open section.';}
         }
         if(section==='sales')document.getElementById('load-sales')!.click();
       });

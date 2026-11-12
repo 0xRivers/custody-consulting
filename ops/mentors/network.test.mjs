@@ -122,3 +122,16 @@ test('one invitation workflow attributes mentors and leaves standard owner invit
  f.grant(f.alice,true,false);f.run(f.alice,'session-start');const token=f.invite(f.alice);assert.equal(f.db.prepare('SELECT mentorPubkey FROM mentor_invite_attribution WHERE tokenHash=?').get(token).mentorPubkey,f.alice.pubkey);
  assert.throws(()=>f.run(f.alice,'issue-invite',{locale:'en',mentorPubkey:f.bob.pubkey}),/Invalid request fields/);
 });
+
+test('article publication approvals require a fresh owner signature and preserve its proof',t=>{
+ const f=fixture(t);let approval;
+ const network=createMentorNetwork({db:f.db,superAdminNpub:f.root.npub,origin:'https://staging.custody.consulting',now:f.now,approveArticleRelease:(actor,request,event)=>{approval={actor,request,event};return {id:request.id,state:'queued'};}});
+ const request={id:'operation-id',digest:'digest'};
+ const event=finalizeEvent(network.challenge({npub:f.root.npub,purpose:'article-release',request}).event,f.root.secret);
+ assert.equal(network.execute({event}).state,'queued');assert.equal(approval.actor,f.root.pubkey);assert.equal(approval.event.id,event.id);
+ assert.throws(()=>network.execute({event}),/expired/);
+ f.grant(f.alice,false,true);f.run(f.alice,'session-start');
+ const denied=finalizeEvent(network.challenge({npub:f.alice.npub,purpose:'article-release',request}).event,f.alice.secret);
+ assert.throws(()=>network.execute({event:denied}),/Only the Custody/);
+ const token=f.run(f.root,'session-start').sessionToken;assert.throws(()=>network.readSession({token,purpose:'article-release',request}),/fresh signature/);
+});

@@ -61,3 +61,15 @@ export function updatePair(baseFiles, input, liveFiles = {}) {
     return { ...baseFiles[locale], raw: `---\n${document.toString()}---\n\n${fields.body.trim()}\n` };
   });
 }
+
+export function createPair({id,changes,date=new Date().toISOString().slice(0,10)}) {
+  if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id||'')||id.length<3||id.length>100)throw new WorkspaceError('Use a URL-safe article name with 3–100 characters.');
+  for(const locale of ['en','pl'])if(typeof changes?.[locale]?.slug!=='string'||changes[locale].slug.length<3)throw new WorkspaceError('Both article URLs need at least 3 characters.');
+  // YAML documents are built structurally; user input never becomes YAML syntax.
+  const bases=Object.fromEntries(['en','pl'].map(locale=>{
+    const document=parseDocument('{}');
+    for(const [key,value] of Object.entries({title:'',summary:'',keyAnswer:'',locale,slug:changes?.[locale]?.slug,author:'Custody Consulting',publishedAt:date,draft:true,translationKey:id,topics:[],sources:[]}))document.set(key,value);
+    return [locale,{file:{path:`astro/src/content/blog/${locale}/${id}.md`},data:`---\n${document.toString()}---\n\n`}];
+  }));
+  return updatePair(bases,changes);
+}

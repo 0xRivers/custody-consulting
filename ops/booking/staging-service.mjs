@@ -6,6 +6,8 @@ import {switchToBTC} from './switch-payment.mjs';
 import {createNostrAdmin, AdminError, contentSessionSeconds} from './nostr-admin.mjs';
 import { createArticleAccess } from './content-cms/article-access.mjs';
 import { createContentHandler } from './content-cms/content-http.mjs';
+import {createPublications} from './content-cms/publications.mjs';
+import {github as contentGithub,installationToken as contentToken,repository as contentRepository} from './content-cms/github-app.mjs';
 import { createNetworkHTTP } from '../mentors/network-http.mjs';
 import { createMentorNetwork } from '../mentors/network.mjs';
 import { createServer } from 'node:http';
@@ -97,14 +99,21 @@ db.exec(`CREATE TRIGGER IF NOT EXISTS bookings_price_immutable
 
 const admin = createNostrAdmin({db, allowlist:process.env.BOOKING_ADMIN_NPUBS || '',origin:config.origin,pathPrefix:config.pathPrefix});
 let mentorNetwork;
+let releaseCredential;
+const releaseCall=async(path,body,method)=>{
+ if(!releaseCredential||releaseCredential.until<Date.now())releaseCredential={until:Date.now()+240000,token:contentToken({actions:true})};
+ try{return await contentGithub('/repos/'+contentRepository+path,await releaseCredential.token,body,method);}catch(error){releaseCredential=undefined;throw error;}
+};
+const contentPublicRevision=async origin=>{const response=await fetch(origin+'/version.txt?article-release=1',{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});const revision=(await response.text()).trim();if(!response.ok||!/^[a-f0-9]{40}$/.test(revision))throw new Error('Public release could not be verified.');return revision;};
+const publications=contentSessionEnabled?createPublications({db,call:releaseCall,isOwner:actor=>mentorNetwork?.isSuperAdmin(actor),publicRevision:contentPublicRevision}):null;
 if (process.env.MENTOR_NETWORK_ENABLED === 'true' && !config.pilot) {
-  try { mentorNetwork=createMentorNetwork({db,superAdminNpub:process.env.CUSTODY_SUPER_ADMIN_NPUB,origin:config.origin}); }
+  try { mentorNetwork=createMentorNetwork({db,superAdminNpub:process.env.CUSTODY_SUPER_ADMIN_NPUB,origin:config.origin,approveArticleRelease:(actor,input,event)=>{if(!publications)throw new AdminError('Article publishing is not configured.',409);return publications.approve(actor,input,event);}}); }
   catch { console.error('Mentor network configuration is invalid. Mentor endpoints are disabled; existing booking services remain available.'); }
 }
 
-if(contentSessionEnabled) articlesAPI=(await import('./content-cms/articles.mjs')).createArticlesAPI({access:createArticleAccess({db,
+if(contentSessionEnabled) articlesAPI=(await import('./content-cms/articles.mjs')).createArticlesAPI({publication:publications,access:createArticleAccess({db,
   isGlobalEditor:actor=>admin.isContentEditor(actor)||mentorNetwork?.isSuperAdmin(actor),
-  canDraftAll:actor=>mentorNetwork?.canEdit(actor)||false})});
+  canDraftAll:actor=>mentorNetwork?.canEdit(actor)||false,canPublish:actor=>mentorNetwork?.isSuperAdmin(actor)||false})});
 const contentAdmin={
   requireContentSession(token) {try{return admin.requireContentSession(token);}catch(error){if(!mentorNetwork)throw error;return mentorNetwork.requireContentSession(token);}},
   endContentSession(token) {admin.endContentSession(token);mentorNetwork?.endContentSession(token);}
@@ -114,6 +123,7 @@ const contentHandler=articlesAPI ? createContentHandler({api:articlesAPI,admin:c
 const networkHTTP=createNetworkHTTP({network:mentorNetwork,contentHandler,origin:config.origin,
  staffLedger:(actor,request)=>admin.isContentEditor(actor)?{...readSalesLedger({db,includeReviews:true,request}),environment:config.environment,refundOrigin:btcpay?new URL(BTCPAY_CHECKOUT_ORIGIN||'https://pay.custody.consulting').origin:null}:null});
 
+if(publications){const timer=setInterval(()=>void publications.tick().catch(()=>console.error('Article release worker unavailable.')),15000);timer.unref();}
 const findInvitationForBooking = db.prepare('SELECT reference FROM invitations WHERE reference = ?');
 const hashToken = token => createHash('sha256').update(token).digest('hex');
 async function calBooking(reference, action = '', invitationRead = false, signal = AbortSignal.timeout(10_000)) {

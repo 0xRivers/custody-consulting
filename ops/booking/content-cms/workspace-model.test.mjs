@@ -49,3 +49,12 @@ test('switching/editing one language leaves the other intact and review includes
   assert.equal(review[0].changes.length, 0);
   assert.deepEqual(review[1].changes.map(change => change.field), ['body']);
 });
+
+test('new articles are safe bilingual drafts and cannot smuggle publication metadata',async()=>{
+ const {createPair,decodeArticle}=await import('./workspace-model.mjs');
+ const bases=pair();const changes=editableChanges(Object.fromEntries(Object.entries(bases).map(([locale,entry])=>[locale,editableArticle(entry.data)])),['foundations']);
+ const created=createPair({id:'new-article',changes,date:'2026-11-12'});
+ assert.equal(created.length,2);for(const entry of created){const data=decodeArticle(entry.raw).data;assert.equal(data.draft,true);assert.equal(data.author,'Custody Consulting');assert.equal(data.translationKey,'new-article');}
+ assert.throws(()=>createPair({id:'../escape',changes}),/URL-safe/);
+ const invalid=structuredClone(changes);invalid.en.draft=false;assert.throws(()=>createPair({id:'new-article',changes:invalid}),/Only article text/);
+});

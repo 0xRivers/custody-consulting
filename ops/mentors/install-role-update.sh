@@ -83,7 +83,11 @@ with urlopen(Request('https://staging.custody.consulting/admin/',headers={'Cache
 assert 'id="sales-table"' in html and html.count('<table')==1
 assert 'data-section="review"' not in html and 'id="review-panel"' not in html
 assert html.count('data-section="invitations"')==1 and 'data-section="mentor-invitations"' not in html
-print('Staging verified: one Sales table with integrated payment review; no review navigation item.')
+with urlopen(Request('https://staging.custody.consulting/admin/articles/',headers={'Cache-Control':'no-cache'}),timeout=15) as response:
+ editor=response.read().decode()
+ assert response.status==200 and 'noindex' in response.headers.get('X-Robots-Tag','')
+ assert 'id="new-article"' in editor and 'id="publish"' in editor and 'id="unpublish"' in editor
+print('Staging verified: unified Sales/Invitations and /admin/articles with New, Publish and Unpublish controls.')
 PY
 trap - ERR
 printf 'Previous backend: %s\nDatabase backup: %s\nProduction unchanged.\n' "$previous" "$backup/bookings.sqlite"

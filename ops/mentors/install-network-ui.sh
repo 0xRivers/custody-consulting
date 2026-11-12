@@ -23,9 +23,15 @@ assert len(matches)==1,'Expected exactly one private staging matcher'
 i=matches[0]
 assert text.rfind('staging.custody.consulting {',0,text.find(lines[i]))>=0
 parts=lines[i].split()
-if '/admin' not in parts:parts[2:2]=['/admin','/admin/']
+for item in ['/admin','/admin/','/admin/articles','/admin/articles/*']:
+ if item not in parts:parts.append(item)
 lines[i]='    '+' '.join(parts)
-Path('/etc/caddy/Caddyfile.sidebar-candidate').write_text('\n'.join(lines)+'\n')
+text='\n'.join(lines)+'\n'
+if '@old_article_workspace' not in text:
+ marker='staging.custody.consulting {'
+ assert text.count(marker)==1
+ text=text.replace(marker,marker+'\n    @old_article_workspace path /admin/content/nostr/workspace /admin/content/nostr/workspace/\n    redir @old_article_workspace /admin/articles/ 308\n',1)
+Path('/etc/caddy/Caddyfile.sidebar-candidate').write_text(text)
 PYCODE
 /usr/local/bin/caddy validate --config /etc/caddy/Caddyfile.sidebar-candidate --adapter caddyfile
 rollback() {

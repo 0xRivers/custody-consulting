@@ -15,6 +15,10 @@ with tempfile.TemporaryDirectory(prefix='custody-network-ui-') as temp:
  admin=Path('build/astro-staging/admin/index.html').read_text().replace('/_astro/','/_mentor-pilot-assets/')
  assert 'data-network-nav' in admin and 'network-panel' in admin
  (ui/'admin/index.html').write_text(admin)
+ (ui/'admin/articles').mkdir()
+ editor=Path('build/astro-staging/admin/articles/index.html').read_text().replace('/_astro/','/_mentor-pilot-assets/')
+ (ui/'admin/articles/index.html').write_text(editor)
+ for name in ['workspace.js','workspace.css','view-model.mjs']:shutil.copyfile(Path('ops/booking/content-cms/workspace')/name,ui/'admin/articles'/name)
  shutil.copytree('build/astro-staging/_astro',ui/'_mentor-pilot-assets')
  shutil.copyfile('ops/mentors/install-network-ui.sh',root/'install.sh')
  files=sorted(p for p in root.rglob('*') if p.is_file())

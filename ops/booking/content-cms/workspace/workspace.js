@@ -2,7 +2,7 @@ import { editableChanges, signature, reviewChanges, validateChanges } from './vi
 
 const $ = id => document.getElementById(id);
 let snapshot, draft, savedSignature = '', language = 'en', articles = [], busy = false, reading = false;
-let selection = 0;
+let selection = 0,capabilities={create:false,publish:false},publishing={ready:false},libraryTopics=[],releasePlan,operation;
 const dirty = () => draft && signature(draft) !== savedSignature;
 const setText = (id, text) => { $(id).textContent = text; };
 function feedback(text) { setText('feedback', text); }
@@ -14,19 +14,22 @@ async function api(action, params = {}) {
   let data;
   try { data = await response.json(); } catch { throw new Error('The content service returned an unreadable response. Your edits are still here.'); }
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) throw new Error('Your content session ended. Keep this tab open and reconnect with Nostr in another Admin tab, then try again.');
+    if (response.status === 401) throw new Error('Your content session ended. Keep this tab open and reconnect with Nostr in another Admin tab, then try again.');
     throw new Error(data.error || 'The request could not finish. Your edits are still here.');
   }
   return data;
 }
 function setBusy(value) {
   busy = value;
-  for (const control of document.querySelectorAll('#article-workspace input, #article-workspace textarea, #article-workspace button, #refresh-library, #article-list button')) control.disabled = value;
+  for (const control of document.querySelectorAll('#article-workspace input, #article-workspace textarea, #article-workspace button, #refresh-library, #new-article, #article-list button')) control.disabled = value;
   updateState();
 }
 function updateState() {
   if (!draft) return;
   $('save').disabled = busy || !dirty();
+  for(const id of ['publish','unpublish']){$(id).hidden=!capabilities.publish;$(id).disabled=busy||dirty()||snapshot.isNew||!publishing.ready;}
+  $('unpublish').hidden=!capabilities.publish||!snapshot.live?.en;
+  $('slug').readOnly=!snapshot.isNew;
   setText('save-state', busy ? 'Saving…' : dirty() ? 'Unsaved changes' : 'Saved draft');
   $('save-state').classList.toggle('unsaved', !!dirty());
   setText('title-count', `${draft[language].title.length} / 100`);
@@ -48,7 +51,7 @@ function listArticles() {
   setText('article-count', String(articles.length));
 }
 async function loadLibrary() {
-  const result = await api('workspaceList'); articles = result.articles; listArticles();
+  const result = await api('workspaceList');capabilities=result.capabilities||{create:false,publish:false};publishing=result.publishing||{ready:false};libraryTopics=result.topics||[];$('new-article').hidden=!capabilities.create;setText('publication-help',publishing.ready?'Approve the saved revision to begin protected publication.':publishing.message||'Only the business owner can publish.');articles = result.articles; listArticles();
   if (!snapshot && articles.length) await selectArticle(articles[0].id);
   if (!articles.length) setText('loading-message', 'No articles are available yet.');
 }
@@ -62,6 +65,7 @@ async function selectArticle(id) {
   try {
     const result = await api('workspaceRead', { id });
     if (attempt !== selection) return;
+    operation=result.publication||null;$('publication-progress').hidden=!operation;if(operation)void checkPublication();
     snapshot = result; draft = editableChanges(result.translations, result.translations.en.topics);
     savedSignature = signature(draft); language = 'en'; reading = false;
     $('loading').hidden = true; $('article-workspace').hidden = false;
@@ -77,11 +81,11 @@ function renderLanguage() {
     $(`tab-${locale}`).setAttribute('aria-selected', String(active)); $(`tab-${locale}`).tabIndex = active ? 0 : -1;
   }
   $('translation-panel').setAttribute('aria-labelledby', `tab-${language}`); $('translation-panel').lang = language;
-  for (const field of ['title', 'summary', 'keyAnswer', 'body']) { $(field).value = draft[language][field]; $(field).lang = language; }
+  for (const field of ['title', 'summary', 'keyAnswer', 'body','slug']) { $(field).value = draft[language][field]; $(field).lang = language; }
   renderSources();
   setText('article-author', snapshot.translations[language].author);
   setText('article-url', `/${language}/blog/${draft[language].slug}/`);
-  setText('article-revision', snapshot.revision);
+  setText('article-revision', snapshot.revision||'New draft');
   updateReadingPreview(); updateState();
 }
 function renderSources() {
@@ -188,7 +192,7 @@ function showReview() {
   $('review-title').focus();
 }
 
-for (const field of ['title', 'summary', 'keyAnswer', 'body']) $(field).addEventListener('input', () => { draft[language][field] = $(field).value; changed(); });
+for (const field of ['title', 'summary', 'keyAnswer', 'body','slug']) $(field).addEventListener('input', () => { draft[language][field] = $(field).value; changed(); });
 for (const locale of ['en', 'pl']) {
   $(`tab-${locale}`).addEventListener('click', () => { if (draft && !busy) { language = locale; renderLanguage(); } });
   $(`tab-${locale}`).addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key) && draft && !busy) { event.preventDefault(); language = event.key === 'Home' ? 'en' : event.key === 'End' ? 'pl' : language === 'en' ? 'pl' : 'en'; renderLanguage(); $(`tab-${language}`).focus(); } });
@@ -213,11 +217,12 @@ $('save').addEventListener('click', async () => {
   }
   setBusy(true); error(); feedback('Saving both translations…');
   try {
-    const result = await api('workspaceSave', { id: snapshot.id, revision: snapshot.revision, changes: draft });
+    const result = await api(snapshot.isNew?'workspaceCreate':'workspaceSave', { id: snapshot.id, revision: snapshot.revision, changes: draft });
+    if(snapshot.isNew){articles.push({id:snapshot.id,title:draft.en.title,hasSavedChanges:true});snapshot.isNew=false;}
     snapshot.revision = result.revision; snapshot.reviewUrl = result.url; snapshot.previewReady = false;
-    savedSignature = signature(draft); setText('article-revision', snapshot.revision);
+    savedSignature = signature(draft); setText('article-revision', snapshot.revision||'New draft');
     feedback(`Both translations saved at ${new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(new Date())}. The live site has not changed.`);
-    $('review-panel').hidden = true;
+    $('review-panel').hidden = true;renderLanguage();
     const article = articles.find(item => item.id === snapshot.id); if (article) { article.hasSavedChanges = true; article.title = draft.en.title; }
   } catch (failure) { error(failure.name === 'TimeoutError' ? 'Saving timed out. Keep your edits here. Reload this article in a second tab to check whether it saved before trying again.' : failure.message); feedback('Your edits are still here.'); }
   finally { setBusy(false); listArticles(); }
@@ -231,3 +236,29 @@ async function start() {
   } catch (failure) { setText('loading-message', failure.message || 'The content service is unavailable. Try again shortly.'); $('sign-in-link').hidden = false; }
 }
 void start();
+
+$('new-article').addEventListener('click',()=>{if(busy)return;$('new-article-dialog').showModal();$('new-en-slug').focus();});
+$('new-cancel').addEventListener('click',()=>$('new-article-dialog').close());
+$('new-article-form').addEventListener('submit',event=>{
+ event.preventDefault();if(!event.currentTarget.reportValidity())return;if(dirty()&&!confirm('Discard your unsaved changes and start a new article?'))return;
+ const en=$('new-en-slug').value.trim(),pl=$('new-pl-slug').value.trim();
+ const translations=Object.fromEntries(['en','pl'].map(locale=>[locale,{title:'',summary:'',keyAnswer:'',body:'',slug:locale==='en'?en:pl,sources:[{label:'',url:''}],topics:libraryTopics.length?[libraryTopics[0].id]:[],author:'Custody Consulting',draft:true}]));
+ snapshot={id:en,isNew:true,revision:null,translations,topics:libraryTopics,live:{},liveStatusKnown:true};draft=editableChanges(translations,translations.en.topics);savedSignature='';language='en';reading=false;
+ $('new-article-dialog').close();$('loading').hidden=true;$('article-workspace').hidden=false;$('review-panel').hidden=true;setText('live-status','New bilingual draft · not published');renderLanguage();renderTopics();error();feedback('Write both translations, then save your draft.');$('title').focus();
+});
+async function signerRequest(event){const detail={event};window.dispatchEvent(new CustomEvent('custody:article-sign',{detail}));if(!detail.result)throw new Error('The article signer is not available. Reload this page.');return detail.result;}
+async function preparePublication(target){
+ if(busy||dirty()||snapshot.isNew){error('Save your draft before reviewing publication.');return;}
+ setBusy(true);error();
+ try{releasePlan=await api('workspacePrepareRelease',{id:snapshot.id,revision:snapshot.revision,target});setText('publication-dialog-title',target==='publish'?'Publish this article?':'Unpublish this article?');setText('publication-summary',target==='publish'?'Both language versions will go through the protected publishing pipeline.':'Both language versions will be removed from the public site after the protected deployment. Your source drafts are retained.');$('publication-routes').replaceChildren();for(const [i,route] of releasePlan.review.routes.entries()){const li=document.createElement('li');li.textContent=releasePlan.review.titles[i]+' · '+route;$('publication-routes').append(li);}setText('publication-revision','Reviewed revision: '+releasePlan.revision);$('publication-dialog').showModal();}
+ catch(failure){error(failure.message);}finally{setBusy(false);}
+}
+$('publish').addEventListener('click',()=>void preparePublication('publish'));$('unpublish').addEventListener('click',()=>void preparePublication('unpublish'));$('publication-cancel').addEventListener('click',()=>$('publication-dialog').close());
+$('publication-confirm').addEventListener('click',async()=>{
+ if(!releasePlan||busy)return;setBusy(true);$('publication-confirm').disabled=true;
+ try{const event=await signerRequest();const npub=event.npub;const response=await fetch('/booking-api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'mentor-network-challenge',npub,purpose:'article-release',request:{id:releasePlan.id,digest:releasePlan.digest}})});const challenge=await response.json();if(!response.ok)throw new Error(challenge.error||'Publication approval failed.');const signed=await signerRequest(challenge.event);const confirmation=await fetch('/booking-api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'mentor-network-confirm',event:signed})});const result=await confirmation.json();if(!confirmation.ok)throw new Error(result.error||'Publication approval failed.');operation=result;$('publication-dialog').close();$('publication-progress').hidden=false;await checkPublication();}
+ catch(failure){error(failure.message);if(releasePlan){operation={id:releasePlan.id};$('publication-progress').hidden=false;setText('publication-message','Approval response not confirmed. Check progress before trying again.');}}finally{setBusy(false);$('publication-confirm').disabled=false;}
+});
+async function checkPublication(){if(!operation)return;try{operation=await api('workspaceReleaseStatus',{id:operation.id});setText('publication-message',operation.message||({prepared:'Review required',queued:'Publication queued',staging_checks:'Checking the saved revision',staging_deploy:'Deploying staging preview',production_checks:'Checking production promotion',deploy:'Waiting for production deployment or approval',live:'Verified on production',blocked:'Publication needs attention'})[operation.state]);const url=operation.runUrl||operation.reviewUrl;$('publication-link').hidden=!url;if(url)$('publication-link').href=url;if(['live','blocked'].includes(operation.state)&&publicationTimer)clearInterval(publicationTimer);}catch(failure){error(failure.message);}}
+$('publication-refresh').addEventListener('click',()=>void checkPublication());
+const publicationTimer=setInterval(()=>{if(operation&&!['live','blocked'].includes(operation.state))void checkPublication();},15000);

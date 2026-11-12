@@ -1,0 +1,23 @@
+---
+import template from '../../../../ops/booking/content-cms/workspace/index.html?raw';
+const head=template.match(/<head>([\s\S]*?)<\/head>/)![1]
+ .replace('./workspace.css','/admin/articles/workspace.css')
+ .replace('./workspace.js','/admin/articles/workspace.js');
+const body=template.match(/<body>([\s\S]*?)<\/body>/)![1];
+---
+<!doctype html>
+<html lang="en"><head><Fragment set:html={head}/></head><body><Fragment set:html={body}/>
+<script>
+import {connectNostrSigner,type NostrSigner} from '../../lib/nostr-signer';
+import {npubEncode} from 'nostr-tools/nip19';
+let signer:NostrSigner|undefined,close=()=>{};
+async function signingTimeout<T>(promise:Promise<T>):Promise<T>{let timer:ReturnType<typeof setTimeout>|undefined;try{return await Promise.race([promise,new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('Your signer did not respond. Reconnect and check publication progress before trying again.')),110000);})]);}finally{clearTimeout(timer);}}
+window.addEventListener('custody:article-sign',((event:CustomEvent)=>{
+ event.detail.result=(async()=>{
+  if(!signer){const connection=await connectNostrSigner(text=>{const status=document.getElementById('feedback');if(status)status.textContent=text;});signer=connection.signer;close=connection.close;}
+  return event.detail.event?signingTimeout(signer.signEvent(event.detail.event)):{npub:npubEncode(await signingTimeout(signer.getPublicKey()))};
+ })();
+}) as EventListener);
+window.addEventListener('pagehide',()=>close());
+</script>
+</body></html>

@@ -13,7 +13,7 @@ export class NetworkError extends Error {
   constructor(message, status = 403) { super(message); this.status = status; }
 }
 export const rolePermissions = presets;
-const actions = new Set(['content-session-start','session-start','apply','my-status','applications','approve','reject','roles-set','members','sales','sales-ledger','issue-invite']);
+const actions = new Set(['article-release','content-session-start','session-start','apply','my-status','applications','approve','reject','roles-set','members','sales','sales-ledger','issue-invite']);
 const text = (value, name, min, max) => {
   if (typeof value !== 'string' || value.trim().length < min || value.trim().length > max) throw new NetworkError(`${name} must contain ${min}–${max} characters.`, 400);
   return value.trim();
@@ -22,7 +22,7 @@ function only(value, keys) {
   if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !keys.includes(key))) throw new NetworkError('Invalid request fields.', 400);
 }
 
-export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now }) {
+export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now, approveArticleRelease }) {
   // No fallback to personal/booking allowlists; ownership is configured explicitly.
   const superAdmin = keyOf(superAdminNpub);
   if (!['https://custody.consulting', 'https://staging.custody.consulting'].includes(origin)) throw new NetworkError('Invalid network origin.');
@@ -102,7 +102,8 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
     try { new Intl.DateTimeFormat('en', { timeZone: data.timezone }); } catch { throw new NetworkError('Choose a valid time zone.', 400); }
     return { city, countryCode: data.countryCode, timezone: data.timezone };
   }
-  function dispatch(actor, action, request) {
+  function dispatch(actor, action, request, event) {
+    if(action==='article-release'){root(actor);only(request,['id','digest']);if(!approveArticleRelease)throw new NetworkError('Article publishing is not configured.',409);const result=approveArticleRelease(actor,request,event);audit(actor,'article.release-approved',request.id,{digest:request.digest,eventId:event.id});return result;}
     if (action === 'content-session-start') {
       only(request, []);
       if (actor !== superAdmin && !roles(actor).some(r => r.role === 'editor')) throw new NetworkError('Content editing access is unavailable.');
@@ -255,7 +256,7 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
         try { identities.registerVerifiedKey(row.pubkey); }
         catch { throw new NetworkError('This identity key is retired or unavailable.'); }
         enrollRoles(row.pubkey);
-        const result = dispatch(row.pubkey, row.purpose, JSON.parse(row.requestJson));
+        const result = dispatch(row.pubkey, row.purpose, JSON.parse(row.requestJson),event);
         db.exec('COMMIT'); return result;
       } catch (error) { db.exec('ROLLBACK'); throw error; }
     },

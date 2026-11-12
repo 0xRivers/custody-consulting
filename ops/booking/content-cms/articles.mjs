@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { isMap, parseDocument } from 'yaml';
 import { github, installationToken, repository } from './github-app.mjs';
-import { editableArticle, updatePair, workspaceTopics, WorkspaceError } from './workspace-model.mjs';
+import { editableArticle, updatePair, createPair, workspaceTopics, WorkspaceError } from './workspace-model.mjs';
 
 const folder = 'astro/src/content/blog';
 const slugPattern = '[a-z0-9]+(?:-[a-z0-9]+)*';
@@ -30,6 +30,7 @@ function slugOf(path) {
 }
 
 export function createArticlesAPI({ request = github, getToken = installationToken,
+  publication,
   access = () => { throw new EditorError('Content authorization is not configured.', 403); },
   publicRevision = async origin => {
     const response = await fetch(`${origin}/version.txt?content-status=1`, { cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(8000) });
@@ -180,8 +181,24 @@ export function createArticlesAPI({ request = github, getToken = installationTok
     return save({ dataFiles, assets: [], options: { useWorkflow: true, collectionName: 'articles', expectedRevision: revision } });
   }
 
+  async function workspaceCreate(params){
+    const id=assertId(params.id),open=await openDrafts(),creationBase=(await call('/git/ref/heads/staging')).object.sha;
+    if(open.some(pr=>pullSlug(pr)===id))throw new EditorError('An article with this name already has a saved draft.',409);
+    for(const locale of locales)if(await optionalRead(articlePath(locale,id),creationBase))throw new EditorError('This article name already exists.',409);
+    const created=createPair({id,changes:params.changes});
+    // Check public URL collisions in saved and open drafts, not just file names.
+    for(const locale of locales){
+      const files=await call(`/contents/${folder}/${locale}?ref=${creationBase}`);
+      for(const file of files.filter(f=>f.type==='file'&&articlePattern.test(f.path))){const existing=await read(file.path,creationBase);if(editableArticle(existing.data).slug===params.changes[locale].slug)throw new EditorError('This article URL is already used. Choose another URL.',409);}
+      for(const pr of open){const other=pullSlug(pr);if(!other)continue;const existing=await optionalRead(articlePath(locale,other),pr.head.sha);if(existing&&editableArticle(existing.data).slug===params.changes[locale].slug)throw new EditorError('This URL is used by another saved draft.',409);}
+    }
+    return save({dataFiles:created.map(entry=>({path:entry.file.path,raw:entry.raw})),assets:[],options:{useWorkflow:true,collectionName:'articles',expectedRevision:creationBase}});
+  }
   return async ({ action, params = {} }, context = {}) => {
     const scope = await access(context.actor);
+    const capabilities={create:!!(scope.global||scope.workspaceAll),publish:!!scope.canPublish};
+    const publicationActions=['workspacePrepareRelease','workspaceReleaseStatus'];
+    if(publicationActions.includes(action)&&(!scope.canPublish||!publication))throw new EditorError('Only the business super-admin can manage publication.',403);
     const allowed = id => scope.global || scope.workspaceAll || scope.articleIds.includes(id);
     const check = async id => {
       assertId(id);
@@ -189,9 +206,11 @@ export function createArticlesAPI({ request = github, getToken = installationTok
       if (!current.global && !current.workspaceAll && !current.articleIds.includes(id)) throw new EditorError('Article is outside your assigned scope.', 403);
     };
     if (['workspaceRead', 'workspaceSave'].includes(action)) await check(params.id);
-    else if (action !== 'workspaceList' && !scope.global) throw new EditorError('This operation requires global content access.', 403);
+    else if (action==='workspaceCreate'&&!capabilities.create)throw new EditorError('Article creation access is unavailable.',403);
+    else if (!['workspaceList','workspaceCreate',...publicationActions].includes(action) && !scope.global) throw new EditorError('This operation requires global content access.', 403);
     switch (action) {
       case 'workspaceList': {
+        let publishing={ready:false,message:'Owner publication is not configured.'};if(scope.canPublish&&publication){try{publishing=await publication.readiness();}catch(error){publishing={ready:false,message:error.status&&error.status<500?error.message:'Publishing service unavailable.'};}}
         const files = await call(`/contents/${folder}/en?ref=staging`);
         const ids = new Set(files.filter(file => file.type === 'file' && articlePattern.test(file.path)).map(file => slugOf(file.path)));
         const prs = await openDrafts();
@@ -201,9 +220,12 @@ export function createArticlesAPI({ request = github, getToken = installationTok
           const pr = prs.find(pr => pullSlug(pr) === id);
           const entry = await read(articlePath('en', id), pr?.head.sha ?? 'staging');
           return { id, title: editableArticle(entry.data).title, hasSavedChanges: !!pr };
-        })), topics: workspaceTopics };
+        })), topics: workspaceTopics,capabilities,publishing };
       }
-      case 'workspaceRead': return workspaceRead(params.id);
+      case 'workspaceRead': return {...await workspaceRead(params.id),capabilities,publication:scope.canPublish&&publication?publication.latest(context.actor,params.id):null};
+      case 'workspaceCreate': {const task=pendingWrite.then(async()=>{const current=await access(context.actor);if(!current.global&&!current.workspaceAll)throw new EditorError('Article creation access was revoked.',403);return workspaceCreate(params);});pendingWrite=task.catch(()=>{});return task;}
+      case 'workspacePrepareRelease': return publication.prepare(context.actor,params);
+      case 'workspaceReleaseStatus': return publication.status(context.actor,params.id);
       case 'workspaceSave': {
         const task = pendingWrite.then(async () => { await check(params.id); return workspaceSave(params); });
         pendingWrite = task.catch(() => {});
