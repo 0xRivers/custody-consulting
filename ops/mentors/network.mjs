@@ -1,3 +1,4 @@
+import { readSalesLedger } from '../booking/sales-ledger.mjs';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { decode, npubEncode } from 'nostr-tools/nip19';
 import { verifyEvent } from 'nostr-tools/pure';
@@ -12,7 +13,7 @@ export class NetworkError extends Error {
   constructor(message, status = 403) { super(message); this.status = status; }
 }
 export const rolePermissions = presets;
-const actions = new Set(['content-session-start','session-start','apply','my-status','applications','approve','reject','roles-set','members','sales','issue-invite']);
+const actions = new Set(['content-session-start','session-start','apply','my-status','applications','approve','reject','roles-set','members','sales','sales-ledger','issue-invite']);
 const text = (value, name, min, max) => {
   if (typeof value !== 'string' || value.trim().length < min || value.trim().length > max) throw new NetworkError(`${name} must contain ${min}–${max} characters.`, 400);
   return value.trim();
@@ -172,12 +173,16 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
     if (action === 'issue-invite') {
       only(request, ['locale']);
       if ((actor!==superAdmin&&!roles(actor).some(r=>r.role==='mentor')) || !['en','pl'].includes(request.locale)) throw new NetworkError('Mentor access is required to create invitations.');
-      if (db.prepare('SELECT COUNT(*) AS n FROM mentor_invite_attribution WHERE mentorPubkey=? AND createdAt>?').get(actor, now() - 3600000).n >= 30) throw new NetworkError('Invitation limit reached. Try again later.', 429);
+      if (db.prepare("SELECT COUNT(*) AS n FROM custody_role_audit WHERE actor=? AND action='invitation.created' AND createdAt>?").get(actor, now() - 3600000).n >= 30) throw new NetworkError('Invitation limit reached. Try again later.', 429);
       const token = randomBytes(32).toString('base64url'), tokenHash = hash(token), expiresAt = now() + 86400000;
       db.prepare('INSERT INTO invitations (tokenHash,expiresAt) VALUES (?,?)').run(tokenHash, expiresAt);
-      db.prepare('INSERT INTO mentor_invite_attribution VALUES (?,?,?,?,?)').run(tokenHash, actor, 'network', 'Custody Consulting', now());
+      if(roles(actor).some(r=>r.role==='mentor'))db.prepare('INSERT INTO mentor_invite_attribution VALUES (?,?,?,?,?)').run(tokenHash, actor, 'network', 'Custody Consulting', now());
       audit(actor, 'invitation.created', tokenHash, {});
       return { url: `${origin}/payment/?lang=${request.locale}#invite=${token}`, expiresAt };
+    }
+    if(action==='sales-ledger'){
+      if(actor!==superAdmin&&!roles(actor).some(r=>r.role==='mentor'))throw new NetworkError('Sales access is unavailable for this account.');
+      return readSalesLedger({db,mentorKeys:actor===superAdmin?null:ownKeys(actor),request});
     }
     if (action === 'sales') {
       only(request, []);
@@ -194,7 +199,14 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
   const eventFor = row => ({ kind: 27235, created_at: Math.floor(row.createdAt / 1000), content: '', tags: [
     ['u', endpoint], ['method', 'POST'], ['payload', hash(JSON.stringify({ purpose: row.purpose, request: JSON.parse(row.requestJson) }))], ['challenge', row.nonce],
   ] });
+  function sessionActor(token){
+    if(typeof token!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(token))throw new NetworkError('Connect your Nostr signer again.',401);
+    const row=db.prepare('SELECT pubkey FROM mentor_sessions WHERE tokenHash=? AND expiresAt>?').get(hash(token),now());
+    if(!row||!identities.resolve(row.pubkey))throw new NetworkError('Your session expired or key was retired.',401);
+    return row.pubkey;
+  }
   return {
+    requireSession:sessionActor,
     isSuperAdmin(pubkey) { return pubkey === superAdmin && !!identities.resolve(pubkey); },
     canEdit(pubkey) { return !!identities.resolve(pubkey)&&roles(pubkey).some(r=>r.role==='editor'); },
     requireContentSession(token) {
@@ -208,7 +220,7 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
       if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new NetworkError('Connect your Nostr signer again.', 401);
       const session = db.prepare('SELECT pubkey FROM mentor_sessions WHERE tokenHash=? AND expiresAt>?').get(hash(token), now());
       if (!session || !identities.resolve(session.pubkey)) throw new NetworkError('Your session expired or key was retired.', 401);
-      if (!['my-status', 'applications', 'sales', 'members'].includes(purpose)) throw new NetworkError('This action requires a fresh signature.');
+      if (!['my-status', 'applications', 'sales', 'sales-ledger', 'members'].includes(purpose)) throw new NetworkError('This action requires a fresh signature.');
       return dispatch(session.pubkey, purpose, request);
     },
     endSession(token) {

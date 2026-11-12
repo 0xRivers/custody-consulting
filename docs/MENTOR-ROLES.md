@@ -57,3 +57,19 @@ summed across the payment summary and attribution breakdown.
 Enabled staging build, 22 static contract tests and 18 mentor permission/session
 tests pass. Built-page inspection confirms one Sales navigation item, unique IDs
 and valid panel targets. Browser/signer journey verification remains manual.
+
+## Single-table Sales and unified Invitations
+
+Supersedes the earlier two-report Sales implementation. A shared paginated ledger
+now supplies individual booking rows, original amounts, attribution and status.
+Staff review cases join their existing booking row; unmatched cases remain visible
+without inventing an amount. Search and status filters span all pages. Payment
+review has no separate navigation entry. Review/resolve/refund-claim controls sit
+inside the relevant row and remain restricted to existing payment operators.
+See SALES-UI-REVIEW.md for scope, state inspection and browser verification limits.
+
+Invitations is one native admin form and sidebar item. Nostr role and existing
+staff authorization choose the issuer; the user does not choose between duplicate
+tools. Mentor-role invitations record referral attribution from the signing actor.
+Standard business-root invitations without Mentor, and legacy staff invitations,
+remain unassigned. Fresh signatures, rate limits and backend checks remain in place.

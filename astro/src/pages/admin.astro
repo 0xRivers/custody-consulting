@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import SalesWorkspace from '../components/SalesWorkspace.astro';
 import MentorWorkspace from '../components/MentorWorkspace.astro';
 import {buildEnvironment} from '../../environment.mjs';
 const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || process.env.BOOKING_PAGES_ENABLED === 'true');
@@ -32,10 +33,6 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16M9 15v-4m5 4V7m5 8v-6"/></svg>
               Sales
             </button>
-            <button type="button" data-section="review" aria-controls="review-panel">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Zm0 6v4m0 3h.01"/></svg>
-              Payment review
-            </button>
             {contentEnabled && !mentorNetworkEnabled && <a href={contentNostrEnabled ? '/admin/content/nostr/workspace/' : '/admin/content/'}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8m-8 4h6"/></svg>
               Content
@@ -46,7 +43,6 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
                 ['articles','Articles','M5 3h10l4 4v14H5zM8 12h8m-8 4h6'],
                 ['applications','Mentor applications','M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8l2 2 3-3'],
                 ['access','Roles and access','M12 3l8 4v6c0 5-8 8-8 8s-8-3-8-8V7l8-4Z'],
-                ['mentor-invitations','Mentor invitations','M3 5h18v14H3zM3 7l9 6 9-6'],
               ].map(([section,label,path])=><button type="button" data-section={section} data-network-nav hidden aria-controls="network-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={path}/></svg>{label}</button>)}
             </>}
           </nav>
@@ -61,7 +57,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
           <section id="invitations-panel" aria-labelledby="invitations-title">
             <header class="section-heading">
               <h1 id="invitations-title">Invitations</h1>
-              <p>Create a private link for one Foundation booking.</p>
+              <p id="invitation-scope">Create a private link for one Foundation booking.</p>
             </header>
             <div class="surface invitation">
               <form id="invite-form">
@@ -82,33 +78,9 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
             </div>
           </section>
 
-          <section id="sales-panel" aria-labelledby="sales-title" hidden>
-            <header class="section-heading">
-              <div><h1 id="sales-title">Sales</h1><p id="sales-scope">Confirmed bookings and payment totals.</p></div>
-              <button id="load-sales" type="button">Load sales</button>
-            </header>
-            <div id="booking-sales-tools" hidden><h2 class="sales-subheading">Payments and recent bookings</h2><div id="sales-data"></div>
-            <details id="refund-tools" class="surface refund-tools" hidden>
-              <summary>Refund claim link</summary>
-              <label for="refund-link">Existing BTCPay claim URL</label>
-              <div class="field-action">
-                <input id="refund-link" type="url" autocomplete="off" spellcheck="false" />
-                <button id="copy-refund" type="button">Copy public link</button>
-              </div>
-              <p>Share privately with the intended recipient. Approve payouts in BTCPay.</p>
-            </details>
-            </div>
-          </section>
+          <SalesWorkspace />
 
           {mentorNetworkEnabled && <section id="network-panel" hidden aria-labelledby="network-panel-title"><header class="section-heading"><h1 id="network-panel-title">Mentor workspace</h1></header><MentorWorkspace embedded /></section>}
-
-          <section id="review-panel" aria-labelledby="review-title" hidden>
-            <header class="section-heading">
-              <div><h1 id="review-title">Payment review</h1><p>Check payments that need manual follow-up.</p></div>
-              <button id="load-reviews" type="button">Load queue</button>
-            </header>
-            <div id="review-list"></div>
-          </section>
         </div>
       </div>
     </> : <div class="sign-in"><p>Invite administration is available on staging only.</p></div>}
@@ -129,7 +101,6 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     .nav-group{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:1rem .75rem .35rem;}
     #network-panel{background:#f4f5f7;color:#14243a;padding:clamp(1rem,3vw,1.75rem);border-radius:.8rem;}
     #network-panel h1{color:#102139;}
-    .sales-subheading{font-size:1.15rem;letter-spacing:0;margin-bottom:1rem;}
     nav button {display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border-color:transparent;background:transparent;color:var(--muted);}
     nav a {display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;border:1px solid transparent;border-radius:.5rem;color:var(--muted);text-decoration:none;font-weight:650;}
     nav a:hover {border-color:var(--line);color:var(--white);}
@@ -152,35 +123,15 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     input,select {min-width:0;background:var(--navy-soft);color:var(--white);}
     input {width:100%;}
     label {display:block;font-size:.875rem;font-weight:650;margin-bottom:.4rem;}
-    .surface,.content :global(.review-card) {background:var(--navy-card);border:1px solid var(--line);border-radius:.8rem;padding:1.25rem;}
+    .surface {background:var(--navy-card);border:1px solid var(--line);border-radius:.8rem;padding:1.25rem;}
     .invitation {max-width:42rem;}
     form,.field-action {display:flex;align-items:end;gap:.65rem;}
     .field-action button {flex:none;}
     .invite-result {margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--line);}
-    .invite-result p,.refund-tools p {font-size:.8rem;}
+    .invite-result p {font-size:.8rem;}
     .status {margin:0 0 1rem;font-size:.875rem;color:var(--white);padding:.65rem .8rem;border:1px solid var(--line);border-radius:.5rem;background:var(--navy-card);}
     .sign-in .status {margin:.65rem 0 0;}
     .status:empty {display:none;}
-    .refund-tools {margin-top:1.25rem;}
-    .refund-tools summary {font-weight:650;cursor:pointer;}
-    .refund-tools label {margin-top:1rem;}
-    #review-list {display:grid;gap:.75rem;}
-    .content :global(.review-card) {overflow-wrap:anywhere;}
-    .content :global(.review-card h3) {margin:0 0 .6rem;font-size:1.05rem;}
-    .content :global(.review-card p) {font-size:.875rem;}
-    .content :global(.review-card label) {margin-top:1rem;}
-    .content :global(.review-card input) {max-width:20rem;}
-    .content :global(.review-card button) {margin:.65rem .5rem 0 0;}
-    :global(.sales-context) {font-size:.8rem;margin-bottom:.75rem;}
-    :global(.sales-grid) {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:.75rem;margin-bottom:1.25rem;}
-    :global(.sales-tile) {border:1px solid var(--line);background:var(--navy-card);border-radius:.8rem;padding:1rem;}
-    :global(.sales-tile strong) {display:block;font-size:1.45rem;margin:.25rem 0;}
-    :global(.sales-tile small) {display:block;color:var(--muted);}
-    :global(.sales-list) {border:1px solid var(--line);background:var(--navy-card);border-radius:.8rem;padding:1rem 1.25rem;}
-    :global(.sales-list h2) {font-size:1rem;margin:0 0 .5rem;}
-    :global(.sales-list details) {border-top:1px solid var(--line);padding:.6rem 0;overflow-wrap:anywhere;}
-    :global(.sales-list summary) {cursor:pointer;}
-    :global(.sales-list p) {font-size:.8rem;}
     @media (max-width:43rem) {
       .workspace {grid-template-columns:minmax(0,1fr);}
       .sidebar {z-index:1;height:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.55rem;padding:.75rem 1rem;border-right:0;border-bottom:1px solid var(--line);}
@@ -194,6 +145,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     }
   </style>
   <script>
+    import {createSalesWorkspace} from '../lib/sales-workspace';
     import {generateSecretKey, getPublicKey, type EventTemplate} from 'nostr-tools/pure';
     import {BunkerSigner, createNostrConnectURI} from 'nostr-tools/nip46';
     import {npubEncode} from 'nostr-tools/nip19';
@@ -263,7 +215,6 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     const form = document.getElementById('invite-form') as HTMLFormElement;
     const workspace = document.getElementById('workspace');
     const navigation = Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-section]'));
-    const loadedSections = new Set<string>();
     for (const button of navigation) {
       button.addEventListener('click', async () => {
         status.textContent = '';
@@ -282,20 +233,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
           const detail:{section:string;ready?:Promise<void>}={section};window.dispatchEvent(new CustomEvent('custody:network-section',{detail}));
           try{await detail.ready;status.textContent='';}catch(error){status.textContent=error instanceof Error?error.message:'Could not open section.';}
         }
-        if(section==='sales'){
-          if(networkSalesAccess){
-            document.getElementById('network-panel')!.hidden=false;
-            document.getElementById('network-panel-title')!.textContent='Sales attribution';
-            document.querySelector<HTMLElement>('#network-panel>.section-heading')!.hidden=true;
-            const detail:{section:string;ready?:Promise<void>}={section:'sales'};
-            window.dispatchEvent(new CustomEvent('custody:network-section',{detail}));
-            try{await detail.ready;}catch(error){status.textContent=error instanceof Error?error.message:'Could not open sales.';}
-          }
-          document.getElementById('load-sales')!.click();
-        }
-        if (!loadedSections.has(section)) {
-          if (section === 'review') document.getElementById('load-reviews')!.click();
-        }
+        if(section==='sales')document.getElementById('load-sales')!.click();
       });
     }
     document.getElementById('disconnect')?.addEventListener('click', async () => {
@@ -309,8 +247,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     const result = document.getElementById('result')!;
     const url = document.getElementById('invite-url') as HTMLInputElement;
     let pubkey = '', busy = false;
-    let refundOrigin = '';
-    let staffSalesAccess=false,networkSalesAccess=false,salesRefreshing=false;
+    let staffSalesAccess=false,networkSalesAccess=false,networkInvitationAccess=false;
     const messages:Record<string,string> = {
       RESOLUTION_BLOCKED:'This case cannot be resolved automatically. Check payment and original booking in BTCPay and Cal.',
       RESOLUTION_NEEDS_REVIEW:'A previous booking attempt needs manual inspection. Do not create another replacement.',
@@ -326,7 +263,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
       const prefix=location.pathname.startsWith('/lightning-pilot/')?'/lightning-pilot':'';
       const response = await fetch(prefix+'/booking-api/checkout', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',signal:AbortSignal.timeout(15000)});
       const data = await response.json();
-      if(!response.ok) throw new Error(messages[data.error] || 'Could not complete the request. Please try again.');
+      if(!response.ok) throw new Error(messages[data.error] || (response.status<500&&typeof data.error==='string'?data.error:'Could not complete the request. Please try again.'));
       return data;
     }
     async function connectSigner() {
@@ -351,16 +288,17 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
           bookingAccess=true;
         }catch(error){if(!mentorNetwork)throw error;}
         staffSalesAccess=bookingAccess;
+        networkInvitationAccess=!!(networkAccount?.superAdmin||networkAccount?.roles.some(r=>r.role==='mentor'));
+        document.getElementById('invitation-scope')!.textContent=networkAccount?.roles.some(r=>r.role==='mentor')?'Create a booking invitation attributed to your mentor account.':'Create a private link for one Foundation booking.';
         networkSalesAccess=!!(networkAccount?.superAdmin||networkAccount?.roles.some(r=>r.role==='mentor'));
-        document.getElementById('booking-sales-tools')!.hidden=!staffSalesAccess;
-        document.getElementById('sales-scope')!.textContent=staffSalesAccess?'Confirmed bookings, payment totals and mentor attribution.':networkAccount?.superAdmin?'All mentor-attributed and unassigned sales.':'Your attributed bookings and sales.';
+        document.getElementById('sales-scope')!.textContent=staffSalesAccess?'Bookings, payments and cases that need your attention.':networkAccount?.superAdmin?'All mentor-attributed and unassigned sales.':'Your attributed bookings and sales.';
         for(const button of navigation){
-          if(button.dataset.section==='sales')button.hidden=!(staffSalesAccess||networkSalesAccess);
+          if(button.dataset.section==='invitations')button.hidden=!(bookingAccess||networkInvitationAccess);
+          else if(button.dataset.section==='sales')button.hidden=!(staffSalesAccess||networkSalesAccess);
           else if(!button.hasAttribute('data-network-nav'))button.hidden=!bookingAccess;
           else {const section=button.dataset.section;const roles=networkAccount?.roles.map(r=>r.role)||[];
             button.hidden=!(networkAccount?.superAdmin||
-              (section==='articles'&&roles.includes('editor'))||
-              (section==='mentor-invitations'&&roles.includes('mentor')));
+              (section==='articles'&&roles.includes('editor')));
           }
         }
         if(mentorNetwork){const detail:{signer:AdminSigner;ready?:Promise<void>}={signer:provider};window.dispatchEvent(new CustomEvent('custody:network-connect',{detail}));await detail.ready;}
@@ -388,178 +326,31 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
         const provider=activeSigner;if(!provider)throw new Error('Reconnect your Nostr signer.');
         const locale=(document.getElementById('locale') as HTMLSelectElement).value;
         status.textContent='Approve the invitation request in your signer…';
-        const challenge=await api({action:'admin-challenge',pubkey,locale});
-        const signed=await provider.signEvent(challenge.event);
-        const invite=await api({action:'admin-invite',locale,event:signed});
+        let invite;
+        if(networkInvitationAccess){
+          const challenge=await api({action:'mentor-network-challenge',npub:npubEncode(pubkey),purpose:'issue-invite',request:{locale}});
+          const event=await provider.signEvent(challenge.event);
+          invite=await api({action:'mentor-network-confirm',event});
+        }else{
+          const challenge=await api({action:'admin-challenge',pubkey,locale});
+          const event=await provider.signEvent(challenge.event);
+          invite=await api({action:'admin-invite',locale,event});
+        }
         url.value=invite.url;result.hidden=false;
         document.getElementById('expiry')!.textContent='Valid until '+new Date(invite.expiresAt).toLocaleString()+'.';
         status.textContent='Invitation created.';
       } catch(error) {status.textContent=error instanceof Error?error.message:'Could not create an invitation.';}
       finally {busy=false;create.disabled=false;connect!.disabled=false;}
     });
-    async function signedResolution(purpose:string,request:Record<string,string>) {
+    async function signedResolution(purpose:string,request:Record<string,any>) {
       const provider=activeSigner;if(!provider)throw new Error('Reconnect your Nostr signer.');
       const challenge=await api({action:'admin-challenge',pubkey,locale:'en',purpose,request});
       return provider.signEvent(challenge.event);
     }
-    type Sale = {provider:string;settledRail:string|null;currency:string;minorUnits:number};
-    function saleMethod(sale:Sale) {
-      if (sale.provider === 'stripe') return 'Stripe';
-      if (sale.settledRail === 'lightning') return 'Lightning';
-      if (sale.settledRail === 'onchain') return 'Bitcoin on-chain';
-      return 'Bitcoin · method unrecorded';
-    }
-    function saleAmount(sale:Sale) {
-      return new Intl.NumberFormat(undefined,{style:'currency',currency:sale.currency}).format(sale.minorUnits/100);
-    }
-    const loadSales = document.getElementById('load-sales') as HTMLButtonElement | null;
-    async function loadBookingSales() {
-      if (busy || !activeSigner) return;
-      busy=true;loadSales.disabled=true;connect!.disabled=true;create.disabled=true;
-      const panel=document.getElementById('sales-data')!;
-      try {
-        status.textContent='Approve access to sales in your signer…';
-        const event=await signedResolution('sales',{});
-        const data=await api({action:'admin-sales',locale:'en',event});
-        panel.replaceChildren();
-        const context=document.createElement('p');
-        context.className='sales-context';
-        context.textContent=data.environment+' · Gross totals before refunds and provider fees';
-        panel.appendChild(context);
-        const totals=document.createElement('div');
-        totals.className='sales-grid';
-        for (const total of data.totals) {
-          const tile=document.createElement('div');
-          tile.className='sales-tile';
-          const method=document.createElement('small');
-          method.textContent=saleMethod(total);
-          const amount=document.createElement('strong');
-          amount.textContent=saleAmount(total);
-          const count=document.createElement('small');
-          count.textContent=total.count+(total.count===1?' booking':' bookings');
-          tile.append(method,amount,count);
-          if (total.satsCount) {
-            const sats=document.createElement('small');
-            sats.textContent=total.sats.toLocaleString()+' sats · '+total.satsCount+' verified';
-            tile.appendChild(sats);
-          }
-          totals.appendChild(tile);
-        }
-        if (totals.childElementCount) panel.appendChild(totals);
-        const list=document.createElement('div');
-        list.className='sales-list';
-        const heading=document.createElement('h2');
-        heading.textContent=data.recent.length?'Recent bookings':'No confirmed bookings';
-        list.appendChild(heading);
-        for (const sale of data.recent) {
-          const entry=document.createElement('details');
-          const summary=document.createElement('summary');
-          summary.textContent=saleAmount(sale)+' · '+saleMethod(sale);
-          const identifiers=document.createElement('p');
-          identifiers.textContent='Booking '+sale.reference+' · Payment '+sale.paymentId;
-          entry.append(summary,identifiers);
-          list.appendChild(entry);
-        }
-        panel.appendChild(list);
-        refundOrigin=data.refundOrigin || '';
-        document.getElementById('refund-tools')!.hidden=!refundOrigin;
-        loadedSections.add('sales');
-        loadSales.textContent='Refresh';
-        status.textContent='';
-      } catch(error) {status.textContent=error instanceof Error?error.message:'Could not load sales.';}
-      finally {busy=false;loadSales.disabled=false;connect!.disabled=false;create.disabled=false;}
-    }
-
-    loadSales?.addEventListener('click',async()=>{
-      if(salesRefreshing||busy||!activeSigner)return;
-      salesRefreshing=true;loadSales.disabled=true;
-      let networkError='';
-      try{
-        if(networkSalesAccess){
-          const detail:{ready?:Promise<void>}={};
-          window.dispatchEvent(new CustomEvent('custody:network-sales-refresh',{detail}));
-          try{if(!detail.ready)throw new Error('Sales workspace is still loading. Try again.');await detail.ready;}
-          catch(error){networkError=error instanceof Error?error.message:'Could not load attributed sales.';}
-        }
-        if(staffSalesAccess)await loadBookingSales();
-        if(networkError)status.textContent=networkError;
-        else if(!staffSalesAccess)status.textContent='';
-      }finally{salesRefreshing=false;loadSales.disabled=false;loadSales.textContent='Refresh sales';}
-    });
-    document.getElementById('copy-refund')?.addEventListener('click',async()=> {
-      const input=document.getElementById('refund-link') as HTMLInputElement;
-      const claim=URL.canParse(input.value.trim()) ? new URL(input.value.trim()) : null;
-      if (!refundOrigin || !claim || !['http:','https:'].includes(claim.protocol) ||
-          claim.username || claim.password || !/^\/pull-payments\/[A-Za-z0-9]{1,100}\/?$/.test(claim.pathname)) {
-        status.textContent='Paste the existing BTCPay refund claim URL.';
-        return;
-      }
-      input.value=refundOrigin+claim.pathname;
-      try {await navigator.clipboard.writeText(input.value);status.textContent='Refund link copied.';}
-      catch {input.select();status.textContent='Copy the public refund link from the field.';}
-    });
-    const reviewsButton=document.getElementById('load-reviews') as HTMLButtonElement;
-    reviewsButton?.addEventListener('click',async()=> {
-      if(busy||!pubkey)return;
-      busy=true;reviewsButton.disabled=true;create.disabled=true;connect!.disabled=true;
-      const list=document.getElementById('review-list')!;list.replaceChildren();
-      try {
-        status.textContent='Approve access to the review queue in your signer…';
-        const event=await signedResolution('reviews',{});
-        const data=await api({action:'admin-reviews',locale:'en',event});
-        const labels:Record<string,string>={'late-payment':'Payment received after expiry','partial-payment':'Partial payment','overpayment':'Overpayment','invalid-payment':'Invalid payment','manually-marked':'Manually marked invoice','payment-check':'Payment needs checking'};
-        for(const item of data.reviews) {
-          const card=document.createElement('article');card.className='review-card';
-          const heading=document.createElement('h3');heading.textContent=labels[item.reason]||labels['payment-check'];card.appendChild(heading);
-          for(const line of [
-            'Invoice: '+item.invoiceId,'Booking reference: '+item.reference,
-            'Original appointment: '+new Date(item.startsAt).toLocaleString(),
-            item.slotReleased?'Original slot was released. Check current availability before offering it again.':'Booking status needs checking in Cal.',
-            'BTCPay status at last webhook: '+item.invoiceStatus,
-            'Last detected: '+new Date(item.lastSeen).toLocaleString(),
-          ]) {const p=document.createElement('p');p.textContent=line;card.appendChild(p);}
-          if(item.reason==='late-payment') {
-            const label=document.createElement('label');label.textContent='Agreed appointment time ('+Intl.DateTimeFormat().resolvedOptions().timeZone+')';
-            const time=document.createElement('input');time.type='datetime-local';
-            const date=new Date(item.startsAt);time.value=new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);label.appendChild(time);card.appendChild(label);
-            const previewButton=document.createElement('button');previewButton.type='button';previewButton.textContent='Preview paid booking';card.appendChild(previewButton);
-            const previewArea=document.createElement('div');card.appendChild(previewArea);
-            time.addEventListener('input',()=>previewArea.replaceChildren());
-            previewButton.addEventListener('click',async()=> {
-              if(busy)return;busy=true;previewButton.disabled=true;previewArea.replaceChildren();
-              try {
-                const start=new Date(time.value).toISOString();
-                const signedPreview=await signedResolution('resolve-preview',{reference:item.reference,start});
-                const preview=await api({action:'admin-resolve-preview',locale:'en',event:signedPreview});
-                const summary=document.createElement('p');summary.textContent='Confirm '+preview.attendee.name+' ('+preview.attendee.email+') for '+new Date(preview.start).toLocaleString()+'. Email language: '+preview.attendee.language+'. The existing payment will be used; Cal will send a confirmation email.';previewArea.appendChild(summary);
-                const approve=document.createElement('button');approve.type='button';approve.textContent='Confirm appointment using existing payment';previewArea.appendChild(approve);
-                approve.addEventListener('click',async()=> {
-                  if(busy)return;busy=true;approve.disabled=true;
-                  try {
-                    const event=await signedResolution('resolve-confirm',{reference:item.reference,start:preview.start,previewHash:preview.previewHash});
-                    await api({action:'admin-resolve-confirm',locale:'en',event});
-                    previewArea.textContent='Appointment confirmed. Cal has handled the confirmation email. The client’s original result page now shows the confirmed appointment.';
-                    previewButton.hidden=true;time.disabled=true;
-                  } catch(error) {status.textContent=error instanceof Error?error.message:'Could not resolve booking.';approve.disabled=false;}
-                  finally {busy=false;}
-                });
-                status.textContent='Preview ready. Check the attendee and agreed time before confirming.';
-              } catch(error) {status.textContent=error instanceof Error?error.message:'Could not preview booking.';}
-              finally {busy=false;previewButton.disabled=false;}
-            });
-          }
-          list.appendChild(card);
-        }
-        if (!data.reviews.length) {
-          const empty=document.createElement('p');
-          empty.textContent='No payments need review.';
-          list.appendChild(empty);
-        }
-        loadedSections.add('review');
-        reviewsButton.textContent='Refresh';
-        status.textContent='';
-      } catch(error) {status.textContent=error instanceof Error?error.message:'Could not load reviews.';}
-      finally {busy=false;reviewsButton.disabled=false;create.disabled=false;connect!.disabled=false;}
+    createSalesWorkspace({api,signed:signedResolution,
+      access:()=>({staff:staffSalesAccess,networkEnabled:mentorNetwork}),
+      notify:text=>{status.textContent=text;},isBusy:()=>busy,
+      setBusy:value=>{busy=value;connect!.disabled=value;create.disabled=value;}
     });
     document.getElementById('copy')?.addEventListener('click',async()=> {
       try {await navigator.clipboard.writeText(url.value);status.textContent='Link copied.';}

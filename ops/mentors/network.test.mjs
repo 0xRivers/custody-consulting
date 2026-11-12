@@ -107,3 +107,18 @@ test('inactive legacy branches cannot reactivate grants during migration',t=>{
  f.run(f.alice,'session-start');assert.equal(f.network.canEdit(f.alice.pubkey),false);
  assert.equal(f.db.prepare('SELECT active FROM custody_roles WHERE pubkey=?').get(f.alice.pubkey).active,0);
 });
+
+test('individual sales ledger rechecks Mentor access and excludes other mentors',t=>{
+ const f=fixture(t);f.grant(f.alice,true,false);f.grant(f.bob,true,false);f.run(f.alice,'session-start');f.run(f.bob,'session-start');
+ f.booking('own',f.invite(f.alice));f.booking('other',f.invite(f.bob));f.db.exec('ALTER TABLE bookings ADD COLUMN startsAt TEXT');
+ const token=f.run(f.alice,'session-start').sessionToken;
+ const result=f.network.readSession({token,purpose:'sales-ledger',request:{}});assert.equal(result.total,1);assert.equal(result.rows[0].reference,'own');assert.equal(result.canReview,false);
+ f.grant(f.alice,false,true);assert.throws(()=>f.run(f.alice,'sales-ledger'),/unavailable/);
+});
+
+test('one invitation workflow attributes mentors and leaves standard owner invitations unassigned',t=>{
+ const f=fixture(t);const standard=f.run(f.root,'issue-invite',{locale:'pl'});const hash=createHash('sha256').update(standard.url.split('#invite=')[1]).digest('hex');
+ assert.ok(f.db.prepare('SELECT tokenHash FROM invitations WHERE tokenHash=?').get(hash));assert.equal(f.db.prepare('SELECT tokenHash FROM mentor_invite_attribution WHERE tokenHash=?').get(hash),undefined);
+ f.grant(f.alice,true,false);f.run(f.alice,'session-start');const token=f.invite(f.alice);assert.equal(f.db.prepare('SELECT mentorPubkey FROM mentor_invite_attribution WHERE tokenHash=?').get(token).mentorPubkey,f.alice.pubkey);
+ assert.throws(()=>f.run(f.alice,'issue-invite',{locale:'en',mentorPubkey:f.bob.pubkey}),/Invalid request fields/);
+});

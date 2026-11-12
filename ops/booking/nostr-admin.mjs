@@ -1,3 +1,4 @@
+import {readSalesLedger} from './sales-ledger.mjs';
 import {createHash, randomBytes} from 'node:crypto';
 import {verifyEvent} from 'nostr-tools/pure';
 import {decode} from 'nostr-tools/nip19';
@@ -68,7 +69,7 @@ export function createNostrAdmin({db, allowlist = '', now = Date.now,origin='htt
       if (time - windowStart >= 60000) {windowStart = time; requests = 0;}
       if (++requests > 60) throw new AdminError('ADMIN_RATE_LIMIT', 429);
       requireAllowed(pubkey);
-      if (!['en','pl'].includes(locale)||!['invite','reviews','sales','resolve-preview','resolve-confirm','content-session'].includes(purpose)) throw new AdminError('INVALID_INPUT', 400);
+      if (!['en','pl'].includes(locale)||!['invite','reviews','sales','sales-ledger','resolve-preview','resolve-confirm','content-session'].includes(purpose)) throw new AdminError('INVALID_INPUT', 400);
       db.prepare('DELETE FROM admin_challenges WHERE expiresAt <= ?').run(time);
       const requestJson=JSON.stringify(request);
       if(requestJson.length>1000 || !request || typeof request!=='object' || Array.isArray(request))throw new AdminError('INVALID_INPUT',400);
@@ -111,6 +112,13 @@ export function createNostrAdmin({db, allowlist = '', now = Date.now,origin='htt
       const {nonce}=authorize({event,locale},'reviews');
       if(db.prepare('DELETE FROM admin_challenges WHERE nonce = ?').run(nonce).changes!==1)throw new AdminError('ADMIN_CHALLENGE_EXPIRED');
       return {reviews:db.prepare("SELECT r.* FROM payment_reviews r WHERE NOT EXISTS (SELECT 1 FROM payment_resolutions s WHERE s.reference=r.reference AND s.state='confirmed') ORDER BY lastSeen DESC LIMIT 100").all()};
+    },
+    ledger(input) {
+      const {row,nonce}=authorize(input,'sales-ledger');
+      const request=JSON.parse(row.requestJson);
+      const result=readSalesLedger({db,includeReviews:true,request});
+      if(db.prepare('DELETE FROM admin_challenges WHERE nonce=?').run(nonce).changes!==1)throw new AdminError('ADMIN_CHALLENGE_EXPIRED');
+      return result;
     },
     sales(input) {
       const {nonce}=authorize(input,'sales');

@@ -1,6 +1,6 @@
 // Adapter for parsed /booking-api/checkout requests. All network operations remain
 // same-origin POSTs; bearer values are confined to Secure HttpOnly cookies.
-export function createNetworkHTTP({ network, contentHandler, origin }) {
+export function createNetworkHTTP({ network, contentHandler, origin, staffLedger }) {
   const actions = new Set(['mentor-network-challenge', 'mentor-network-confirm', 'mentor-network-read', 'mentor-network-logout']);
   const cookieName = '__Secure-custody-network';
   const cookie = (value, age) => `${cookieName}=${value}; Path=/booking-api/; Max-Age=${age}; Secure; HttpOnly; SameSite=Strict`;
@@ -14,7 +14,10 @@ export function createNetworkHTTP({ network, contentHandler, origin }) {
       if (!network) throw Object.assign(new Error('Mentor applications are not open yet.'), { status: 503 });
       const token = req.headers.cookie?.split(';').map(v => v.trim()).find(v => v.startsWith(cookieName + '='))?.slice(cookieName.length + 1);
       let result;
-      if (input.action === 'mentor-network-read') result = network.readSession({ token, purpose: input.purpose, request: input.request });
+      if (input.action === 'mentor-network-read') {
+        if(input.purpose==='sales-ledger'&&staffLedger)result=staffLedger(network.requireSession(token),input.request);
+        if(result==null)result=network.readSession({ token, purpose: input.purpose, request: input.request });
+      }
       else if (input.action === 'mentor-network-logout') {
         network.endSession(token); res.setHeader('Set-Cookie', cookie('', 0)); result = { ended: true };
       } else result = input.action === 'mentor-network-challenge' ? network.challenge(input) : network.execute(input);

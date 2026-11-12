@@ -1,3 +1,4 @@
+import {readSalesLedger} from './sales-ledger.mjs';
 import {bookingConfig} from './booking-config.mjs';
 import {createPaidBookingResolver} from './resolve-booking.mjs';
 import {recordPaymentReview} from './payment-review.mjs';
@@ -110,7 +111,8 @@ const contentAdmin={
 };
 const contentHandler=articlesAPI ? createContentHandler({api:articlesAPI,admin:contentAdmin,origin:config.origin,sessionSeconds:contentSessionSeconds}) : null;
 
-const networkHTTP=createNetworkHTTP({network:mentorNetwork,contentHandler,origin:config.origin});
+const networkHTTP=createNetworkHTTP({network:mentorNetwork,contentHandler,origin:config.origin,
+ staffLedger:(actor,request)=>admin.isContentEditor(actor)?{...readSalesLedger({db,includeReviews:true,request}),environment:config.environment,refundOrigin:btcpay?new URL(BTCPAY_CHECKOUT_ORIGIN||'https://pay.custody.consulting').origin:null}:null});
 
 const findInvitationForBooking = db.prepare('SELECT reference FROM invitations WHERE reference = ?');
 const hashToken = token => createHash('sha256').update(token).digest('hex');
@@ -361,7 +363,7 @@ if (process.argv[2] === 'diagnose-recovery') {
         const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));
         const { reference, locale, action, sessionId,checkoutToken } = input;
         if(networkHTTP(req,res,input)) return;
-        if (action === 'admin-challenge' || action === 'admin-invite' || action === 'admin-reviews' || action === 'admin-sales' || action === 'admin-resolve-preview' || action === 'admin-resolve-confirm' || action === 'admin-content-session') {
+        if (action === 'admin-challenge' || action === 'admin-invite' || action === 'admin-reviews' || action === 'admin-sales' || action === 'admin-sales-ledger' || action === 'admin-resolve-preview' || action === 'admin-resolve-confirm' || action === 'admin-content-session') {
           try {
             let result;
             if (action === 'admin-content-session') {
@@ -374,6 +376,8 @@ if (process.argv[2] === 'diagnose-recovery') {
               const authorized=admin.resolution(input,purpose);
               const task=queue.then(()=>purpose==='resolve-preview'?resolver.preview(authorized.request):resolver.confirm(authorized.request,authorized.operator));
               queue=task.catch(()=>{});result=await task;
+            } else if(action==='admin-sales-ledger'){
+              result={...admin.ledger(input),environment:config.environment,refundOrigin:btcpay?new URL(BTCPAY_CHECKOUT_ORIGIN||'https://pay.custody.consulting').origin:null};
             } else if (action === 'admin-sales') {
               result = {...admin.sales(input), environment: config.pilot ? 'Lightning pilot' : config.environment,
                 refundOrigin: btcpay ? new URL(BTCPAY_CHECKOUT_ORIGIN || 'https://pay.custody.consulting').origin : null};

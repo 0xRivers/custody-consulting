@@ -120,3 +120,14 @@ test('content sessions require a dedicated signature and expire or rotate',()=> 
   for(let i=0;i<15;i++) advance();
   assert.throws(()=>admin.requireContentSession(expiring),/ADMIN_NOT_ALLOWED/);
 });
+
+test('combined sales/review ledger requires its own signed purpose and binds filters',()=>{
+ const {db,secret,pubkey,admin}=setup();
+ db.exec("CREATE TABLE bookings(reference TEXT PRIMARY KEY,startsAt TEXT,state TEXT,paymentId TEXT,provider TEXT,settledRail TEXT,priceCurrency TEXT,priceMinorUnits INTEGER,settledSats INTEGER); INSERT INTO bookings VALUES ('a','2026-12-01','confirmed','pay-a','stripe',NULL,'PLN',42000,NULL);");
+ db.prepare('INSERT INTO payment_reviews VALUES (?,?,?,?,?,?,?,?)').run('a','invoice-a','2026-12-01','late-payment',1,'Expired',1,2);
+ const wrong=finalizeEvent(admin.challenge({pubkey,locale:'en',purpose:'sales'}).event,secret);
+ assert.throws(()=>admin.ledger({event:wrong,locale:'en'}),/ADMIN_CHALLENGE_EXPIRED/);
+ const event=finalizeEvent(admin.challenge({pubkey,locale:'en',purpose:'sales-ledger',request:{status:'review',query:'a'}}).event,secret);
+ const result=admin.ledger({event,locale:'en',request:{status:'confirmed'}});assert.equal(result.rows[0].status,'review');assert.equal(result.total,1);
+ assert.throws(()=>admin.ledger({event,locale:'en'}),/ADMIN_CHALLENGE_EXPIRED/);
+});

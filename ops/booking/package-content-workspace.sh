@@ -8,6 +8,7 @@ node --check ops/booking/content-cms/articles.mjs
 node --check ops/booking/content-cms/workspace/workspace.js
 npm run test:content-workspace
 npm run test:mentor-network
+node --test ops/booking/sales-ledger.test.mjs
 node --experimental-vm-modules --test ops/booking/package-service.test.mjs
 work=$(mktemp -d)
 trap 'rm -rf -- "$work"' EXIT

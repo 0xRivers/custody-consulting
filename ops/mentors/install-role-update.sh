@@ -80,7 +80,10 @@ with urlopen(Request('https://staging.custody.consulting/admin/',headers={'Cache
  assert response.status==200 and 'noindex' in response.headers.get('X-Robots-Tag','')
  assert 'name="mentor"' in html and 'name="editor"' in html
  assert 'Local branches' not in html and 'Branch manager' not in html
-print('Staging verified: Mentor + Editor checkboxes; no branch controls.')
+assert 'id="sales-table"' in html and html.count('<table')==1
+assert 'data-section="review"' not in html and 'id="review-panel"' not in html
+assert html.count('data-section="invitations"')==1 and 'data-section="mentor-invitations"' not in html
+print('Staging verified: one Sales table with integrated payment review; no review navigation item.')
 PY
 trap - ERR
 printf 'Previous backend: %s\nDatabase backup: %s\nProduction unchanged.\n' "$previous" "$backup/bookings.sqlite"
