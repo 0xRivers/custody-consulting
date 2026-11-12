@@ -70,3 +70,28 @@ onboarding remains gated by root recovery and operating-policy decisions in CC-4
 - Record evidence and failures here before real onboarding; none are pre-marked done.
 - Resolve root recovery, approval/onboarding separation and payment/delivery policy
   before inviting real mentors. The current prototype is not a production franchise.
+
+## First staging attempt — restored
+
+The first archive omitted matching scheduler helpers and hit a missing named export
+(currentCalAppointment). The directory rollback restored the original code, but the
+systemd start limit required reset-failed before restart. Owner confirmed staging
+active after restoration on 12 November 2026 at 18:34 UTC. Mentor network stays off.
+
+The revised package includes the complete statically imported dependency chain and
+literal dynamic imports. Its build parses and links imports without evaluating the
+service. Regression tests reject the exact missing-export failure. Dependencies
+are packaged from one source revision instead of mixing new entrypoints with old
+server helpers. The packaged package-service.mjs allows the same check against the
+prepared candidate after npm ci, before stopping staging:
+
+```
+cd /opt/CANDIDATE_DIRECTORY
+/opt/custody-node24/bin/node --experimental-vm-modules ops/booking/package-service.mjs /tmp/custody-candidate-link-check
+```
+
+The link check verifies exports and presence, not environment/provider readiness.
+Inspect the full backend helper diff before replacing the running version. Any
+failed start must restore the previous directory, run systemctl reset-failed, then
+start and verify the restored staging service. Never restore an old database as
+part of code rollback. Preserve the failed candidate for diagnosis.
