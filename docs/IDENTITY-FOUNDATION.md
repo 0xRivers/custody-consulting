@@ -108,3 +108,11 @@ Additional cases cover signed enrollment, assignment authorization, reassignment
 owner-only removal, audit records, session revocation/regrant and retired keys.
 An enabled staging build passes. No real signer or browser validation has occurred.
 The feature stays disabled pending the supervised staging pilot and root recovery.
+
+## Staging handoff
+
+The network HTTP adapter is now isolated and covered by two additional tests with
+real signed Nostr events. Tests verify secure cookie scope, removal of tokens from
+JSON, read/logout behavior, mutation denial, foreign-origin rejection and replay
+protection. There are 23 mentor/identity/HTTP tests and 30 content tests.
+See MENTOR-PILOT-VALIDATION.md for the staging-only manual runbook and remaining gates.

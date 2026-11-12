@@ -15,7 +15,7 @@ install -m 0644 ops/booking/content-cms/workspace/{index.html,workspace.js,works
 install -m 0644 ops/booking/content-cms/{articles,article-access,github-app,workspace-model,content-http}.mjs "$work/service/ops/booking/content-cms/"
 install -m 0644 ops/booking/{staging-service,nostr-admin}.mjs "$work/service/ops/booking/"
 install -m 0644 astro/src/lib/topics.json "$work/service/astro/src/lib/"
-install -m 0644 ops/mentors/identity-store.mjs ops/mentors/network.mjs "$work/service/ops/mentors/"
+install -m 0644 ops/mentors/identity-store.mjs ops/mentors/network.mjs ops/mentors/network-http.mjs "$work/service/ops/mentors/"
 install -m 0644 package.json package-lock.json "$work/service/"
 git rev-parse HEAD > "$work/revision.txt"
 (cd "$work" && find static service -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)

@@ -5,6 +5,7 @@ import {switchToBTC} from './switch-payment.mjs';
 import {createNostrAdmin, AdminError, contentSessionSeconds} from './nostr-admin.mjs';
 import { createArticleAccess } from './content-cms/article-access.mjs';
 import { createContentHandler } from './content-cms/content-http.mjs';
+import { createNetworkHTTP } from '../mentors/network-http.mjs';
 import { createMentorNetwork } from '../mentors/network.mjs';
 import { createServer } from 'node:http';
 import { createHash, randomBytes } from 'node:crypto';
@@ -108,6 +109,8 @@ const contentAdmin={
   endContentSession(token) {admin.endContentSession(token);mentorNetwork?.endContentSession(token);}
 };
 const contentHandler=articlesAPI ? createContentHandler({api:articlesAPI,admin:contentAdmin,origin:config.origin,sessionSeconds:contentSessionSeconds}) : null;
+
+const networkHTTP=createNetworkHTTP({network:mentorNetwork,contentHandler,origin:config.origin});
 
 const findInvitationForBooking = db.prepare('SELECT reference FROM invitations WHERE reference = ?');
 const hashToken = token => createHash('sha256').update(token).digest('hex');
@@ -357,24 +360,7 @@ if (process.argv[2] === 'diagnose-recovery') {
         }
         const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));
         const { reference, locale, action, sessionId,checkoutToken } = input;
-        if (['mentor-network-challenge','mentor-network-confirm','mentor-network-read','mentor-network-logout'].includes(action)) {
-          if (!mentorNetwork) { res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({error:'Mentor applications are not open yet.'})); return; }
-          try {
-            const cookieName='__Secure-custody-network';
-            const token=req.headers.cookie?.split(';').map(v=>v.trim()).find(v=>v.startsWith(cookieName+'='))?.slice(cookieName.length+1);
-            const cookie=(value,age)=>`${cookieName}=${value}; Path=/booking-api/; Max-Age=${age}; Secure; HttpOnly; SameSite=Strict`;
-            let result;
-            if(action==='mentor-network-read') result=mentorNetwork.readSession({token,purpose:input.purpose,request:input.request});
-            else if(action==='mentor-network-logout') {mentorNetwork.endSession(token);res.setHeader('Set-Cookie',cookie('',0));result={ended:true};}
-            else result=action==='mentor-network-challenge' ? mentorNetwork.challenge(input) : mentorNetwork.execute(input);
-            if(result.contentSessionToken) {if(!contentHandler)throw new AdminError('Content workspace is disabled.');res.setHeader('Set-Cookie',contentHandler.sessionCookie(result.contentSessionToken));result={connected:true};}
-            if(result.sessionToken) {res.setHeader('Set-Cookie',cookie(result.sessionToken,1800));result={connected:true};}
-            res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify(result));
-          } catch(error) {
-            res.writeHead(error.status||502,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({error:error.status ? error.message : 'Mentor service unavailable.'}));
-          }
-          return;
-        }
+        if(networkHTTP(req,res,input)) return;
         if (action === 'admin-challenge' || action === 'admin-invite' || action === 'admin-reviews' || action === 'admin-sales' || action === 'admin-resolve-preview' || action === 'admin-resolve-confirm' || action === 'admin-content-session') {
           try {
             let result;
