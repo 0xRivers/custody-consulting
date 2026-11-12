@@ -2,7 +2,8 @@
 
 ## Routes and roles
 
-The editor is /admin/articles/. The old /admin/content/nostr/workspace/ entry
+The editor is /admin/articles/. Owner publication controls and any setup blockers
+are visible above the editor, independently of the optional Review changes panel. The old /admin/content/nostr/workspace/ entry
 redirects there. Content API routes remain /admin/content/session and
 /admin/content/articles; their Secure, HttpOnly cookie stays scoped to that API
 path. Moving the page does not broaden cookie scope.
