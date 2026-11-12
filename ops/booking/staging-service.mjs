@@ -2,7 +2,10 @@ import {bookingConfig} from './booking-config.mjs';
 import {createPaidBookingResolver} from './resolve-booking.mjs';
 import {recordPaymentReview} from './payment-review.mjs';
 import {switchToBTC} from './switch-payment.mjs';
-import {createNostrAdmin, AdminError} from './nostr-admin.mjs';
+import {createNostrAdmin, AdminError, contentSessionSeconds} from './nostr-admin.mjs';
+import { createArticleAccess } from './content-cms/article-access.mjs';
+import { createContentHandler } from './content-cms/content-http.mjs';
+import { createMentorNetwork } from '../mentors/network.mjs';
 import { createServer } from 'node:http';
 import { createHash, randomBytes } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
@@ -21,6 +24,10 @@ const {
 const config=bookingConfig(process.env);
 const bitcoinPrice=config.pilot?{currency:'PLN',minorUnits:config.pilotMinorUnits}:foundationBitcoinPrice;
 const siteRoot=config.origin+config.pathPrefix;
+const contentSessionEnabled=process.env.CONTENT_NOSTR_ENABLED === 'true' && !config.pilot;
+// Construct content authorization only after opening the service database.
+let articlesAPI;
+
 const eventId = Number(process.env.CAL_EVENT_ID||CAL_STAGING_EVENT_ID);
 if (!CAL_API_KEY || !Number.isSafeInteger(eventId) || eventId <= 0 ||
     eventId === 7772427 || !BOOKING_DB?.startsWith('/')) {
@@ -87,6 +94,20 @@ db.exec(`CREATE TRIGGER IF NOT EXISTS bookings_price_immutable
   BEGIN SELECT RAISE(ABORT, 'Booking price is immutable'); END`);
 
 const admin = createNostrAdmin({db, allowlist:process.env.BOOKING_ADMIN_NPUBS || '',origin:config.origin,pathPrefix:config.pathPrefix});
+let mentorNetwork;
+if (process.env.MENTOR_NETWORK_ENABLED === 'true' && !config.pilot) {
+  try { mentorNetwork=createMentorNetwork({db,superAdminNpub:process.env.CUSTODY_SUPER_ADMIN_NPUB,origin:config.origin}); }
+  catch { console.error('Mentor network configuration is invalid. Mentor endpoints are disabled; existing booking services remain available.'); }
+}
+
+if(contentSessionEnabled) articlesAPI=(await import('./content-cms/articles.mjs')).createArticlesAPI({access:createArticleAccess({db,
+  isGlobalEditor:actor=>admin.isContentEditor(actor)||mentorNetwork?.isSuperAdmin(actor),
+  editorBranches:actor=>mentorNetwork?.contentBranches(actor)||[]})});
+const contentAdmin={
+  requireContentSession(token) {try{return admin.requireContentSession(token);}catch(error){if(!mentorNetwork)throw error;return mentorNetwork.requireContentSession(token);}},
+  endContentSession(token) {admin.endContentSession(token);mentorNetwork?.endContentSession(token);}
+};
+const contentHandler=articlesAPI ? createContentHandler({api:articlesAPI,admin:contentAdmin,origin:config.origin,sessionSeconds:contentSessionSeconds}) : null;
 
 const findInvitationForBooking = db.prepare('SELECT reference FROM invitations WHERE reference = ?');
 const hashToken = token => createHash('sha256').update(token).digest('hex');
@@ -314,6 +335,7 @@ if (process.argv[2] === 'diagnose-recovery') {
     return promise;
   }
   createServer(async (req, res) => {
+    if (contentHandler && await contentHandler(req,res)) return;
     if(config.pilot&&req.method==='GET'&&req.url==='/booking-api/pilot-health') {
       res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store','X-Robots-Tag':'noindex'});
       res.end(JSON.stringify({bitcoinCheckout:defaultBitcoinRail}));
@@ -335,10 +357,33 @@ if (process.argv[2] === 'diagnose-recovery') {
         }
         const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));
         const { reference, locale, action, sessionId,checkoutToken } = input;
-        if (action === 'admin-challenge' || action === 'admin-invite' || action === 'admin-reviews' || action === 'admin-sales' || action === 'admin-resolve-preview' || action === 'admin-resolve-confirm') {
+        if (['mentor-network-challenge','mentor-network-confirm','mentor-network-read','mentor-network-logout'].includes(action)) {
+          if (!mentorNetwork) { res.writeHead(503,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({error:'Mentor applications are not open yet.'})); return; }
+          try {
+            const cookieName='__Secure-custody-network';
+            const token=req.headers.cookie?.split(';').map(v=>v.trim()).find(v=>v.startsWith(cookieName+'='))?.slice(cookieName.length+1);
+            const cookie=(value,age)=>`${cookieName}=${value}; Path=/booking-api/; Max-Age=${age}; Secure; HttpOnly; SameSite=Strict`;
+            let result;
+            if(action==='mentor-network-read') result=mentorNetwork.readSession({token,purpose:input.purpose,request:input.request});
+            else if(action==='mentor-network-logout') {mentorNetwork.endSession(token);res.setHeader('Set-Cookie',cookie('',0));result={ended:true};}
+            else result=action==='mentor-network-challenge' ? mentorNetwork.challenge(input) : mentorNetwork.execute(input);
+            if(result.contentSessionToken) {if(!contentHandler)throw new AdminError('Content workspace is disabled.');res.setHeader('Set-Cookie',contentHandler.sessionCookie(result.contentSessionToken));result={connected:true};}
+            if(result.sessionToken) {res.setHeader('Set-Cookie',cookie(result.sessionToken,1800));result={connected:true};}
+            res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify(result));
+          } catch(error) {
+            res.writeHead(error.status||502,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(JSON.stringify({error:error.status ? error.message : 'Mentor service unavailable.'}));
+          }
+          return;
+        }
+        if (action === 'admin-challenge' || action === 'admin-invite' || action === 'admin-reviews' || action === 'admin-sales' || action === 'admin-resolve-preview' || action === 'admin-resolve-confirm' || action === 'admin-content-session') {
           try {
             let result;
-            if(action==='admin-resolve-preview'||action==='admin-resolve-confirm') {
+            if (action === 'admin-content-session') {
+              if (!contentSessionEnabled) throw new AdminError('ADMIN_NOT_ALLOWED');
+              const token=admin.startContentSession(input);
+              res.setHeader('Set-Cookie',contentHandler.sessionCookie(token));
+              result={};
+            } else if(action==='admin-resolve-preview'||action==='admin-resolve-confirm') {
               const purpose=action==='admin-resolve-preview'?'resolve-preview':'resolve-confirm';
               const authorized=admin.resolution(input,purpose);
               const task=queue.then(()=>purpose==='resolve-preview'?resolver.preview(authorized.request):resolver.confirm(authorized.request,authorized.operator));
@@ -449,6 +494,7 @@ if (process.argv[2] === 'diagnose-recovery') {
             db.exec('BEGIN IMMEDIATE');
             try {
               db.prepare('UPDATE invitations SET reference = ? WHERE tokenHash = ?').run(booking.uid, current.tokenHash);
+              mentorNetwork?.attributeBooking(booking.uid,current.tokenHash);
               db.prepare("UPDATE booking_attempts SET state = 'bound', reference = ? WHERE tokenHash = ?").run(booking.uid, current.tokenHash);
               db.prepare('INSERT OR IGNORE INTO bookings (reference,startsAt,locale,deadline,provider,priceMinorUnits,priceCurrency,priceVersion,paymentRail) VALUES (?,?,?,?,?,?,?,?,?)')
                 .run(booking.uid,booking.start,locale,Math.floor(Date.now()/1000)*1000+35*60_000,selectedMethod==='BTC'?'btcpay':'stripe',price.minorUnits,price.currency,selectedMethod==='BTC'?foundationPricingVersion+'-btc10':foundationPricingVersion,rail);
@@ -487,6 +533,7 @@ if (process.argv[2] === 'diagnose-recovery') {
           if (!pln) return null;
           db.prepare('UPDATE invitations SET reference = ? WHERE tokenHash = ? AND reference IS NULL')
             .run(reference, invitation.tokenHash);
+          mentorNetwork?.attributeBooking(reference,invitation.tokenHash);
           return issueCheckout(reference, locale);
         });
         queue = task.catch(() => {});

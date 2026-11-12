@@ -16,13 +16,16 @@
     "check:structured-data-output": "node ops/checks/structured-data-output.mjs",
     "check:answer-focused-output": "node ops/checks/answer-focused-output.mjs",
     "check:performance-output": "node ops/checks/performance-output.mjs",
-    "test:publishing": "node --test ops/publishing/*.test.mjs"
+    "test:publishing": "node --test ops/publishing/*.test.mjs",
+    "test:content-workspace": "node --test ops/booking/content-cms/*.test.mjs ops/booking/nostr-admin.test.mjs",
+    "test:mentor-network": "node --test ops/mentors/*.test.mjs"
   },
   "dependencies": {
     "nostr-tools": "2.25.2",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "stripe": "23.0.0"
+    "stripe": "23.0.0",
+    "yaml": "2.9.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.2.1",
@@ -34,7 +37,6 @@
     "tailwindcss": "4.2.1",
     "tw-animate-css": "1.3.4",
     "typescript": "5.8.3",
-    "vite": "7.3.7",
-    "yaml": "2.9.1"
+    "vite": "7.3.7"
   }
 }

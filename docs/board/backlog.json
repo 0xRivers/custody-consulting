@@ -1,6 +1,6 @@
 {
   "title": "Custody Consulting · Astro rollout",
-  "updated": "2026-11-07",
+  "updated": "2026-11-12",
   "items": [
     {
       "id": "CC-1",
@@ -876,6 +876,156 @@
         "Exercise previous-code rollback against additive schema changes without rewinding the live payment database. Record procedures and evidence."
       ],
       "notes": "Owner verified on 2026-11-08 that the AES-256 encrypted production database backup restored off-server and passed SQLite integrity checks. The restored snapshot contained one booking, one linked payment and four invitations; it contained no review or resolution records. The previous production entry point opened the restored schema and created one isolated test invite with networking disabled. The live production service stayed active. A separate encrypted off-server backup of the production environment file passed decryption verification."
+    },
+    {
+      "id": "CC-49",
+      "title": "Agree mentor pilot operating rules",
+      "phase": "Mentor network",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "S",
+      "dependencies": [],
+      "status": "Backlog",
+      "acceptance": [
+        "Record intended business super-admin npub1efvt8cchugdmxahxawp64z7awkxrq5mm9mjwzwpf68urrc4rsf7s9lhewa; verify signing control during setup, with no private key stored on the server.",
+        "Choose pilot branches, services and mentors; distinguish referral from service delivery and document qualification, renewal, suspension and applicant contact rules.",
+        "Confirm central payment collection, compensation responsibility and whether franchise is a later direction or contractual launch model; no automatic territory exclusivity."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
+    },
+    {
+      "id": "CC-50",
+      "title": "Build stable Nostr identities and scoped permissions",
+      "phase": "Mentor network",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "L",
+      "dependencies": [
+        "CC-49"
+      ],
+      "status": "In progress",
+      "acceptance": [
+        "Use stable person IDs with verified public keys, rotation history and exact signing-key audit; implement root recovery before real onboarding.",
+        "Implement versioned candidate, mentor, branch-manager and editor presets with scoped grants; approval, service readiness and content/payment authority remain separate.",
+        "Use secure sessions for reads and fresh request-bound signatures for privileged actions; recheck authorization on execution and invalidate revoked sessions/prepared actions.",
+        "Pass authenticated actor through content API; enforce branch ownership in backend reads and writes. Cross-branch, replay, expiry, key rotation and revocation tests pass."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed. 2026-11-12: internal identity/grant persistence implemented locally with six passing tests for stable identity, key retirement, scoped roles, effective dates, revocation and atomic audit. HTTP authentication integration, data migration, root recovery and session invalidation remain pending; no live permissions changed. Signed mentor-service identity integration now preserves roles, applications and sales across key rotation; retired pending signatures and grants to unverified recipients are rejected. Seventeen mentor/identity tests pass. Session integration and production rollout remain pending. Mentor session integration implemented locally: signed session creation, hashed expiring tokens, secure cookie adapter, dashboard reads/logout, execution-time key and role checks. Content actor forwarding added; branch ownership enforcement still pending. 44 targeted tests pass. Local article API now enforces explicit access policy, assigned article IDs, filtered lists and queued-save rechecks, and denies legacy endpoints to scoped editors. Branch-editor enrollment and owner assignment controls remain gated. 49 targeted tests pass. Local branch-editor session enrollment and owner-signed article assignment UI are connected. Reassignment updates allowed articles immediately; revocation deletes sessions and pending challenges across historical keys. 51 targeted tests pass; real signer/browser validation and root recovery still outstanding."
+    },
+    {
+      "id": "CC-51",
+      "title": "Deliver one bilingual publishing workspace",
+      "phase": "Publishing workspace",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "L",
+      "dependencies": [
+        "CC-50"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Provide Save draft, EN/PL preview, exact revision review, owner approval, deployment progress and verified-live result in one accessible workspace.",
+        "Preserve bilingual pairs, topics, URLs and dates; detect conflicts and invalidate approval when revision or complete release scope changes.",
+        "Prove GitHub production approval integration without bypassing protection or silently including unrelated engineering changes; make failures and rollback actionable.",
+        "Validate mobile, keyboard, enlarged text and error recovery; verify a real approved release and restore. Publishing can ship before mentor operations."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
+    },
+    {
+      "id": "CC-52",
+      "title": "Run private mentor applications and branch onboarding pilot",
+      "phase": "Mentor network",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "L",
+      "dependencies": [
+        "CC-50"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Build private EN/PL signer-based applications with country/language selectors, proposed location/services, consent version, durable reference and private status.",
+        "Implement Submitted, In review, More information needed, Approved, Rejected and Withdrawn; separate mentor Onboarding, Active, Suspended and Offboarded.",
+        "Let super-admin review evidence, activate stable-ID branches and assign service/membership scope; branch lifecycle includes proposed, preparing, active, suspended and closed.",
+        "Test two branches and desktop NIP-07/Android Amber signing, cancellation and reconnect. Keep private data out of static output, logs and public relays; verify backup/restore."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
+    },
+    {
+      "id": "CC-53",
+      "title": "Attribute referrals and assign mentor service delivery",
+      "phase": "Mentor network",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "L",
+      "dependencies": [
+        "CC-52"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Bind original mentor/branch attribution server-side from issued invitations; direct/legacy bookings stay Unassigned. Preserve snapshots and append-only corrections.",
+        "Track delivery mentor separately with assignment history, approved services and availability; clients know who delivers and scheduling prevents conflicts.",
+        "Recheck mentor and branch eligibility when unused invitations are redeemed. Suspension stops new business while paid appointments get explicit fulfillment or reassignment.",
+        "Preserve attribution independently of feature toggles; test duplicate events, cancellations, suspension and restored records."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
+    },
+    {
+      "id": "CC-54",
+      "title": "Provide scoped mentor and branch sales reporting",
+      "phase": "Mentor network",
+      "priority": "P1",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-53"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Provide super-admin all-sales view, mentor own-sales view and branch-manager assigned-branch view, with date filters and authorized drill-down.",
+        "Separate payment and appointment state, referral and delivery attribution, original currencies and sats; format each currency using its actual minor units.",
+        "Label gross booked amounts accurately; reconcile refunds, cancellations and disputes before claiming net revenue. Do not infer commissions or amounts payable.",
+        "Limit client details to assigned delivery or explicit operational permission and test cross-branch access and unassigned historic bookings."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
+    },
+    {
+      "id": "CC-55",
+      "title": "Publish approved mentor and local branch directory",
+      "phase": "Mentor network",
+      "priority": "P2",
+      "owner": "Owner + Engineering",
+      "size": "M",
+      "dependencies": [
+        "CC-52",
+        "CC-53",
+        "CC-54"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Publish only approved, active and service-ready profiles and branches through reviewed EN/PL publication; approval alone does not publish pages.",
+        "Reflect suspension, closure and key changes accurately while retaining stable IDs and URL migration rules.",
+        "If adding public root-signed trust attestations, define schema, expiry and revocation; stale relay events never restore permissions. Preserve zero client JS on language homepages."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
+    },
+    {
+      "id": "CC-56",
+      "title": "Define franchise economics and settlement before automation",
+      "phase": "Mentor network",
+      "priority": "P2",
+      "owner": "Owner + Engineering",
+      "size": "L",
+      "dependencies": [
+        "CC-49",
+        "CC-54"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Agree contracts, branch responsibilities, territories, brand standards, compensation basis, refunds, taxes and settlement responsibility before implementing franchise economics.",
+        "Distinguish referral and delivery compensation; specify earning, reversal and reconciliation rules, fees and any future multi-merchant requirements.",
+        "Keep commissions, payouts, franchise fees and territorial exclusivity outside the pilot unless explicitly promised; any promised remuneration becomes a launch requirement."
+      ],
+      "notes": "Captured 2026-11-12 from Astra scope: docs/MENTOR-NETWORK-SCOPE.md. Planning only; existing local prototypes need revision and are not deployed."
     }
   ]
 }

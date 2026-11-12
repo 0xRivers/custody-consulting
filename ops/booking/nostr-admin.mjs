@@ -3,6 +3,7 @@ import {verifyEvent} from 'nostr-tools/pure';
 import {decode} from 'nostr-tools/nip19';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
+export const contentSessionSeconds = 30 * 60;
 export class AdminError extends Error {
   constructor(message, status = 403) { super(message); this.status = status; }
 }
@@ -19,6 +20,9 @@ export function createNostrAdmin({db, allowlist = '', now = Date.now,origin='htt
   );
   CREATE TABLE IF NOT EXISTS admin_invite_audit (
     tokenHash TEXT PRIMARY KEY, pubkey TEXT NOT NULL, createdAt INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS admin_content_sessions (
+    tokenHash TEXT PRIMARY KEY, pubkey TEXT NOT NULL, expiresAt INTEGER NOT NULL
   );`);
   const challengeColumns=new Set(db.prepare('PRAGMA table_info(admin_challenges)').all().map(column=>column.name));
   if(!challengeColumns.has('purpose'))db.exec("ALTER TABLE admin_challenges ADD COLUMN purpose TEXT NOT NULL DEFAULT 'invite'");
@@ -64,13 +68,38 @@ export function createNostrAdmin({db, allowlist = '', now = Date.now,origin='htt
       if (time - windowStart >= 60000) {windowStart = time; requests = 0;}
       if (++requests > 60) throw new AdminError('ADMIN_RATE_LIMIT', 429);
       requireAllowed(pubkey);
-      if (!['en','pl'].includes(locale)||!['invite','reviews','sales','resolve-preview','resolve-confirm'].includes(purpose)) throw new AdminError('INVALID_INPUT', 400);
+      if (!['en','pl'].includes(locale)||!['invite','reviews','sales','resolve-preview','resolve-confirm','content-session'].includes(purpose)) throw new AdminError('INVALID_INPUT', 400);
       db.prepare('DELETE FROM admin_challenges WHERE expiresAt <= ?').run(time);
       const requestJson=JSON.stringify(request);
       if(requestJson.length>1000 || !request || typeof request!=='object' || Array.isArray(request))throw new AdminError('INVALID_INPUT',400);
       const row = {requestJson,nonce:randomBytes(32).toString('base64url'), pubkey, locale, purpose, expiresAt:time + 120000};
       db.prepare('INSERT INTO admin_challenges (nonce,pubkey,locale,expiresAt,purpose,requestJson) VALUES (?, ?, ?, ?, ?, ?)').run(row.nonce, pubkey, locale, row.expiresAt, purpose, requestJson);
       return {event:template(row)};
+    },
+    startContentSession(input) {
+      const {row,nonce}=authorize(input,'content-session');
+      const token=randomBytes(32).toString('base64url');
+      const time=now();
+      db.exec('BEGIN IMMEDIATE');
+      try {
+        if(db.prepare('DELETE FROM admin_challenges WHERE nonce = ?').run(nonce).changes!==1)throw new AdminError('ADMIN_CHALLENGE_EXPIRED');
+        db.prepare('DELETE FROM admin_content_sessions WHERE expiresAt <= ? OR pubkey = ?').run(time,row.pubkey);
+        db.prepare('INSERT INTO admin_content_sessions VALUES (?, ?, ?)').run(hash(token),row.pubkey,time+contentSessionSeconds*1000);
+        db.exec('COMMIT');
+      } catch (error) {db.exec('ROLLBACK'); throw error;}
+      return token;
+    },
+    isContentEditor(pubkey) { return typeof pubkey === 'string' && allowed.has(pubkey); },
+    requireContentSession(token) {
+      if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new AdminError('ADMIN_NOT_ALLOWED');
+      const row=db.prepare('SELECT pubkey FROM admin_content_sessions WHERE tokenHash = ? AND expiresAt > ?').get(hash(token),now());
+      requireAllowed(row?.pubkey);
+      return row.pubkey;
+    },
+    endContentSession(token) {
+      if (typeof token === 'string' && /^[A-Za-z0-9_-]{43}$/.test(token)) {
+        db.prepare('DELETE FROM admin_content_sessions WHERE tokenHash = ?').run(hash(token));
+      }
     },
     resolution(input,purpose) {
       if(!['resolve-preview','resolve-confirm'].includes(purpose))throw new AdminError('INVALID_INPUT',400);

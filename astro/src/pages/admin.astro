@@ -3,9 +3,11 @@ import Base from '../layouts/Base.astro';
 import {buildEnvironment} from '../../environment.mjs';
 const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || process.env.BOOKING_PAGES_ENABLED === 'true');
 const contentEnabled = process.env.CONTENT_CMS_ENABLED === 'true';
+const mentorNetworkEnabled = process.env.MENTOR_NETWORK_ENABLED === 'true';
+const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED === 'true';
 ---
 <Base title="Admin · Custody Consulting" noindex={true}>
-  <main aria-label="Custody Consulting admin">
+  <main aria-label="Custody Consulting admin" data-content-nostr={contentNostrEnabled ? 'true' : undefined}>
     {enabled ? <>
       <div id="sign-in" class="sign-in">
         <div>
@@ -33,10 +35,11 @@ const contentEnabled = process.env.CONTENT_CMS_ENABLED === 'true';
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Zm0 6v4m0 3h.01"/></svg>
               Payment review
             </button>
-            {contentEnabled && <a href="/admin/content/">
+            {contentEnabled && <a href={contentNostrEnabled ? '/admin/content/nostr/workspace/' : '/admin/content/'}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8m-8 4h6"/></svg>
               Content
             </a>}
+            {mentorNetworkEnabled && <a href="/admin/network/">Mentor network</a>}
           </nav>
           <div class="account">
             <span id="identity"></span>
@@ -181,6 +184,7 @@ const contentEnabled = process.env.CONTENT_CMS_ENABLED === 'true';
     import {SimplePool} from 'nostr-tools/pool';
     type SignedEvent = {pubkey:string;id:string;sig:string;kind:number;created_at:number;tags:string[][];content:string};
     type AdminSigner = {getPublicKey:()=>Promise<string>;signEvent:(event:EventTemplate)=>Promise<SignedEvent>};
+    const contentNostr = document.querySelector('[data-content-nostr="true"]') !== null;
     const browserSigner = () => (window as Window & {nostr?:AdminSigner}).nostr;
     const android = /Android/i.test(navigator.userAgent);
     const relays = ['wss://relay.nip46.com', 'wss://relay.nsec.app'];
@@ -261,7 +265,10 @@ const contentEnabled = process.env.CONTENT_CMS_ENABLED === 'true';
     }
     document.getElementById('disconnect')?.addEventListener('click', () => {
       closeAmber?.();
-      location.reload();
+      if (contentNostr) {
+        void fetch('/admin/content/session', {method:'DELETE',credentials:'same-origin'})
+          .finally(() => location.reload());
+      } else location.reload();
     });
     const status = document.getElementById('status')!;
     const create = document.getElementById('create') as HTMLButtonElement;
@@ -296,7 +303,13 @@ const contentEnabled = process.env.CONTENT_CMS_ENABLED === 'true';
         if(!provider) throw new Error('No Nostr browser signer found. Enable a NIP-07 signer, or open this page on Android with Amber installed.');
         pubkey=await provider.getPublicKey();
         // Allowlist checked by the server; obtaining a public key is not authentication.
-        await api({action:'admin-challenge',pubkey,locale:(document.getElementById('locale') as HTMLSelectElement).value});
+        const locale=(document.getElementById('locale') as HTMLSelectElement).value;
+        const challenge=await api({action:'admin-challenge',pubkey,locale,purpose:contentNostr?'content-session':'invite'});
+        if (contentNostr) {
+          status.textContent='Approve admin sign-in in your signer…';
+          const event=await provider.signEvent(challenge.event);
+          await api({action:'admin-content-session',locale,event});
+        }
         activeSigner=provider;
         const npub = npubEncode(pubkey);
         identity!.textContent = npub.slice(0, 10)+'…'+npub.slice(-5);

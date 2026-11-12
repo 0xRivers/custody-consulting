@@ -1,0 +1,66 @@
+---
+import Base from '../../../layouts/Base.astro';
+import SiteHeader from '../../../components/SiteHeader.astro';
+import SiteFooter from '../../../components/SiteFooter.astro';
+export function getStaticPaths() {
+  return process.env.MENTOR_NETWORK_ENABLED === 'true' ? ['en','pl'].map(lang => ({params:{lang}})) : [];
+}
+const lang=Astro.params.lang as 'en'|'pl';
+const copy={
+  en:{title:'Become a Custody Consulting mentor',intro:'Help people in your area build a clear plan for their Bitcoin custody. Tell us about your experience and where you would like to work.',notice:'Applications are reviewed individually. Applying does not grant access or create a local branch.',name:'Your name',city:'City or region',country:'Country code',timezone:'Time zone',languages:'Languages you can teach in',experience:'Your experience',hint:'Describe your Bitcoin custody experience, teaching experience and the people you would like to help. Do not include recovery secrets or client information.',consent:'I agree that Custody Consulting may store and review this application and contact me through my Nostr identity.',button:'Sign and submit with Nostr',privacy:'Your application is sent privately to Custody Consulting. It is not published to Nostr relays.',npub:'Your public npub',keyHint:'Use your public npub only. Your signer proves ownership; we never need your private key.'},
+  pl:{title:'Zostań mentorem Custody Consulting',intro:'Pomóż osobom w swojej okolicy przygotować plan bezpiecznego przechowywania bitcoina. Opowiedz o swoim doświadczeniu i miejscu, w którym chcesz działać.',notice:'Każde zgłoszenie jest rozpatrywane indywidualnie. Wysłanie zgłoszenia nie nadaje uprawnień ani nie tworzy lokalnego oddziału.',name:'Imię i nazwisko',city:'Miasto lub region',country:'Kod kraju',timezone:'Strefa czasowa',languages:'Języki, w których możesz uczyć',experience:'Twoje doświadczenie',hint:'Opisz doświadczenie w przechowywaniu bitcoina, nauczaniu i grupę, której chcesz pomagać. Nie wpisuj fraz kluczowych ani danych klientów.',consent:'Zgadzam się na przechowywanie i rozpatrzenie zgłoszenia przez Custody Consulting oraz kontakt za pomocą mojej tożsamości Nostr.',button:'Podpisz i wyślij przez Nostr',privacy:'Zgłoszenie trafia prywatnie do Custody Consulting. Nie jest publikowane na przekaźnikach Nostr.',npub:'Twój publiczny npub',keyHint:'Wpisz tylko publiczny npub. Podpis potwierdzi, że należy do Ciebie. Nie potrzebujemy klucza prywatnego.'}
+}[lang];
+---
+<Base title={`${copy.title} · Custody Consulting`} description={copy.intro} lang={lang} noindex={true}>
+  <SiteHeader lang={lang} alternateHref={`/${lang==='en'?'pl':'en'}/mentors/apply/`}/>
+  <main id="content" class="shell mentor-application" data-mentor-locale={lang}>
+    <p class="eyebrow">CUSTODY CONSULTING · MENTORS</p><h1>{copy.title}</h1><p class="lead">{copy.intro}</p><p>{copy.notice}</p>
+    <form id="mentor-application">
+      <label for="mentor-name">{copy.name}</label><input id="mentor-name" name="displayName" autocomplete="name" minlength="2" maxlength="100" required/>
+      <label for="mentor-npub">{copy.npub}</label><input id="mentor-npub" name="npub" autocomplete="off" spellcheck="false" pattern="npub1[023456789acdefghjklmnpqrstuvwxyz]+" required aria-describedby="npub-hint"/><p id="npub-hint" class="hint">{copy.keyHint}</p>
+      <div class="region-fields"><div><label for="mentor-city">{copy.city}</label><input id="mentor-city" name="city" autocomplete="address-level2" minlength="2" maxlength="100" required/></div><div><label for="mentor-country">{copy.country}</label><input id="mentor-country" name="countryCode" placeholder="PL" autocomplete="country" minlength="2" maxlength="2" pattern="[A-Za-z]{2}" required/></div></div>
+      <label for="mentor-timezone">{copy.timezone}</label><input id="mentor-timezone" name="timezone" placeholder="Europe/Warsaw" maxlength="80" required/>
+      <label for="mentor-languages">{copy.languages}</label><input id="mentor-languages" name="languages" placeholder="en, pl" maxlength="150" required/>
+      <label for="mentor-experience">{copy.experience}</label><textarea id="mentor-experience" name="experience" rows="7" minlength="40" maxlength="3000" aria-describedby="experience-hint" required></textarea><p id="experience-hint" class="hint">{copy.hint}</p>
+      <label class="consent"><input type="checkbox" name="consent" required/><span>{copy.consent}</span></label>
+      <button class="btn btn-primary" type="submit" id="mentor-submit">{copy.button}</button><p class="hint">{copy.privacy}</p><p id="mentor-feedback" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+  <SiteFooter lang={lang}/>
+</Base>
+<style>
+.mentor-application{max-width:52rem;padding-block:4rem}.mentor-application h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.15}.lead{font-size:1.15rem}.mentor-application form{margin-top:2rem;max-width:42rem}.mentor-application label{display:block;font-weight:650;margin:1.3rem 0 .4rem}.mentor-application input,.mentor-application textarea{font:inherit;width:100%;min-width:0;background:#fff;border:1px solid #7b8793;padding:.8rem;color:#071a30;border-radius:4px}.mentor-application :is(input,textarea,button):focus-visible{outline:3px solid #1767b5;outline-offset:3px}.mentor-application .hint{font-size:.85rem;color:#485664}.region-fields{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:1rem}.mentor-application .consent{display:flex;gap:.7rem;font-weight:400;font-size:.9rem;align-items:flex-start;padding:.5rem 0}.consent input{width:24px;height:24px;flex-shrink:0}.mentor-application button{min-height:48px;margin-top:1rem}#mentor-feedback{overflow-wrap:anywhere}@media(max-width:40rem){.mentor-application{padding-block:2rem}.region-fields{grid-template-columns:minmax(0,1fr)}}
+</style>
+<script>
+  import { decode, npubEncode } from 'nostr-tools/nip19';
+  import { connectNostrSigner } from '../../../lib/nostr-signer';
+  const form=document.getElementById('mentor-application') as HTMLFormElement|null;
+  const status=document.getElementById('mentor-feedback')!;
+  const locale=document.querySelector('[data-mentor-locale]')?.getAttribute('data-mentor-locale');
+  const pl=locale==='pl';
+  const timezone=document.getElementById('mentor-timezone') as HTMLInputElement|null;
+  if(timezone)timezone.value=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  async function api(body:unknown){
+    const response=await fetch('/booking-api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store',signal:AbortSignal.timeout(15000)});
+    const result=await response.json();if(!response.ok)throw new Error(result.error||'Could not submit the application.');return result;
+  }
+  form?.addEventListener('submit',async event=>{
+    event.preventDefault();if(!form.reportValidity())return;
+    const button=document.getElementById('mentor-submit') as HTMLButtonElement;button.disabled=true;
+    let close=()=>{};
+    try{
+      const fields=new FormData(form);const npub=String(fields.get('npub')).trim();
+      let key;try{key=decode(npub);}catch{throw new Error(pl?'Wpisz poprawny publiczny npub.':'Enter a valid public npub.');}
+      if(key.type!=='npub')throw new Error(pl?'Użyj publicznego npub.':'Use your public npub.');
+      const connected=await connectNostrSigner(message=>{status.textContent=message;});close=connected.close;
+      const publicKey=await connected.signer.getPublicKey();if(npubEncode(publicKey)!==npub)throw new Error(pl?'Połączony podpisujący używa innego npub.':'Your connected signer uses a different npub.');
+      const request={displayName:String(fields.get('displayName')).trim(),city:String(fields.get('city')).trim(),countryCode:String(fields.get('countryCode')).trim().toUpperCase(),timezone:String(fields.get('timezone')).trim(),languages:String(fields.get('languages')).split(/[,\s]+/).filter(Boolean),experience:String(fields.get('experience')).trim(),consent:fields.get('consent')==='on'};
+      const challenge=await api({action:'mentor-network-challenge',npub,purpose:'apply',request});
+      status.textContent=pl?'Zatwierdź podpis zgłoszenia w swoim podpisującym…':'Approve the application signature in your signer…';
+      const signed=await connected.signer.signEvent(challenge.event);
+      const result=await api({action:'mentor-network-confirm',event:signed});
+      status.textContent=pl?`Zgłoszenie przyjęte do rozpatrzenia. Numer: ${result.id}. Uprawnienia zostaną nadane dopiero po zatwierdzeniu.`:`Application received for review. Reference: ${result.id}. Access will be granted only after approval.`;
+      for(const control of Array.from(form.elements))if(control instanceof HTMLInputElement||control instanceof HTMLTextAreaElement||control instanceof HTMLButtonElement)control.disabled=true;
+    }catch(error){status.textContent=error instanceof Error?error.message:pl?'Nie udało się wysłać zgłoszenia.':'The application could not be submitted.';button.disabled=false;}finally{close();}
+  });
+</script>

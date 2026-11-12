@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="same-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>Content workspace · Custody Consulting</title>
+  <link rel="stylesheet" href="./workspace.css">
+  <script type="module" src="./workspace.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#editor">Skip to article</a>
+  <header class="app-header">
+    <a class="brand" href="/admin/"><span class="brand-mark" aria-hidden="true">C</span><span>Custody Consulting<small>Content workspace</small></span></a>
+    <a href="/admin/" class="quiet-link">Back to Admin <span aria-hidden="true">↗</span></a>
+  </header>
+  <div class="app-layout">
+    <aside class="sidebar" aria-label="Article library">
+      <div class="library-heading"><h1>Articles</h1><span id="article-count" class="count">—</span></div>
+      <label class="search-label" for="search">Find an article</label>
+      <input type="search" id="search" placeholder="Search titles…" autocomplete="off">
+      <nav id="article-list" class="article-list" aria-label="Choose an article"></nav>
+      <p class="sidebar-note">English and Polish stay together. Saving here never changes the live site.</p>
+      <button type="button" id="refresh-library" class="secondary">Refresh library</button>
+    </aside>
+    <main id="editor" tabindex="-1">
+      <div id="loading" class="empty-state"><p class="eyebrow">YOUR KNOWLEDGE BASE</p><h2>A clearer path from draft to live.</h2><p id="loading-message" role="status">Checking your content session…</p><a href="/admin/" id="sign-in-link" hidden>Connect with Nostr in Admin</a></div>
+      <div id="article-workspace" hidden>
+        <div class="page-heading"><div><p class="eyebrow">BILINGUAL ARTICLE</p><h2 id="article-title">Article</h2><p id="live-status" class="muted"></p></div><span id="save-state" class="badge">Saved draft</span></div>
+        <ol class="steps" aria-label="Publishing progress"><li aria-current="step">1 <span>Edit</span></li><li>2 <span>Review</span></li><li>3 <span>Publish</span></li></ol>
+        <section class="editor-card" aria-label="Article editor">
+          <div class="editor-toolbar"><div class="language-tabs" role="tablist" aria-label="Article language"><button type="button" id="tab-en" role="tab" aria-selected="true" aria-controls="translation-panel">English</button><button type="button" id="tab-pl" role="tab" aria-selected="false" aria-controls="translation-panel" tabindex="-1" lang="pl">Polski</button></div><button type="button" id="preview-toggle" class="secondary" aria-pressed="false">Reading preview</button></div>
+          <div id="translation-panel" role="tabpanel" aria-labelledby="tab-en">
+            <div id="fields">
+              <label for="title">Article title <span id="title-count" class="field-count"></span></label><input id="title" maxlength="100" required>
+              <label for="summary">Summary <span class="field-hint">Shown in the article list and search results.</span></label><textarea id="summary" rows="3" maxlength="240" required></textarea>
+              <label for="keyAnswer">Opening answer <span class="field-hint">Give the reader a useful, direct answer before the detail.</span></label><textarea id="keyAnswer" rows="3" maxlength="360" required></textarea>
+              <label for="body">Article</label><div class="format-tools" aria-label="Markdown formatting"><button type="button" data-insert="heading">Heading</button><button type="button" data-insert="list">List</button><button type="button" data-insert="link">Link</button></div><textarea id="body" rows="20" class="body-input" spellcheck="true" required aria-describedby="body-hint"></textarea><p id="body-hint" class="field-hint">Use ## for a heading, - for a list, and [text](https://…) for a link.</p>
+              <div class="sources-heading"><h3>Sources</h3><button type="button" id="add-source" class="secondary">Add source</button></div><div id="sources"></div>
+            </div>
+            <article id="reading-preview" class="reading-preview" hidden><p class="preview-label">READING PREVIEW · SAVED OR UNSAVED TEXT</p><p class="field-hint">This is a reading aid. Use the verified staging page for final layout review.</p><h2 id="preview-title"></h2><p id="preview-answer" class="key-answer"></p><div id="preview-body"></div></article>
+          </div>
+          <div class="shared-settings"><fieldset><legend>Topic <span class="field-hint">Shared by both languages; labels are translated automatically.</span></legend><div id="topics" class="topic-options"></div></fieldset><details><summary>Article details</summary><dl class="article-details"><div><dt>Author</dt><dd id="article-author"></dd></div><div><dt>Saved URL</dt><dd id="article-url"></dd></div><div><dt>Draft revision</dt><dd id="article-revision"></dd></div></dl><p class="field-hint">Published URLs and publication dates are protected. URL changes need a redirect review.</p></details></div>
+        </section>
+        <section id="review-panel" class="review-card" aria-labelledby="review-title" hidden><h3 id="review-title" tabindex="-1">Review both languages</h3><p id="review-intro"></p><div id="review-differences"></div><div id="preview-links" class="preview-links"></div><div class="release-note"><strong>Production publishing is not connected yet.</strong><p>Save your draft here. The existing review and protected deployment process still applies. The Publish action will become available after the approval integration is verified.</p></div><details><summary>Technical details</summary><a id="draft-review-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Open saved draft review in GitHub</a><p id="review-revision" class="field-hint"></p></details></section>
+        <div class="action-bar"><div><p id="feedback" role="status" aria-live="polite">Ready to edit.</p><p id="error" class="error-message" role="alert" hidden></p></div><div class="actions"><button type="button" id="review" class="secondary">Review changes</button><button type="button" id="save" class="primary" disabled>Save draft</button></div></div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

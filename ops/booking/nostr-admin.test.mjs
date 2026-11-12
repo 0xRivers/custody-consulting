@@ -100,3 +100,23 @@ test('resolution signatures bind the appointment and preview hash and cannot aut
   assert.deepEqual(admin.resolution({event:signed,locale:'en'},'resolve-confirm').request,request);
   assert.throws(()=>admin.resolution({event:signed,locale:'en'},'resolve-confirm'),/ADMIN_CHALLENGE_EXPIRED/);
 });
+
+test('content sessions require a dedicated signature and expire or rotate',()=> {
+  const {db,admin,secret,pubkey,advance}=setup();
+  const sign=purpose=>finalizeEvent(admin.challenge({pubkey,locale:'en',purpose}).event,secret);
+  const start=event=>admin.startContentSession({event,locale:'en'});
+  assert.throws(()=>start(sign('sales')),/ADMIN_CHALLENGE_EXPIRED/);
+  const event=sign('content-session');
+  const token=start(event);
+  assert.equal(admin.requireContentSession(token),pubkey);
+  assert.notEqual(db.prepare('SELECT tokenHash FROM admin_content_sessions').get().tokenHash,token);
+  assert.throws(()=>start(event),/ADMIN_CHALLENGE_EXPIRED/);
+  assert.throws(()=>createNostrAdmin({db}).requireContentSession(token),/ADMIN_NOT_ALLOWED/);
+  const replacement=start(sign('content-session'));
+  assert.throws(()=>admin.requireContentSession(token),/ADMIN_NOT_ALLOWED/);
+  admin.endContentSession(replacement);
+  assert.throws(()=>admin.requireContentSession(replacement),/ADMIN_NOT_ALLOWED/);
+  const expiring=start(sign('content-session'));
+  for(let i=0;i<15;i++) advance();
+  assert.throws(()=>admin.requireContentSession(expiring),/ADMIN_NOT_ALLOWED/);
+});
