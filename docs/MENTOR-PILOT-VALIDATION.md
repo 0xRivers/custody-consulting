@@ -95,3 +95,12 @@ Inspect the full backend helper diff before replacing the running version. Any
 failed start must restore the previous directory, run systemctl reset-failed, then
 start and verify the restored staging service. Never restore an old database as
 part of code rollback. Preserve the failed candidate for diagnosis.
+
+## Backend staging installation confirmed
+
+Owner confirmed the v2 staging backend active at 18:42:23 UTC on 12 November 2026.
+Candidate dependency linking passed as custody-booking on Node 24.22.2.
+Previous code: /opt/custody-booking-staging-before-v2-20261112T184222Z.
+Database backup: /root/custody-staging-backup-20261112T182524Z.
+MENTOR_NETWORK_ENABLED=false remains enforced by 96-mentor-pilot.conf.
+Frontend installation, content proxy routing and real signer checks remain pending.
