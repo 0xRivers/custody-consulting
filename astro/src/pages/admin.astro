@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import MentorWorkspace from '../components/MentorWorkspace.astro';
 import {buildEnvironment} from '../../environment.mjs';
 const enabled = (buildEnvironment(process.env.SITE_ENV).name === 'staging' || process.env.BOOKING_PAGES_ENABLED === 'true');
 const contentEnabled = process.env.CONTENT_CMS_ENABLED === 'true';
@@ -7,7 +8,7 @@ const mentorNetworkEnabled = process.env.MENTOR_NETWORK_ENABLED === 'true';
 const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED === 'true';
 ---
 <Base title="Admin · Custody Consulting" noindex={true}>
-  <main aria-label="Custody Consulting admin" data-content-nostr={contentNostrEnabled ? 'true' : undefined}>
+  <main data-mentor-network={mentorNetworkEnabled ? "true" : undefined} aria-label="Custody Consulting admin" data-content-nostr={contentNostrEnabled ? 'true' : undefined}>
     {enabled ? <>
       <div id="sign-in" class="sign-in">
         <div>
@@ -35,11 +36,21 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Zm0 6v4m0 3h.01"/></svg>
               Payment review
             </button>
-            {contentEnabled && <a href={contentNostrEnabled ? '/admin/content/nostr/workspace/' : '/admin/content/'}>
+            {contentEnabled && !mentorNetworkEnabled && <a href={contentNostrEnabled ? '/admin/content/nostr/workspace/' : '/admin/content/'}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8m-8 4h6"/></svg>
               Content
             </a>}
-            {mentorNetworkEnabled && <a href="/admin/network/">Mentor network</a>}
+            {mentorNetworkEnabled && <>
+              <p class="nav-group">Workspace</p>
+              {[
+                ['articles','Articles','M5 3h10l4 4v14H5zM8 12h8m-8 4h6'],
+                ['applications','Mentor applications','M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8l2 2 3-3'],
+                ['branches','Local branches','M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0ZM12 7v6m-3-3h6'],
+                ['access','Roles and access','M12 3l8 4v6c0 5-8 8-8 8s-8-3-8-8V7l8-4Z'],
+                ['mentor-sales','Mentor sales','M4 4v16h16M9 15v-4m5 4V7m5 8v-6'],
+                ['mentor-invitations','Mentor invitations','M3 5h18v14H3zM3 7l9 6 9-6'],
+              ].map(([section,label,path])=><button type="button" data-section={section} data-network-nav hidden aria-controls="network-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={path}/></svg>{label}</button>)}
+            </>}
           </nav>
           <div class="account">
             <span id="identity"></span>
@@ -49,6 +60,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
 
         <div class="content">
           <div id="workspace-status"></div>
+          {mentorNetworkEnabled && <section id="network-panel" hidden aria-labelledby="network-panel-title"><header class="section-heading"><h1 id="network-panel-title">Mentor workspace</h1></header><MentorWorkspace embedded /></section>}
           <section id="invitations-panel" aria-labelledby="invitations-title">
             <header class="section-heading">
               <h1 id="invitations-title">Invitations</h1>
@@ -113,7 +125,10 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     .brand strong {font-size:.875rem;line-height:1.2;}
     .brand small {font-size:.75rem;color:var(--muted);margin-top:.18rem;}
     .brand-mark {display:grid;place-items:center;width:2rem;height:2rem;flex:none;border-radius:.5rem;background:var(--orange);color:var(--ink);font-weight:800;}
-    nav {display:grid;gap:.25rem;}
+    nav {display:grid;gap:.25rem;overflow-y:auto;min-height:0;}
+    .nav-group{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:1rem .75rem .35rem;}
+    #network-panel{background:#f4f5f7;color:#14243a;padding:clamp(1rem,3vw,1.75rem);border-radius:.8rem;}
+    #network-panel h1{color:#102139;}
     nav button {display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border-color:transparent;background:transparent;color:var(--muted);}
     nav a {display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;border:1px solid transparent;border-radius:.5rem;color:var(--muted);text-decoration:none;font-weight:650;}
     nav a:hover {border-color:var(--line);color:var(--white);}
@@ -184,6 +199,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     import {SimplePool} from 'nostr-tools/pool';
     type SignedEvent = {pubkey:string;id:string;sig:string;kind:number;created_at:number;tags:string[][];content:string};
     type AdminSigner = {getPublicKey:()=>Promise<string>;signEvent:(event:EventTemplate)=>Promise<SignedEvent>};
+    const mentorNetwork=document.querySelector('[data-mentor-network="true"]')!==null;
     const contentNostr = document.querySelector('[data-content-nostr="true"]') !== null;
     const browserSigner = () => (window as Window & {nostr?:AdminSigner}).nostr;
     const android = /Android/i.test(navigator.userAgent);
@@ -248,27 +264,33 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
     const navigation = Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-section]'));
     const loadedSections = new Set<string>();
     for (const button of navigation) {
-      button.addEventListener('click', () => {
+      button.addEventListener('click', async () => {
         status.textContent = '';
         for (const item of navigation) {
           const active = item === button;
           if (active) item.setAttribute('aria-current', 'page');
           else item.removeAttribute('aria-current');
-          document.getElementById(item.getAttribute('aria-controls')!)!.hidden = !active;
+
         }
+        const selectedPanel=button.getAttribute('aria-controls');
+        for(const panelId of new Set(navigation.map(item=>item.getAttribute('aria-controls')!)))document.getElementById(panelId)!.hidden=panelId!==selectedPanel;
         const section = button.dataset.section!;
+        if(button.hasAttribute('data-network-nav')){
+          document.getElementById('network-panel-title')!.textContent=button.textContent!.trim();
+          const detail:{section:string;ready?:Promise<void>}={section};window.dispatchEvent(new CustomEvent('custody:network-section',{detail}));
+          try{await detail.ready;status.textContent='';}catch(error){status.textContent=error instanceof Error?error.message:'Could not open section.';}
+        }
         if (!loadedSections.has(section)) {
           if (section === 'sales') document.getElementById('load-sales')!.click();
           if (section === 'review') document.getElementById('load-reviews')!.click();
         }
       });
     }
-    document.getElementById('disconnect')?.addEventListener('click', () => {
-      closeAmber?.();
-      if (contentNostr) {
-        void fetch('/admin/content/session', {method:'DELETE',credentials:'same-origin'})
-          .finally(() => location.reload());
-      } else location.reload();
+    document.getElementById('disconnect')?.addEventListener('click', async () => {
+      const requests:Promise<unknown>[]=[];
+      if(mentorNetwork)requests.push(api({action:'mentor-network-logout'}));
+      if(contentNostr)requests.push(fetch('/admin/content/session',{method:'DELETE',credentials:'same-origin'}));
+      await Promise.allSettled(requests);closeAmber?.();location.reload();
     });
     const status = document.getElementById('status')!;
     const create = document.getElementById('create') as HTMLButtonElement;
@@ -302,14 +324,29 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
         const provider = android ? await connectAmber() : browserSigner();
         if(!provider) throw new Error('No Nostr browser signer found. Enable a NIP-07 signer, or open this page on Android with Amber installed.');
         pubkey=await provider.getPublicKey();
-        // Allowlist checked by the server; obtaining a public key is not authentication.
-        const locale=(document.getElementById('locale') as HTMLSelectElement).value;
-        const challenge=await api({action:'admin-challenge',pubkey,locale,purpose:contentNostr?'content-session':'invite'});
-        if (contentNostr) {
-          status.textContent='Approve admin sign-in in your signer…';
-          const event=await provider.signEvent(challenge.event);
-          await api({action:'admin-content-session',locale,event});
+        let networkAccount:{superAdmin:boolean;roles:Array<{role:string}>}|undefined;
+        if(mentorNetwork){
+          const challenge=await api({action:'mentor-network-challenge',npub:npubEncode(pubkey),purpose:'session-start'});
+          await api({action:'mentor-network-confirm',event:await provider.signEvent(challenge.event)});
+          networkAccount=await api({action:'mentor-network-read',purpose:'my-status'});
         }
+        let bookingAccess=false;
+        try{
+          const locale=(document.getElementById('locale') as HTMLSelectElement).value;
+          const challenge=await api({action:'admin-challenge',pubkey,locale,purpose:contentNostr?'content-session':'invite'});
+          if(contentNostr)await api({action:'admin-content-session',locale,event:await provider.signEvent(challenge.event)});
+          bookingAccess=true;
+        }catch(error){if(!mentorNetwork)throw error;}
+        for(const button of navigation){
+          if(!button.hasAttribute('data-network-nav'))button.hidden=!bookingAccess;
+          else {const section=button.dataset.section;const roles=networkAccount?.roles.map(r=>r.role)||[];
+            button.hidden=!(networkAccount?.superAdmin||
+              (section==='articles'&&roles.includes('editor'))||
+              (section==='mentor-sales'&&roles.some(r=>['mentor','branch_manager'].includes(r)))||
+              (section==='mentor-invitations'&&roles.includes('mentor')));
+          }
+        }
+        if(mentorNetwork){const detail:{signer:AdminSigner;ready?:Promise<void>}={signer:provider};window.dispatchEvent(new CustomEvent('custody:network-connect',{detail}));await detail.ready;}
         activeSigner=provider;
         const npub = npubEncode(pubkey);
         identity!.textContent = npub.slice(0, 10)+'…'+npub.slice(-5);
@@ -318,7 +355,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
         document.getElementById('workspace-status')!.appendChild(status);
         document.getElementById('sign-in')!.hidden = true;
         status.textContent = '';
-        navigation[0].focus();
+        const first=navigation.find(button=>!button.hidden);if(first){first.click();first.focus();}else status.textContent='Your account is connected. No workspace roles have been assigned yet.';
       } catch(error) {
         pubkey=''; closeAmber?.(); closeAmber=undefined;
         if (android) pendingAmber = prepareAmber();

@@ -12,6 +12,9 @@ with tempfile.TemporaryDirectory(prefix='custody-network-ui-') as temp:
  html=Path('build/astro-staging/admin/network/index.html').read_text().replace('/_astro/','/_mentor-pilot-assets/')
  assert 'network-page' in html and 'network-masthead' in html and 'noindex' in html
  (ui/'admin/network/index.html').write_text(html)
+ admin=Path('build/astro-staging/admin/index.html').read_text().replace('/_astro/','/_mentor-pilot-assets/')
+ assert 'data-network-nav' in admin and 'network-panel' in admin
+ (ui/'admin/index.html').write_text(admin)
  shutil.copytree('build/astro-staging/_astro',ui/'_mentor-pilot-assets')
  shutil.copyfile('ops/mentors/install-network-ui.sh',root/'install.sh')
  files=sorted(p for p in root.rglob('*') if p.is_file())

@@ -120,3 +120,24 @@ QA remains pending: local ChromeDriver cannot create a Chrome session. No render
 screenshot or full accessibility pass is claimed. Static-only archive installation
 atomically switches the separate private-page symlink, retains prior pages and
 rolls back if the served new page cannot be verified. No backend restart is used.
+
+## Unified admin sidebar
+
+The staging /admin shell now embeds the shared MentorWorkspace component. Articles
+(including owner assignments), Mentor applications, Local branches, Roles and
+access, Mentor sales and Mentor invitations are sidebar sections. The existing
+booking Invitations, Sales and Payment review remain separately allowlisted.
+
+Admin sign-in creates a signed mentor session and shares the active signer with
+the embedded network UI; it does not create a second signer connection. Network
+roles determine which sidebar items appear. A failed legacy booking allowlist check
+does not block an approved mentor; a mentor role never exposes payment operations.
+Content sessions are created deliberately when entering Articles. Errors appear in
+the admin status area, and disconnect awaits session logout before reloading.
+
+Enabled staging build and 22 static contract tests pass. Built-page audit checks
+six gated entries, unique IDs and valid aria-controls targets. Real desktop/Amber
+and visual browser checks remain pending. The static-only installer adds exact
+/admin and /admin/ paths to the existing staging private-page matcher, validates
+Caddy before reload, and preserves code and routes for rollback. It does not restart
+the backend or change production routes.
