@@ -103,7 +103,7 @@ if (process.env.MENTOR_NETWORK_ENABLED === 'true' && !config.pilot) {
 
 if(contentSessionEnabled) articlesAPI=(await import('./content-cms/articles.mjs')).createArticlesAPI({access:createArticleAccess({db,
   isGlobalEditor:actor=>admin.isContentEditor(actor)||mentorNetwork?.isSuperAdmin(actor),
-  editorBranches:actor=>mentorNetwork?.contentBranches(actor)||[]})});
+  canDraftAll:actor=>mentorNetwork?.canEdit(actor)||false})});
 const contentAdmin={
   requireContentSession(token) {try{return admin.requireContentSession(token);}catch(error){if(!mentorNetwork)throw error;return mentorNetwork.requireContentSession(token);}},
   endContentSession(token) {admin.endContentSession(token);mentorNetwork?.endContentSession(token);}

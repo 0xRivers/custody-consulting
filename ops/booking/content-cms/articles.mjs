@@ -182,11 +182,11 @@ export function createArticlesAPI({ request = github, getToken = installationTok
 
   return async ({ action, params = {} }, context = {}) => {
     const scope = await access(context.actor);
-    const allowed = id => scope.global || scope.articleIds.includes(id);
+    const allowed = id => scope.global || scope.workspaceAll || scope.articleIds.includes(id);
     const check = async id => {
       assertId(id);
       const current = await access(context.actor);
-      if (!current.global && !current.articleIds.includes(id)) throw new EditorError('Article is outside your assigned scope.', 403);
+      if (!current.global && !current.workspaceAll && !current.articleIds.includes(id)) throw new EditorError('Article is outside your assigned scope.', 403);
     };
     if (['workspaceRead', 'workspaceSave'].includes(action)) await check(params.id);
     else if (action !== 'workspaceList' && !scope.global) throw new EditorError('This operation requires global content access.', 403);

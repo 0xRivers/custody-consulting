@@ -4,8 +4,7 @@ import { randomUUID } from 'node:crypto';
 // Callers must verify fresh signing proofs and authorize mutations before calling.
 export const presets = Object.freeze({
   mentor: Object.freeze(['sales.read.own', 'invitations.create.own']),
-  branch_manager: Object.freeze(['sales.read.branch', 'members.read.branch']),
-  editor: Object.freeze(['content.draft.branch']),
+  editor: Object.freeze(['content.draft']),
 });
 const validKey = key => typeof key === 'string' && /^[0-9a-f]{64}$/.test(key);
 export function createIdentityStore({ db, now = Date.now }) {
@@ -14,10 +13,6 @@ export function createIdentityStore({ db, now = Date.now }) {
     CREATE TABLE IF NOT EXISTS network_identity_keys (
       pubkey TEXT PRIMARY KEY, personId TEXT NOT NULL REFERENCES network_people(id),
       activatedAt INTEGER NOT NULL, retiredAt INTEGER);
-    CREATE TABLE IF NOT EXISTS network_grants (
-      id TEXT PRIMARY KEY, personId TEXT NOT NULL REFERENCES network_people(id),
-      role TEXT NOT NULL, branchId TEXT NOT NULL, validFrom INTEGER NOT NULL,
-      validUntil INTEGER, revokedAt INTEGER);
     CREATE TABLE IF NOT EXISTS network_identity_audit (
       id TEXT PRIMARY KEY, actorPersonId TEXT NOT NULL, signingKey TEXT NOT NULL,
       action TEXT NOT NULL, subjectId TEXT NOT NULL, createdAt INTEGER NOT NULL);
@@ -75,35 +70,6 @@ export function createIdentityStore({ db, now = Date.now }) {
         db.prepare('UPDATE network_identity_keys SET retiredAt=? WHERE pubkey=?').run(now(), oldKey);
         return personId;
       });
-    },
-    // Requires authorized grantor. No super-admin preset, wildcard or implicit role inheritance.
-    grant({ signingKey, personId, role, branchId, validFrom = now(), validUntil = null }) {
-      person(personId);
-      if (!Object.hasOwn(presets, role) || typeof branchId !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchId) || branchId.length > 80) throw new Error('Invalid scoped role');
-      if (!Number.isSafeInteger(validFrom) || (validUntil !== null && (!Number.isSafeInteger(validUntil) || validUntil <= validFrom))) throw new Error('Invalid effective interval');
-      return transaction(() => {
-        const id = randomUUID();
-        db.prepare('INSERT INTO network_grants VALUES (?,?,?,?,?,?,NULL)').run(id, personId, role, branchId, validFrom, validUntil);
-        audit(signingKey, 'role.granted', id);
-        return id;
-      });
-    },
-    revoke({ signingKey, grantId }) {
-      return transaction(() => {
-        actor(signingKey);
-        const result = db.prepare('UPDATE network_grants SET revokedAt=? WHERE id=? AND revokedAt IS NULL').run(now(), grantId);
-        if (result.changes) audit(signingKey, 'role.revoked', grantId);
-        return result.changes === 1;
-      });
-    },
-    // Call at execution, not only when preparing a request. Branch/mentor readiness
-    // and resource ownership must additionally be checked by the application layer.
-    permits({ pubkey, permission, branchId }) {
-      const personId = resolve(pubkey);
-      if (!personId) return false;
-      const time = now();
-      return db.prepare('SELECT role FROM network_grants WHERE personId=? AND branchId=? AND revokedAt IS NULL AND validFrom<=? AND (validUntil IS NULL OR validUntil>?)')
-        .all(personId, branchId, time, time).some(({ role }) => presets[role]?.includes(permission));
     },
   };
 }

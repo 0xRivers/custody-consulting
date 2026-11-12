@@ -12,8 +12,7 @@ export class NetworkError extends Error {
   constructor(message, status = 403) { super(message); this.status = status; }
 }
 export const rolePermissions = presets;
-const actions = new Set(['content-session-start', 'content-assign', 'content-assignments', 'session-start', 'apply', 'my-status', 'applications', 'branches', 'create-branch', 'approve', 'reject', 'role-update', 'sales', 'issue-invite']);
-const slug = value => typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) && value.length <= 80;
+const actions = new Set(['content-session-start','session-start','apply','my-status','applications','approve','reject','roles-set','members','sales','issue-invite']);
 const text = (value, name, min, max) => {
   if (typeof value !== 'string' || value.trim().length < min || value.trim().length > max) throw new NetworkError(`${name} must contain ${min}–${max} characters.`, 400);
   return value.trim();
@@ -29,12 +28,10 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
   const endpoint = `${origin}/booking-api/checkout`;
   db.exec(`
     CREATE TABLE IF NOT EXISTS mentor_content_sessions (tokenHash TEXT PRIMARY KEY, pubkey TEXT NOT NULL, expiresAt INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS content_article_ownership (articleId TEXT PRIMARY KEY, branchId TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS mentor_sessions (tokenHash TEXT PRIMARY KEY, pubkey TEXT NOT NULL, expiresAt INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS mentor_challenges (nonce TEXT PRIMARY KEY, pubkey TEXT NOT NULL, purpose TEXT NOT NULL, requestJson TEXT NOT NULL, createdAt INTEGER NOT NULL, expiresAt INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS mentor_applications (id TEXT PRIMARY KEY, pubkey TEXT NOT NULL, displayName TEXT NOT NULL, city TEXT NOT NULL, countryCode TEXT NOT NULL, timezone TEXT NOT NULL, languagesJson TEXT NOT NULL, experience TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'pending', submittedAt INTEGER NOT NULL, reviewedAt INTEGER, reviewer TEXT);
     CREATE UNIQUE INDEX IF NOT EXISTS mentor_pending_key ON mentor_applications(pubkey) WHERE state='pending';
-    CREATE TABLE IF NOT EXISTS custody_branches (id TEXT PRIMARY KEY, name TEXT NOT NULL, city TEXT NOT NULL, countryCode TEXT NOT NULL, timezone TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1, createdAt INTEGER NOT NULL, createdBy TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS custody_roles (pubkey TEXT NOT NULL, role TEXT NOT NULL, branchId TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1, changedAt INTEGER NOT NULL, changedBy TEXT NOT NULL, PRIMARY KEY(pubkey,role,branchId));
     CREATE TABLE IF NOT EXISTS custody_role_audit (id TEXT PRIMARY KEY, actor TEXT NOT NULL, action TEXT NOT NULL, target TEXT NOT NULL, detailJson TEXT NOT NULL, createdAt INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS mentor_invite_attribution (tokenHash TEXT PRIMARY KEY, mentorPubkey TEXT NOT NULL, branchId TEXT NOT NULL, branchName TEXT NOT NULL, createdAt INTEGER NOT NULL);
@@ -47,22 +44,56 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
   const identities = createIdentityStore({ db, now });
   const root = actor => { if (actor !== superAdmin) throw new NetworkError('Only the Custody Consulting super-admin can perform this action.'); };
   const audit = (actor, action, target, detail) => db.prepare('INSERT INTO custody_role_audit VALUES (?,?,?,?,?,?)').run(randomUUID(), actor, action, target, JSON.stringify(detail), now());
-  function requireBranch(id) {
-    if (!slug(id)) throw new NetworkError('Choose a valid branch.', 400);
-    const branch = db.prepare('SELECT * FROM custody_branches WHERE id=? AND active=1').get(id);
-    if (!branch) throw new NetworkError('This branch is unavailable.', 400);
-    return branch;
+  db.exec(`CREATE TABLE IF NOT EXISTS custody_person_roles (
+    personId TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('mentor','editor')),
+    active INTEGER NOT NULL, changedAt INTEGER NOT NULL, changedBy TEXT NOT NULL,
+    PRIMARY KEY(personId,role));
+    CREATE TABLE IF NOT EXISTS custody_pending_roles (
+    pubkey TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('mentor','editor')),
+    active INTEGER NOT NULL, changedAt INTEGER NOT NULL, changedBy TEXT NOT NULL,
+    PRIMARY KEY(pubkey,role));
+    CREATE TABLE IF NOT EXISTS custody_role_migrations (personId TEXT PRIMARY KEY);`);
+  function enrollRoles(pubkey) {
+    const personId=identities.resolve(pubkey);
+    if(!db.prepare('SELECT personId FROM custody_role_migrations WHERE personId=?').get(personId)){
+      const hasLegacyBranches=!!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='custody_branches'").get();
+      const effective=hasLegacyBranches?"CASE WHEN EXISTS (SELECT 1 FROM custody_branches b WHERE b.id=r.branchId AND b.active=1) THEN r.active ELSE 0 END":'r.active';
+      db.prepare(`INSERT OR IGNORE INTO custody_person_roles
+        SELECT ?,r.role,MAX(${effective}),MAX(r.changedAt),r.changedBy FROM custody_roles r
+        JOIN network_identity_keys k ON k.pubkey=r.pubkey WHERE k.personId=? AND r.role IN ('mentor','editor') GROUP BY r.role`).run(personId,personId);
+      db.prepare('UPDATE custody_roles SET active=0 WHERE pubkey IN (SELECT pubkey FROM network_identity_keys WHERE personId=?)').run(personId);
+      db.prepare('INSERT INTO custody_role_migrations VALUES (?)').run(personId);
+      audit('system:two-role-migration','roles.migrated',personId,{policy:'mentor-editor-only'});
+    }
+    for(const row of db.prepare('SELECT * FROM custody_pending_roles WHERE pubkey=?').all(pubkey)){
+      db.prepare(`INSERT INTO custody_person_roles VALUES (?,?,?,?,?) ON CONFLICT(personId,role) DO UPDATE SET active=excluded.active,changedAt=excluded.changedAt,changedBy=excluded.changedBy`).run(personId,row.role,row.active,row.changedAt,row.changedBy);
+    }
+    db.prepare('DELETE FROM custody_pending_roles WHERE pubkey=?').run(pubkey);
   }
+  db.exec('SAVEPOINT migrate_two_roles');
+  try {
+    for(const {pubkey} of db.prepare('SELECT pubkey FROM network_identity_keys WHERE retiredAt IS NULL').all())enrollRoles(pubkey);
+    db.exec('RELEASE migrate_two_roles');
+  }catch(error){db.exec('ROLLBACK TO migrate_two_roles');db.exec('RELEASE migrate_two_roles');throw error;}
   const roles = actor => {
-    const personId = identities.resolve(actor);
-    if (!personId) return [];
-    return db.prepare(`SELECT DISTINCT r.role,r.branchId FROM custody_roles r
-      JOIN custody_branches b ON b.id=r.branchId
-      JOIN network_identity_keys k ON k.pubkey=r.pubkey
-      WHERE k.personId=? AND r.active=1 AND b.active=1`).all(personId);
+    const personId=identities.resolve(actor);
+    return personId ? db.prepare('SELECT role FROM custody_person_roles WHERE personId=? AND active=1 ORDER BY role').all(personId) : [];
   };
   const ownKeys = actor => db.prepare('SELECT pubkey FROM network_identity_keys WHERE personId=?').all(identities.resolve(actor)).map(row => row.pubkey);
-  const permit = (actor, permission, branchId) => actor === superAdmin || roles(actor).some(role => role.branchId === branchId && rolePermissions[role.role]?.includes(permission));
+  function invalidatePerson(personId){
+    for(const table of ['mentor_sessions','mentor_content_sessions','mentor_challenges']) db.prepare(`DELETE FROM ${table} WHERE pubkey IN (SELECT pubkey FROM network_identity_keys WHERE personId=?)`).run(personId);
+  }
+  function setRoles(actor,npub,desired){
+    const target=keyOf(npub),personId=identities.resolve(target);
+    if(!personId && db.prepare('SELECT pubkey FROM network_identity_keys WHERE pubkey=?').get(target)) throw new NetworkError('Use the person’s current npub; this key was retired.',400);
+    db.prepare('UPDATE custody_roles SET active=0 WHERE pubkey=? OR pubkey IN (SELECT pubkey FROM network_identity_keys WHERE personId=?)').run(target,personId||'');
+    const table=personId?'custody_person_roles':'custody_pending_roles',field=personId?'personId':'pubkey',id=personId||target;
+    const previous=Object.fromEntries(db.prepare(`SELECT role,active FROM ${table} WHERE ${field}=?`).all(id).map(r=>[r.role,!!r.active]));
+    for(const role of ['mentor','editor']) db.prepare(`INSERT INTO ${table} VALUES (?,?,?,?,?) ON CONFLICT(${field},role) DO UPDATE SET active=excluded.active,changedAt=excluded.changedAt,changedBy=excluded.changedBy`).run(id,role,Number(desired[role]),now(),actor);
+    if(personId && ['mentor','editor'].some(role=>previous[role]&&!desired[role]))invalidatePerson(personId);
+    audit(actor,'roles.set',personId||target,{npub,previous,roles:desired,pending:!personId});
+    return {updated:true,roles:desired,pending:!personId};
+  }
   function regional(data) {
     const city = text(data.city, 'City/region', 2, 100);
     if (typeof data.countryCode !== 'string' || !/^[A-Z]{2}$/.test(data.countryCode)) throw new NetworkError('Use a two-letter country code.', 400);
@@ -71,20 +102,6 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
     return { city, countryCode: data.countryCode, timezone: data.timezone };
   }
   function dispatch(actor, action, request) {
-    if (action === 'content-assignments') {
-      root(actor); only(request, []);
-      return { assignments: db.prepare('SELECT articleId,branchId FROM content_article_ownership ORDER BY articleId').all() };
-    }
-    if (action === 'content-assign') {
-      root(actor); only(request, ['articleId', 'branchId']);
-      if (!slug(request.articleId)) throw new NetworkError('Choose a valid article.', 400);
-      if (request.branchId !== null) requireBranch(request.branchId);
-      const previous = db.prepare('SELECT branchId FROM content_article_ownership WHERE articleId=?').get(request.articleId)?.branchId ?? null;
-      if (request.branchId === null) db.prepare('DELETE FROM content_article_ownership WHERE articleId=?').run(request.articleId);
-      else db.prepare('INSERT INTO content_article_ownership VALUES (?,?) ON CONFLICT(articleId) DO UPDATE SET branchId=excluded.branchId').run(request.articleId, request.branchId);
-      audit(actor, 'content.assigned', request.articleId, { previousBranchId: previous, branchId: request.branchId });
-      return { assigned: true };
-    }
     if (action === 'content-session-start') {
       only(request, []);
       if (actor !== superAdmin && !roles(actor).some(r => r.role === 'editor')) throw new NetworkError('Content editing access is unavailable.');
@@ -121,77 +138,56 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
       root(actor); only(request, []);
       return { applications: db.prepare('SELECT * FROM mentor_applications ORDER BY submittedAt DESC LIMIT 100').all().map(row => ({ ...row, npub: npubEncode(row.pubkey), languages: JSON.parse(row.languagesJson), languagesJson: undefined })) };
     }
-    if (action === 'branches') {
-      root(actor); only(request, []);
-      return { branches: db.prepare('SELECT * FROM custody_branches ORDER BY name').all(), members: db.prepare('SELECT pubkey,role,branchId,active FROM custody_roles ORDER BY branchId,role').all() };
-    }
-    if (action === 'create-branch') {
-      root(actor); only(request, ['id', 'name', 'city', 'countryCode', 'timezone']);
-      if (!slug(request.id)) throw new NetworkError('Choose a lowercase branch ID.', 400);
-      const region = regional(request), name = text(request.name, 'Branch name', 3, 120);
-      if (db.prepare('SELECT id FROM custody_branches WHERE id=?').get(request.id)) throw new NetworkError('This branch ID already exists.', 409);
-      db.prepare('INSERT INTO custody_branches (id,name,city,countryCode,timezone,createdAt,createdBy) VALUES (?,?,?,?,?,?,?)').run(request.id, name, region.city, region.countryCode, region.timezone, now(), actor);
-      audit(actor, 'branch.created', request.id, { ...region, name }); return { id: request.id };
-    }
     if (action === 'approve' || action === 'reject') {
-      root(actor); only(request, action === 'approve' ? ['applicationId', 'branchId'] : ['applicationId']);
+      root(actor); only(request, ['applicationId']);
       const application = db.prepare("SELECT * FROM mentor_applications WHERE id=? AND state='pending'").get(request.applicationId);
       if (!application) throw new NetworkError('This application is no longer awaiting review.', 409);
       if (action === 'approve') {
-        requireBranch(request.branchId);
-        db.prepare('INSERT INTO custody_roles VALUES (?,?,?,?,?,?) ON CONFLICT(pubkey,role,branchId) DO UPDATE SET active=1,changedAt=excluded.changedAt,changedBy=excluded.changedBy').run(application.pubkey, 'mentor', request.branchId, 1, now(), actor);
+        const currentKey=db.prepare('SELECT pubkey FROM network_identity_keys WHERE personId=(SELECT personId FROM network_identity_keys WHERE pubkey=?) AND retiredAt IS NULL ORDER BY activatedAt DESC LIMIT 1').get(application.pubkey)?.pubkey;
+        if(!currentKey)throw new NetworkError('Applicant must reconnect with their current npub.',409);
+        setRoles(actor,npubEncode(currentKey),{mentor:true,editor:roles(currentKey).some(r=>r.role==='editor')});
       }
       const state = action === 'approve' ? 'approved' : 'rejected';
       db.prepare('UPDATE mentor_applications SET state=?,reviewedAt=?,reviewer=? WHERE id=?').run(state, now(), actor, application.id);
-      audit(actor, `application.${state}`, application.id, { pubkey: application.pubkey, branchId: request.branchId ?? null }); return { state };
+      audit(actor, `application.${state}`, application.id, { pubkey: application.pubkey }); return { state };
     }
-    if (action === 'role-update') {
-      root(actor); only(request, ['npub', 'role', 'branchId', 'active']);
-      const target = keyOf(request.npub); requireBranch(request.branchId);
-      if (!Object.hasOwn(rolePermissions, request.role) || typeof request.active !== 'boolean') throw new NetworkError('Choose a supported role and active state. The super-admin cannot be delegated here.', 400);
-      if (!identities.resolve(target)) throw new NetworkError('The recipient must first connect with an active verified key.', 400);
-      db.prepare(`UPDATE custody_roles SET active=0,changedAt=?,changedBy=?
-        WHERE role=? AND branchId=? AND pubkey IN
-        (SELECT pubkey FROM network_identity_keys WHERE personId=?)`).run(now(), actor, request.role, request.branchId, identities.resolve(target));
-      db.prepare('INSERT INTO custody_roles VALUES (?,?,?,?,?,?) ON CONFLICT(pubkey,role,branchId) DO UPDATE SET active=excluded.active,changedAt=excluded.changedAt,changedBy=excluded.changedBy').run(target, request.role, request.branchId, Number(request.active), now(), actor);
-      if (!request.active) {
-        for (const table of ['mentor_sessions','mentor_content_sessions']) db.prepare(`DELETE FROM ${table} WHERE pubkey IN (SELECT pubkey FROM network_identity_keys WHERE personId=?)`).run(identities.resolve(target));
-        db.prepare('DELETE FROM mentor_challenges WHERE pubkey IN (SELECT pubkey FROM network_identity_keys WHERE personId=?)').run(identities.resolve(target));
-      }
-      audit(actor, request.active ? 'role.granted' : 'role.revoked', target, { role: request.role, branchId: request.branchId }); return { updated: true };
+    if(action==='roles-set'){
+      root(actor);only(request,['npub','mentor','editor']);
+      if(typeof request.mentor!=='boolean'||typeof request.editor!=='boolean')throw new NetworkError('Choose Mentor and Editor using the checkboxes.',400);
+      return setRoles(actor,request.npub,{mentor:request.mentor,editor:request.editor});
+    }
+    if(action==='members'){
+      root(actor);only(request,[]);
+      const people=db.prepare(`SELECT DISTINCT personId FROM custody_person_roles`).all().map(({personId})=>{
+        const key=db.prepare('SELECT pubkey FROM network_identity_keys WHERE personId=? AND retiredAt IS NULL ORDER BY activatedAt DESC LIMIT 1').get(personId);
+        if(!key)return null;
+        const assigned=roles(key.pubkey).map(r=>r.role);
+        return {npub:npubEncode(key.pubkey),mentor:assigned.includes('mentor'),editor:assigned.includes('editor'),pending:false};
+      }).filter(Boolean);
+      const pending=db.prepare('SELECT DISTINCT pubkey FROM custody_pending_roles').all().map(({pubkey})=>{
+        const flags=Object.fromEntries(db.prepare('SELECT role,active FROM custody_pending_roles WHERE pubkey=?').all(pubkey).map(r=>[r.role,!!r.active]));
+        return {npub:npubEncode(pubkey),mentor:!!flags.mentor,editor:!!flags.editor,pending:true};
+      });return {members:[...people,...pending]};
     }
     if (action === 'issue-invite') {
-      only(request, ['branchId', 'locale']); const branch = requireBranch(request.branchId);
-      if (!permit(actor, 'invitations.create.own', branch.id) || !['en', 'pl'].includes(request.locale)) throw new NetworkError('You cannot create an invitation for this branch.');
+      only(request, ['locale']);
+      if ((actor!==superAdmin&&!roles(actor).some(r=>r.role==='mentor')) || !['en','pl'].includes(request.locale)) throw new NetworkError('Mentor access is required to create invitations.');
       if (db.prepare('SELECT COUNT(*) AS n FROM mentor_invite_attribution WHERE mentorPubkey=? AND createdAt>?').get(actor, now() - 3600000).n >= 30) throw new NetworkError('Invitation limit reached. Try again later.', 429);
       const token = randomBytes(32).toString('base64url'), tokenHash = hash(token), expiresAt = now() + 86400000;
       db.prepare('INSERT INTO invitations (tokenHash,expiresAt) VALUES (?,?)').run(tokenHash, expiresAt);
-      db.prepare('INSERT INTO mentor_invite_attribution VALUES (?,?,?,?,?)').run(tokenHash, actor, branch.id, branch.name, now());
-      audit(actor, 'invitation.created', tokenHash, { branchId: branch.id });
+      db.prepare('INSERT INTO mentor_invite_attribution VALUES (?,?,?,?,?)').run(tokenHash, actor, 'network', 'Custody Consulting', now());
+      audit(actor, 'invitation.created', tokenHash, {});
       return { url: `${origin}/payment/?lang=${request.locale}#invite=${token}`, expiresAt };
     }
     if (action === 'sales') {
-      only(request, ['branchId']); const assignments = roles(actor);
-      let filter = '', parameters = [];
-      if (request.branchId) requireBranch(request.branchId);
-      if (actor === superAdmin) {
-        if (request.branchId) { filter = 'AND a.branchId=?'; parameters.push(request.branchId); }
-      } else {
-        const managerBranches = assignments.filter(role => rolePermissions[role.role]?.includes('sales.read.branch')).map(role => role.branchId);
-        const ownBranches = assignments.filter(role => rolePermissions[role.role]?.includes('sales.read.own')).map(role => role.branchId);
-        if (!managerBranches.length && !ownBranches.length) throw new NetworkError('Sales access is unavailable for this account.');
-        const placeholders = values => values.map(() => '?').join(',');
-        const clauses = [];
-        if (managerBranches.length) { clauses.push(`a.branchId IN (${placeholders(managerBranches)})`); parameters.push(...managerBranches); }
-        if (ownBranches.length) { const keys = ownKeys(actor); clauses.push(`(a.mentorPubkey IN (${placeholders(keys)}) AND a.branchId IN (${placeholders(ownBranches)}))`); parameters.push(...keys, ...ownBranches); }
-        filter = `AND (${clauses.join(' OR ')})`;
-        if (request.branchId) {
-          if (![...managerBranches, ...ownBranches].includes(request.branchId)) throw new NetworkError('This branch is outside your sales scope.');
-          filter += ' AND a.branchId=?'; parameters.push(request.branchId);
-        }
+      only(request, []);
+      let filter='',parameters=[];
+      if(actor!==superAdmin){
+        if(!roles(actor).some(r=>r.role==='mentor'))throw new NetworkError('Sales access is unavailable for this account.');
+        const keys=ownKeys(actor);filter=`AND a.mentorPubkey IN (${keys.map(()=>'?').join(',')})`;parameters=keys;
       }
-      const totals = db.prepare(`SELECT a.mentorPubkey,a.branchId,a.branchName,b.provider,b.settledRail,b.priceCurrency AS currency,COUNT(*) AS count,SUM(b.priceMinorUnits) AS minorUnits,SUM(b.settledSats) AS sats,COUNT(b.settledSats) AS satsCount FROM bookings b LEFT JOIN mentor_booking_attribution a ON a.reference=b.reference WHERE b.state='confirmed' AND b.paymentId IS NOT NULL ${filter} GROUP BY a.mentorPubkey,a.branchId,a.branchName,b.provider,b.settledRail,b.priceCurrency ORDER BY a.branchId,a.mentorPubkey,b.priceCurrency`).all(...parameters);
-      return { totals, basis: 'Confirmed booking amounts by original currency; not net revenue. Refund and fee reconciliation is not included.', unassignedIncluded: actor === superAdmin && !request.branchId };
+      const totals = db.prepare(`SELECT a.mentorPubkey,b.provider,b.settledRail,b.priceCurrency AS currency,COUNT(*) AS count,SUM(b.priceMinorUnits) AS minorUnits,SUM(b.settledSats) AS sats,COUNT(b.settledSats) AS satsCount FROM bookings b LEFT JOIN mentor_booking_attribution a ON a.reference=b.reference WHERE b.state='confirmed' AND b.paymentId IS NOT NULL ${filter} GROUP BY a.mentorPubkey,b.provider,b.settledRail,b.priceCurrency ORDER BY a.mentorPubkey,b.priceCurrency`).all(...parameters);
+      return { totals, basis: 'Confirmed booking amounts by original currency; not net revenue. Refund and fee reconciliation is not included.', unassignedIncluded: actor === superAdmin };
     }
     throw new NetworkError('Unknown network action.', 400);
   }
@@ -200,7 +196,7 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
   ] });
   return {
     isSuperAdmin(pubkey) { return pubkey === superAdmin && !!identities.resolve(pubkey); },
-    contentBranches(pubkey) { return roles(pubkey).filter(r => r.role === 'editor').map(r => r.branchId); },
+    canEdit(pubkey) { return !!identities.resolve(pubkey)&&roles(pubkey).some(r=>r.role==='editor'); },
     requireContentSession(token) {
       if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new NetworkError('Reconnect to edit articles.', 401);
       const row = db.prepare('SELECT pubkey FROM mentor_content_sessions WHERE tokenHash=? AND expiresAt>?').get(hash(token), now());
@@ -212,7 +208,7 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
       if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new NetworkError('Connect your Nostr signer again.', 401);
       const session = db.prepare('SELECT pubkey FROM mentor_sessions WHERE tokenHash=? AND expiresAt>?').get(hash(token), now());
       if (!session || !identities.resolve(session.pubkey)) throw new NetworkError('Your session expired or key was retired.', 401);
-      if (!['my-status', 'applications', 'branches', 'sales', 'content-assignments'].includes(purpose)) throw new NetworkError('This action requires a fresh signature.');
+      if (!['my-status', 'applications', 'sales', 'members'].includes(purpose)) throw new NetworkError('This action requires a fresh signature.');
       return dispatch(session.pubkey, purpose, request);
     },
     endSession(token) {
@@ -246,6 +242,7 @@ export function createMentorNetwork({ db, superAdminNpub, origin, now = Date.now
         if (db.prepare('DELETE FROM mentor_challenges WHERE nonce=?').run(nonce).changes !== 1) throw new NetworkError('Signing request was already used.');
         try { identities.registerVerifiedKey(row.pubkey); }
         catch { throw new NetworkError('This identity key is retired or unavailable.'); }
+        enrollRoles(row.pubkey);
         const result = dispatch(row.pubkey, row.purpose, JSON.parse(row.requestJson));
         db.exec('COMMIT'); return result;
       } catch (error) { db.exec('ROLLBACK'); throw error; }

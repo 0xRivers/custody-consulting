@@ -45,7 +45,6 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
               {[
                 ['articles','Articles','M5 3h10l4 4v14H5zM8 12h8m-8 4h6'],
                 ['applications','Mentor applications','M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M17 8l2 2 3-3'],
-                ['branches','Local branches','M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0ZM12 7v6m-3-3h6'],
                 ['access','Roles and access','M12 3l8 4v6c0 5-8 8-8 8s-8-3-8-8V7l8-4Z'],
                 ['mentor-sales','Mentor sales','M4 4v16h16M9 15v-4m5 4V7m5 8v-6'],
                 ['mentor-invitations','Mentor invitations','M3 5h18v14H3zM3 7l9 6 9-6'],
@@ -342,7 +341,7 @@ const contentNostrEnabled = contentEnabled && process.env.CONTENT_NOSTR_ENABLED 
           else {const section=button.dataset.section;const roles=networkAccount?.roles.map(r=>r.role)||[];
             button.hidden=!(networkAccount?.superAdmin||
               (section==='articles'&&roles.includes('editor'))||
-              (section==='mentor-sales'&&roles.some(r=>['mentor','branch_manager'].includes(r)))||
+              (section==='mentor-sales'&&roles.some(r=>r==='mentor'))||
               (section==='mentor-invitations'&&roles.includes('mentor')));
           }
         }

@@ -1,5 +1,7 @@
 # Custody Consulting: publishing and mentor network scope
 
+**Updated owner decision (12 November 2026): branches and branch managers are removed. The active roles are Mentor and Editor, assigned independently to npubs. See MENTOR-ROLES.md. Branch-dependent sections below are historical scope, not current requirements.**
+
 Prepared by Astra at the owner's request, 11 November 2026.
 Status: captured in backlog on 12 November 2026; local prototypes remain unshipped. Business policy decisions are still pending.
 

@@ -103,3 +103,11 @@ test('workspace article list omits other branches before fetching article bodies
   assert.deepEqual(result.articles.map(a=>a.id),['mine']);
   assert.ok(!seen.some(path=>path.includes('/other.md')));
 });
+
+test('editor role can draft any workspace article but cannot use legacy endpoints',async()=>{
+ const f=fixture({access:()=>({global:false,workspaceAll:true,articleIds:[]})});
+ assert.equal((await f.api({action:'workspaceRead',params:{id:'example'}})).id,'example');
+ const input=editableChanges(Object.fromEntries(Object.entries(f.files).map(([locale,entry])=>[locale,editableArticle(entry.data)])),['foundations']);
+ assert.ok((await f.api({action:'workspaceSave',params:{id:'example',revision:sha,changes:input}})).url);
+ await assert.rejects(f.api({action:'persistEntry',params:{}}),error=>error.status===403);
+});
