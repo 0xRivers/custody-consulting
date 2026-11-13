@@ -30,3 +30,28 @@ export function validateChanges(changes) {
   }
   return null;
 }
+
+// Publication checks mirror the existing answer-focused build contract. Draft
+// saves remain permissive; these checks run before a release can be approved.
+export function publicationProblems(changes) {
+  const problems = [], structure = {};
+  const add = (locale, field, message) => problems.push({ locale, field, message: `${locale === 'pl' ? 'Polski' : 'English'}: ${message}` });
+  const prohibited = /guarante(?:e|ed)|rank\s*#?1|featured snippet|AI citation|gwarancj\w*\s+(?:pozycj|cytow)|pierwsze miejsce w google/i;
+  for (const locale of locales) {
+    const article = changes[locale], body = article.body.trim();
+    const headings = [...body.matchAll(/^##\s+(.+)$/gm)].map(match => match[1].trim());
+    structure[locale] = { headings: headings.length, sources: article.sources.length };
+    if (article.keyAnswer.trim().length < 40 || article.keyAnswer.trim().length > 240) add(locale, 'keyAnswer', 'Keep the opening answer between 40 and 240 characters.');
+    if (!body || body.startsWith('#')) add(locale, 'body', 'Begin with an introductory paragraph before the first heading.');
+    if (headings.length < 3) add(locale, 'body', 'Add at least three sections using ## headings.');
+    if (headings.filter(heading => heading.endsWith('?')).length < 2) add(locale, 'body', 'Write at least two section headings as questions ending in ?.');
+    if (new Set(headings).size !== headings.length) add(locale, 'body', 'Give each section a different heading.');
+    if (article.sources.length < 2) add(locale, 'sources', 'Add at least two relevant sources.');
+    if (!new RegExp(`\\(/${locale}/#services\\)`).test(body)) add(locale, 'body', `Include a contextual services link, such as [consulting services](/${locale}/#services).`);
+    if (!/^\|.+\|$/m.test(body)) add(locale, 'body', 'Include the comparison table required by the current article rules.');
+    if (prohibited.test(JSON.stringify(article))) add(locale, 'body', 'Remove unsupported guarantees or search-ranking promises.');
+  }
+  if (structure.en.headings !== structure.pl.headings) add('pl', 'body', 'Use the same number of sections as the English version.');
+  if (structure.en.sources !== structure.pl.sources) add('pl', 'sources', 'Use the same number of sources as the English version.');
+  return problems;
+}

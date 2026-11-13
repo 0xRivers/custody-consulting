@@ -6,7 +6,22 @@ import {decodeArticle} from './workspace-model.mjs';
 import {pair} from './workspace-fixture.mjs';
 const A='a'.repeat(40),B='b'.repeat(40),C='c'.repeat(40),D='d'.repeat(40),E='e'.repeat(40);
 function fixture(t){
- const db=new DatabaseSync(':memory:');t.after(()=>db.close());const originals=pair();const source=Object.fromEntries(['en','pl'].map(l=>[l,originals[l].data+'\nReviewed addition to the article.\n']));
+ const db=new DatabaseSync(':memory:');t.after(()=>db.close());const originals=pair();for(const locale of ['en','pl']){const decoded=decodeArticle(originals[locale].data);decoded.document.set('sources',[{label:'Wallet documentation',url:'https://example.com/docs'},{label:'Recovery reference',url:'https://example.com/recovery'}]);originals[locale].data=`---
+${decoded.document.toString()}---
+
+A recovery check confirms that the backup matches the intended wallet.
+
+## What should you check?
+Check the intended wallet.
+
+## How do you compare results?
+| Check | Result |
+| --- | --- |
+| Address | Matches |
+
+## Next steps
+Consider [consulting services](/${locale}/#services) when planning a review.
+`;}const source=Object.fromEntries(['en','pl'].map(l=>[l,originals[l].data+'\nReviewed addition to the article.\n']));
  const git={main:A,staging:A,draft:B,files:{},prs:[],guard:true,extra:false,failed:false,owner:true,verified:false,dispatched:false};let time=1800000000000;const calls=[];
  const row=(number,head,base)=>({number,state:'open',base:{ref:base,sha:A},head:{ref:head,sha:head==='staging'?git.staging:C,repo:{full_name:'0xRivers/custody-consulting'}},mergeable:true,mergeable_state:'clean',html_url:'https://github.com/0xRivers/custody-consulting/pull/'+number});
  const draft=()=>({number:1,state:'open',head:{ref:'cms/nostr-articles/example/1234567890abcdef',sha:git.draft,repo:{full_name:'0xRivers/custody-consulting'}},html_url:'https://github.com/0xRivers/custody-consulting/pull/1'});
@@ -30,7 +45,7 @@ function fixture(t){
   assert.fail(path);
  }
  const publication=createPublications({db,call,isOwner:actor=>git.owner&&actor==='owner',now:()=>time,publicRevision:async origin=>origin.includes('staging')?git.staging:git.main,verifyPublic:async()=>{if(git.publicPending)throw Object.assign(new Error('Route verification pending'),{status:503,publicPending:true});git.verified=true;}});
- return {db,git,calls,publication,prepare:target=>publication.prepare('owner',{id:'example',revision:B,target}),approve:plan=>publication.approve('owner',{id:plan.id,digest:plan.digest},{id:'signed-event'}),advance:()=>{time+=600001;}};
+ return {db,git,calls,source,publication,prepare:target=>publication.prepare('owner',{id:'example',revision:B,target}),approve:plan=>publication.approve('owner',{id:plan.id,digest:plan.digest},{id:'signed-event'}),advance:()=>{time+=600001;}};
 }
 test('publication requires owner, deployment readiness and a content-only staging scope',async t=>{
  const f=fixture(t);await assert.rejects(f.publication.prepare('editor',{id:'example',revision:B,target:'publish'}),e=>e.status===403);
@@ -87,4 +102,10 @@ test('a successful deployment remains pending until public routes verify',async 
  for(let step=0;step<7;step++)await f.publication.tick();
  assert.equal(f.publication.status('owner',plan.id).state,'deploy');assert.equal(f.git.verified,false);
  f.git.publicPending=false;await f.publication.tick();assert.equal(f.publication.status('owner',plan.id).state,'live');
+});
+
+test('publication content preflight rejects incomplete drafts before creating a release plan or changing GitHub',async t=>{
+ const f=fixture(t);const parsed=decodeArticle(f.source.en);parsed.document.set('keyAnswer','x'.repeat(300));parsed.document.set('sources',[{label:'Only one reference',url:'https://example.com'}]);f.source.en=`---\n${parsed.document.toString()}---\n\nPlaceholder text with no headings or comparison table.\n`;
+ await assert.rejects(f.prepare('publish'),error=>error.status===400&&error.message.includes('40 and 240')&&error.message.includes('two relevant sources')&&error.message.includes('three sections'));
+ assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM article_publications').get().n,0);assert.ok(!f.calls.some(call=>call.body));
 });

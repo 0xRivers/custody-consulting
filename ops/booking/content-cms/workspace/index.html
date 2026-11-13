@@ -33,6 +33,7 @@
         <section id="publication-controls" class="publication-card" aria-labelledby="publication-label">
           <div><h3 id="publication-label">Publication</h3><p id="publication-help" class="field-hint" role="status">Checking publication access…</p></div>
           <div class="actions"><button id="publish" type="button" class="primary" aria-describedby="publication-help" hidden>Publish article</button><button id="unpublish" type="button" class="secondary" aria-describedby="publication-help" hidden>Unpublish article</button></div>
+          <div id="publication-issues" hidden><h4 id="publication-issues-title" tabindex="-1">Before you publish</h4><ul id="publication-issue-list"></ul><p class="field-hint">These are the current publication requirements. You can continue saving drafts while you work on them.</p></div>
         </section>
         <section class="editor-card" aria-label="Article editor">
           <div class="editor-toolbar"><div class="language-tabs" role="tablist" aria-label="Article language"><button type="button" id="tab-en" role="tab" aria-selected="true" aria-controls="translation-panel">English</button><button type="button" id="tab-pl" role="tab" aria-selected="false" aria-controls="translation-panel" tabindex="-1" lang="pl">Polski</button></div><button type="button" id="preview-toggle" class="secondary" aria-pressed="false">Reading preview</button></div>
@@ -40,9 +41,9 @@
             <div id="fields">
               <label for="slug">Article URL <span class="field-hint">Locked after the first save.</span></label><input id="slug" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="100" required readonly><label for="title">Article title <span id="title-count" class="field-count"></span></label><input id="title" maxlength="100" required>
               <label for="summary">Summary <span class="field-hint">Shown in the article list and search results.</span></label><textarea id="summary" rows="3" maxlength="240" required></textarea>
-              <label for="keyAnswer">Opening answer <span class="field-hint">Give the reader a useful, direct answer before the detail.</span></label><textarea id="keyAnswer" rows="3" maxlength="360" required></textarea>
+              <label for="keyAnswer">Opening answer <span class="field-hint">Give the reader a direct answer. Publishing requires 40–240 characters.</span></label><textarea id="keyAnswer" rows="3" maxlength="360" required></textarea>
               <label for="body">Article</label><div class="format-tools" aria-label="Markdown formatting"><button type="button" data-insert="heading">Heading</button><button type="button" data-insert="list">List</button><button type="button" data-insert="link">Link</button></div><textarea id="body" rows="20" class="body-input" spellcheck="true" required aria-describedby="body-hint"></textarea><p id="body-hint" class="field-hint">Use ## for a heading, - for a list, and [text](https://…) for a link.</p>
-              <div class="sources-heading"><h3>Sources</h3><button type="button" id="add-source" class="secondary">Add source</button></div><div id="sources"></div>
+              <div class="sources-heading"><h3>Sources <span class="field-hint">Publishing requires at least two relevant sources per language.</span></h3><button type="button" id="add-source" class="secondary">Add source</button></div><div id="sources"></div>
             </div>
             <article id="reading-preview" class="reading-preview" hidden><p class="preview-label">READING PREVIEW · SAVED OR UNSAVED TEXT</p><p class="field-hint">This is a reading aid. Use the verified staging page for final layout review.</p><h2 id="preview-title"></h2><p id="preview-answer" class="key-answer"></p><div id="preview-body"></div></article>
           </div>

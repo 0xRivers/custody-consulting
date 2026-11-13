@@ -74,3 +74,20 @@ owner revocation, immutable plans and draft-only creation/collision checks.
 Tests simulate GitHub; no real article was published or unpublished by development.
 Desktop/mobile/Amber browser journeys and a real complete production release must
 still be verified after setup. Staging package installation is not that proof.
+
+## Publication content preflight
+
+The first real test release (PR #35) failed the existing answer-focused build
+contract. The draft editor previously permitted an opening answer up to 360
+characters and one source, while CI required a 40–240 character opening answer,
+at least two sources, introductory context, three H2 sections including two
+question headings, unique headings, a contextual locale-specific services link,
+a comparison table, no unsupported promises, and matching section/source counts
+between translations.
+
+The editor and server now check those publication requirements before creating a
+release plan. Draft saves keep their existing permissive limits. The owner sees
+all actionable problems in the editor. Build protections remain unchanged. An
+already failed release stays blocked: correct and save the draft, then request a
+new reviewed publication. Re-running CI without changing the content cannot fix
+this failure. Existing saved drafts and approval history are preserved.

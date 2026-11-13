@@ -1,3 +1,4 @@
+import {publicationProblems} from './workspace/view-model.mjs';
 import {createHash,randomUUID} from 'node:crypto';
 import {decodeArticle,editableArticle,updatePair} from './workspace-model.mjs';
 const sha=value=>createHash('sha256').update(value).digest('hex');
@@ -33,6 +34,7 @@ export function createPublications({db,call,isOwner,publicRevision,now=Date.now,
   if(target==='unpublish'&&Object.values(original).every(raw=>!raw||decodeArticle(raw).data.draft))throw error('This article is already unpublished.');
   const editable=Object.fromEntries(['en','pl'].map(locale=>[locale,editableArticle(bases[locale].data)]));
   const changes={topics:editable.en.topics,...Object.fromEntries(['en','pl'].map(locale=>[locale,Object.fromEntries(['title','summary','keyAnswer','body','slug','sources'].map(key=>[key,editable[locale][key]]))]))};
+  if(target==='publish'){const problems=publicationProblems(changes);if(problems.length)throw error('Before publishing:\n'+problems.map(problem=>problem.message).join('\n'),400);}
   const validated=updatePair(bases,changes);const date=new Date(now()).toISOString().slice(0,10);
   const files=validated.map((entry,index)=>{const locale=['en','pl'][index];const decoded=decodeArticle(entry.raw);decoded.document.set('draft',target==='unpublish');if(target==='publish'){decoded.document.set('updatedAt',date);if(!original[locale])decoded.document.set('publishedAt',date);}return {path:path(articleId,locale),content:`---\n${decoded.document.toString()}---\n\n${decoded.body}\n`};});
   if(files.every((f,index)=>f.content===original[['en','pl'][index]]))throw error('This exact article revision is already live.');

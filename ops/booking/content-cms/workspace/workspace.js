@@ -1,4 +1,4 @@
-import { editableChanges, signature, reviewChanges, validateChanges } from './view-model.mjs';
+import { editableChanges, signature, reviewChanges, validateChanges, publicationProblems } from './view-model.mjs';
 
 const $ = id => document.getElementById(id);
 let snapshot, draft, savedSignature = '', language = 'en', articles = [], busy = false, reading = false;
@@ -71,7 +71,7 @@ async function selectArticle(id) {
     snapshot = result; draft = editableChanges(result.translations, result.translations.en.topics);
     savedSignature = signature(draft); language = 'en'; reading = false;
     $('loading').hidden = true; $('article-workspace').hidden = false;
-    $('review-panel').hidden = true; error(); feedback('Ready to edit. Saving a draft does not change the live article.');
+    $('review-panel').hidden = true; $('publication-issues').hidden=true; error(); feedback('Ready to edit. Saving a draft does not change the live article.');
     const isLive = result.liveStatusKnown && result.live.en && result.live.pl;
     setText('live-status', !result.liveStatusKnown ? 'Live status could not be verified. Your saved draft is available.' : isLive ? 'Published in English and Polish · You are editing a draft copy.' : 'Not yet verified as published in both languages.');
     renderLanguage(); renderTopics(); listArticles();
@@ -114,7 +114,7 @@ function renderTopics() {
     }); label.append(input, document.createTextNode(topic.label)); $('topics').append(label);
   }
 }
-function changed() { error(); $('review-panel').hidden = true; updateState(); }
+function changed() { $('publication-issues').hidden=true; error(); $('review-panel').hidden = true; updateState(); }
 
 // Reading preview uses DOM nodes, not innerHTML. Markdown HTML is displayed as
 // text, and links are limited to ordinary web URLs or same-origin paths.
@@ -247,11 +247,19 @@ $('new-article-form').addEventListener('submit',event=>{
  const translations=Object.fromEntries(['en','pl'].map(locale=>[locale,{title:'',summary:'',keyAnswer:'',body:'',slug:locale==='en'?en:pl,sources:[{label:'',url:''}],topics:libraryTopics.length?[libraryTopics[0].id]:[],author:'Custody Consulting',draft:true}]));
  operation=null;$('publication-progress').hidden=true;
  snapshot={id:en,isNew:true,revision:null,translations,topics:libraryTopics,live:{},liveStatusKnown:true};draft=editableChanges(translations,translations.en.topics);savedSignature='';language='en';reading=false;
- $('new-article-dialog').close();$('loading').hidden=true;$('article-workspace').hidden=false;$('review-panel').hidden=true;setText('live-status','New bilingual draft · not published');renderLanguage();renderTopics();error();feedback('Write both translations, then save your draft.');$('title').focus();
+ $('new-article-dialog').close();$('publication-issues').hidden=true;$('loading').hidden=true;$('article-workspace').hidden=false;$('review-panel').hidden=true;setText('live-status','New bilingual draft · not published');renderLanguage();renderTopics();error();feedback('Write both translations, then save your draft.');$('title').focus();
 });
 async function signerRequest(event){const detail={event};window.dispatchEvent(new CustomEvent('custody:article-sign',{detail}));if(!detail.result)throw new Error('The article signer is not available. Reload this page.');return detail.result;}
 async function preparePublication(target){
  if(busy||dirty()||snapshot.isNew){error('Save your draft before reviewing publication.');return;}
+ $('publication-issues').hidden=true;
+ if(target==='publish'){
+  const problems=publicationProblems(draft);
+  if(problems.length){
+   $('publication-issue-list').replaceChildren();for(const problem of problems){const li=document.createElement('li');li.textContent=problem.message;$('publication-issue-list').append(li);}
+   $('publication-issues').hidden=false;$('publication-issues-title').focus();feedback('Your draft is saved. Complete the publication requirements shown above, then save and try again.');return;
+  }
+ }
  setBusy(true);error();
  try{releasePlan=await api('workspacePrepareRelease',{id:snapshot.id,revision:snapshot.revision,target});setText('publication-dialog-title',target==='publish'?'Publish this article?':'Unpublish this article?');setText('publication-summary',target==='publish'?'Both language versions will go through the protected publishing pipeline.':'Both language versions will be removed from the public site after the protected deployment. Your source drafts are retained.');$('publication-routes').replaceChildren();for(const [i,route] of releasePlan.review.routes.entries()){const li=document.createElement('li');li.textContent=releasePlan.review.titles[i]+' · '+route;$('publication-routes').append(li);}setText('publication-revision','Reviewed revision: '+releasePlan.revision);$('publication-dialog').showModal();}
  catch(failure){error(failure.message);}finally{setBusy(false);}
