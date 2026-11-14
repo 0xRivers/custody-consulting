@@ -11,7 +11,7 @@
   slug: testing-cms-articles,
   author: Custody Consulting,
   publishedAt: 2026-11-14,
-  draft: false,
+  draft: true,
   translationKey: testing-cms-articles,
   topics: [ foundations ],
   sources:
