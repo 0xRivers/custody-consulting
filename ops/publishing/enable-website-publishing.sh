@@ -11,8 +11,10 @@ mode=${1:---check}
 [[ "$mode" == --check || "$mode" == --apply ]]
 main=$(gh api "repos/$repo/git/ref/heads/main" --jq .object.sha)
 [[ "$main" =~ ^[a-f0-9]{40}$ ]]
-gh api "repos/$repo/contents/ops/publishing/article-release-guard.mjs?ref=$main" --jq .sha >/dev/null
-gh api "repos/$repo/contents/.github/workflows/article-release.yml?ref=$main" --jq .sha >/dev/null
+if ! gh api "repos/$repo/contents/ops/publishing/article-release-guard.mjs?ref=$main" --jq .sha >/dev/null 2>&1 || ! gh api "repos/$repo/contents/.github/workflows/article-release.yml?ref=$main" --jq .sha >/dev/null 2>&1; then
+ echo "The reviewed article workflow is not on main yet. Merge and promote that workflow update before running setup." >&2
+ exit 1
+fi
 test -r "$key" && test -r "$hosts"
 ssh-keygen -y -P '' -f "$key" >/dev/null
 ssh-keygen -F 85.122.114.151 -f "$hosts" >/dev/null
