@@ -5,7 +5,7 @@ const sha=value=>createHash('sha256').update(value).digest('hex');
 const origin='https://custody.consulting';
 const path=(id,locale)=>`astro/src/content/blog/${locale}/${id}.md`;
 const error=(message,status=409)=>Object.assign(new Error(message),{status});
-export function createPublications({db,call,isOwner,publicRevision,now=Date.now,verifyPublic=async(plan)=>{for(const route of plan.review.routes){const response=await fetch(origin+route+'?publication-check=1',{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(10000)});if(response.status!==(plan.target==='publish'?200:404))throw Object.assign(error('Production route verification is still pending.',503),{publicPending:true});}}}){
+export function createPublications({db,call,isOwner,publicRevision,now=Date.now,articleOnly=false,verifyPublic=async(plan)=>{for(const route of plan.review.routes){const response=await fetch(origin+route+'?publication-check=1',{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(10000)});if(response.status!==(plan.target==='publish'?200:404))throw Object.assign(error('Production route verification is still pending.',503),{publicPending:true});}}}){
  db.exec(`CREATE TABLE IF NOT EXISTS article_publications(id TEXT PRIMARY KEY,actor TEXT NOT NULL,digest TEXT NOT NULL,planJson TEXT NOT NULL,state TEXT NOT NULL,infoJson TEXT NOT NULL DEFAULT '{}',approvalJson TEXT,createdAt INTEGER NOT NULL,updatedAt INTEGER NOT NULL);
  CREATE TRIGGER IF NOT EXISTS article_publication_plan_immutable BEFORE UPDATE OF actor,digest,planJson,createdAt ON article_publications BEGIN SELECT RAISE(ABORT,'Publication plans are immutable'); END;
  CREATE UNIQUE INDEX IF NOT EXISTS one_article_release ON article_publications((1)) WHERE state IN ('queued','staging_checks','staging_deploy','production_checks','deploy');`);
@@ -14,7 +14,7 @@ export function createPublications({db,call,isOwner,publicRevision,now=Date.now,
  const head=async ref=>(await call(`/git/ref/heads/${ref}`)).object.sha;
  const save=(row,state,info)=>db.prepare('UPDATE article_publications SET state=?,infoJson=?,updatedAt=? WHERE id=?').run(state,JSON.stringify(info),now(),row.id);
  const get=id=>db.prepare('SELECT * FROM article_publications WHERE id=?').get(id);
- function view(row){const plan=JSON.parse(row.planJson),info=JSON.parse(row.infoJson);return {id:row.id,digest:row.digest,articleId:plan.articleId,target:plan.target,state:row.state,revision:plan.revision,review:plan.review,updatedAt:row.updatedAt,...info};}
+ function view(row){const plan=JSON.parse(row.planJson),info=JSON.parse(row.infoJson);return {id:row.id,digest:row.digest,articleId:plan.articleId,target:plan.target,state:row.state,revision:plan.revision,review:plan.review,updatedAt:row.updatedAt,requiresGitHubApproval:!articleOnly,...info};}
  async function source(articleId){const prs=await call(`/pulls?state=open&base=staging&per_page=100`);const pattern=new RegExp(`^cms/(?:articles/${articleId}|nostr-articles/${articleId}/[a-f0-9]{16})$`);const pr=prs.find(p=>p.head.repo?.full_name==='0xRivers/custody-consulting'&&pattern.test(p.head.ref));return pr?{number:pr.number,ref:pr.head.ref,sha:pr.head.sha}:{ref:'staging',sha:await head('staging')};}
  async function exactScope(base,revision,files){const comparison=await call(`/compare/${base}...${revision}`);if(comparison.files?.length>=300||comparison.files?.some(f=>!files.includes(f.filename)||['removed','renamed'].includes(f.status)))throw error('Other changes are pending in staging. Review or synchronize them before publishing this article.');}
  async function readiness(){
@@ -22,7 +22,8 @@ export function createPublications({db,call,isOwner,publicRevision,now=Date.now,
   // occurs before any branch/PR mutation if the App has not been configured.
   const workflow=await read('.github/workflows/deploy.yml','main');
   if(!workflow?.includes('Refuse an obsolete production candidate'))throw error('Publishing setup required: merge the protected deployment workflow update before enabling article releases.');
-  return {ready:true};
+  if(articleOnly){const dedicated=await read('.github/workflows/article-release.yml','main');if(!dedicated?.includes('Verify owner-approved article release'))throw error('Website publishing setup required: deploy the signed article workflow first.');const environment=await call('/environments/article-production');if(environment.protection_rules?.some(rule=>rule.type==='required_reviewers')||!environment.deployment_branch_policy?.custom_branch_policies)throw error('Website publishing setup required: configure the main-only article deployment environment.');const branches=await call('/environments/article-production/deployment-branch-policies');if(branches.branch_policies?.length!==1||branches.branch_policies[0].name!=='main'||branches.branch_policies[0].type!=='branch')throw error('The article deployment environment must allow only main.');}
+  return {ready:true,websiteOnly:articleOnly};
  }
  async function prepare(actor,{id:articleId,revision,target}){
   owner(actor);if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(articleId||'')||articleId.length>100||!['publish','unpublish'].includes(target)||! /^[a-f0-9]{40}$/.test(revision||''))throw error('Choose a saved article revision and publication action.',400);
@@ -47,6 +48,20 @@ export function createPublications({db,call,isOwner,publicRevision,now=Date.now,
   if(db.prepare("SELECT id FROM article_publications WHERE state IN ('queued','staging_checks','staging_deploy','production_checks','deploy')").get())throw error('Another article release is in progress. Finish it before starting this one.');
   db.prepare("UPDATE article_publications SET state='queued',approvalJson=?,updatedAt=? WHERE id=?").run(JSON.stringify(event),now(),id);return view(get(id));
  }
+ async function approvalProof(row,info){
+  const content=JSON.stringify({operationId:row.id,planJson:row.planJson,event:JSON.parse(row.approvalJson)});
+  if(Buffer.byteLength(content)>500000)throw error('The signed article proof is too large.',400);
+  const branch='cms/approvals/'+row.id;
+  let existing;try{existing=await head(branch);}catch(e){if(e.status!==404)throw e;}
+  if(existing){if(await read('approval.json',existing)!==content)throw error('The stored owner approval artifact changed.');info.proofRef=existing;save(row,row.state,info);return existing;}
+  let proofRef=info.proofRef;
+  if(!proofRef){
+   const tree=await call('/git/trees',{tree:[{path:'approval.json',mode:'100644',type:'blob',content}]});
+   proofRef=(await call('/git/commits',{message:'Owner approval '+row.id,tree:tree.sha,parents:[]})).sha;
+   info.proofRef=proofRef;save(row,row.state,info);
+  }
+  await call('/git/refs',{ref:'refs/heads/'+branch,sha:proofRef});return proofRef;
+ }
  async function checked(number,expected,production){
   const pr=await call(`/pulls/${number}`);if(pr.head.sha!==expected)throw error('The release PR changed. A new owner review is required.');
   const {workflow_runs:runs}=await call(`/actions/runs?head_sha=${expected}&event=pull_request&per_page=100`);
@@ -58,7 +73,7 @@ export function createPublications({db,call,isOwner,publicRevision,now=Date.now,
   return true;
  }
  async function advance(row){
-  const plan=JSON.parse(row.planJson),info=JSON.parse(row.infoJson);owner(row.actor);if(sha(row.planJson)!==row.digest)throw error('The publication plan changed. A new review is required.');
+  const plan=JSON.parse(row.planJson),info=JSON.parse(row.infoJson);owner(row.actor);if(articleOnly){const event=JSON.parse(row.approvalJson);if(!Number.isSafeInteger(event?.created_at)||now()-event.created_at*1000>21600000)throw error('The owner approval expired. Review and sign the saved article again.');}if(sha(row.planJson)!==row.digest)throw error('The publication plan changed. A new review is required.');
   if(row.state!=='deploy'&&plan.source.number&&(await source(plan.articleId)).sha!==plan.revision)throw error('The draft changed after approval. Review the new revision before continuing.');
   if(row.state==='queued'){
    if(await head('main')!==plan.main||await head('staging')!==plan.staging)throw error('A release branch changed after approval. Review again.');
@@ -93,14 +108,18 @@ export function createPublications({db,call,isOwner,publicRevision,now=Date.now,
   if(row.state==='production_checks'){
    if(await head('main')!==plan.main||await head('staging')!==info.stageSHA)throw error('The production candidate changed. Review again.');
    if(!await checked(info.productionPR,info.stageSHA,true))return;
-   const merged=await call(`/pulls/${info.productionPR}/merge`,{sha:info.stageSHA,merge_method:'merge'},'PUT');if(!merged.merged)return;
+   const proofRef=articleOnly?await approvalProof(row,info):null;
+   const merged=await call(`/pulls/${info.productionPR}/merge`,{sha:info.stageSHA,merge_method:'merge',...(proofRef?{commit_message:'Custody-Article-Approval: '+proofRef}:{})},'PUT');if(!merged.merged)return;
    save(row,'deploy',{...info,productionSHA:merged.sha,message:'Production merge complete. Preparing the protected deployment.'});return;
   }
   if(row.state==='deploy'){
    if(await head('main')!==info.productionSHA)throw error('Main advanced during publication. Verify the latest production deployment before continuing.');
-   if(!info.dispatched){const existing=await call(`/actions/workflows/deploy.yml/runs?head_sha=${info.productionSHA}&per_page=100`);if(!existing.workflow_runs.length)await call('/actions/workflows/deploy.yml/dispatches',{ref:'main'});save(row,'deploy',{...info,dispatched:true,message:'Waiting for deployment or production environment approval.'});return;}
-   const {workflow_runs:runs}=await call(`/actions/workflows/deploy.yml/runs?head_sha=${info.productionSHA}&per_page=100`);const run=runs.sort((a,b)=>b.id-a.id)[0];
-   if(!run||run.status!=='completed'){save(row,'deploy',{...info,runUrl:run?.html_url,message:'Waiting for production deployment or environment approval. Open the run if approval is required.'});return;}
+   const workflow=articleOnly?'article-release.yml':'deploy.yml';
+   if(articleOnly&&!info.proofRef)throw error('This release has no signed proof. Review it again.');
+   if(!info.dispatched){const existing=await call(`/actions/workflows/${workflow}/runs?head_sha=${info.productionSHA}&per_page=100`);if(!existing.workflow_runs.length)await call('/actions/workflows/'+workflow+'/dispatches',{ref:'main',...(articleOnly?{inputs:{release_sha:info.productionSHA,approval_ref:info.proofRef}}:{})});save(row,'deploy',{...info,dispatched:true,message:articleOnly?'Deploying the owner-approved article automatically.':'Waiting for deployment or production environment approval.'});return;}
+   const {workflow_runs:runs}=await call(`/actions/workflows/${workflow}/runs?head_sha=${info.productionSHA}&per_page=100`);const run=runs.sort((a,b)=>b.id-a.id)[0];
+   if(articleOnly&&run?.status==='queued'){const standard=await call(`/actions/workflows/deploy.yml/runs?head_sha=${info.productionSHA}&per_page=100`);const waiting=standard.workflow_runs.find(item=>item.status==='waiting');if(waiting){save(row,'blocked',{...info,requiresGitHubApproval:true,runUrl:waiting.html_url,message:'The protected engineering deployment requires review. Article verification did not select the automatic path; review the linked deployment before continuing.'});return;}}
+   if(!run||run.status!=='completed'){save(row,'deploy',{...info,runUrl:run?.html_url,message:articleOnly?'The approved article is being checked and deployed. No GitHub approval is required.':'Waiting for production deployment or environment approval. Open the run if approval is required.'});return;}
    if(run.conclusion!=='success')throw error('Production deployment failed. The article is not marked live.');
    if(await publicRevision(origin)!==info.productionSHA)return;
    for(const file of plan.files)if(await read(file.path,info.productionSHA)!==file.content)throw error('The deployed article source does not match the approval.');

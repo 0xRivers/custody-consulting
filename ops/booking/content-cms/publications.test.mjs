@@ -5,7 +5,7 @@ import {createPublications} from './publications.mjs';
 import {decodeArticle} from './workspace-model.mjs';
 import {pair} from './workspace-fixture.mjs';
 const A='a'.repeat(40),B='b'.repeat(40),C='c'.repeat(40),D='d'.repeat(40),E='e'.repeat(40);
-function fixture(t){
+function fixture(t,{articleOnly=false}={}){
  const db=new DatabaseSync(':memory:');t.after(()=>db.close());const originals=pair();for(const locale of ['en','pl']){const decoded=decodeArticle(originals[locale].data);decoded.document.set('sources',[{label:'Wallet documentation',url:'https://example.com/docs'},{label:'Recovery reference',url:'https://example.com/recovery'}]);originals[locale].data=`---
 ${decoded.document.toString()}---
 
@@ -26,26 +26,29 @@ Consider [consulting services](/${locale}/#services) when planning a review.
  const row=(number,head,base)=>({number,state:'open',base:{ref:base,sha:A},head:{ref:head,sha:head==='staging'?git.staging:C,repo:{full_name:'0xRivers/custody-consulting'}},mergeable:true,mergeable_state:'clean',html_url:'https://github.com/0xRivers/custody-consulting/pull/'+number});
  const draft=()=>({number:1,state:'open',head:{ref:'cms/nostr-articles/example/1234567890abcdef',sha:git.draft,repo:{full_name:'0xRivers/custody-consulting'}},html_url:'https://github.com/0xRivers/custody-consulting/pull/1'});
  async function call(path,body,method){calls.push({path,body,method});
-  if(path.startsWith('/contents/.github/'))return {content:Buffer.from(git.guard?'Refuse an obsolete production candidate':'workflow_dispatch').toString('base64')};
+  if(path.startsWith('/contents/.github/'))return {content:Buffer.from(git.guard?'Refuse an obsolete production candidate; Verify owner-approved article release':'workflow_dispatch').toString('base64')};
+  if(path==='/environments/article-production')return {protection_rules:[],deployment_branch_policy:{custom_branch_policies:true}};
+  if(path==='/environments/article-production/deployment-branch-policies')return {branch_policies:[{name:'main',type:'branch'}]};
+  if(path.startsWith('/contents/approval.json'))return {content:Buffer.from(git.files['f'.repeat(40)][0].content).toString('base64')};
   if(path.startsWith('/contents/')){const locale=path.includes('/en/')?'en':'pl',ref=new URL('https://example.test'+path).searchParams.get('ref');const raw=ref===B?source[locale]:git.files[ref]?.find(f=>f.path.includes('/'+locale+'/'))?.content||originals[locale].data;return {content:Buffer.from(raw).toString('base64')};}
   if(path.startsWith('/git/ref/heads/')){const ref=path.slice('/git/ref/heads/'.length),value=git[ref];if(!value)throw Object.assign(new Error('missing'),{status:404});return {object:{sha:value}};}
   if(path.startsWith('/compare/'))return {files:git.extra?[{filename:'ops/deploy.sh'}]:[{filename:'astro/src/content/blog/en/example.md'},{filename:'astro/src/content/blog/pl/example.md'}]};
   if(path.startsWith('/pulls?')){if(path.includes('head=0xRivers:cms/releases/'))return git.prs.filter(p=>p.base.ref==='staging');if(path.includes('base=main'))return git.prs.filter(p=>p.base.ref==='main');return [draft(),...git.prs.filter(p=>p.base.ref==='staging')];}
   if(path==='/git/commits/'+A)return {tree:{sha:'tree'}};
   if(path==='/git/trees'){git.pendingFiles=body.tree;return {sha:'new-tree'};}
-  if(path==='/git/commits'){git.files[C]=git.pendingFiles;return {sha:C};}
+  if(path==='/git/commits'){const sha=body.parents.length?'c'.repeat(40):'f'.repeat(40);git.files[sha]=git.pendingFiles;return {sha};}
   if(path==='/git/refs'){git[body.ref.replace('refs/heads/','')]=body.sha;return {};}
   if(path==='/pulls'){const pr=row(git.prs.length+2,body.head,body.base);git.prs.push(pr);if(git.timeoutOnce){git.timeoutOnce=false;throw Object.assign(new Error('timeout'),{status:502});}return pr;}
   if(path==='/pulls/1')return draft();
   if(/^\/pulls\/\d+\/merge$/.test(path)){const pr=git.prs.find(p=>p.number===Number(path.split('/')[2]));const sha=pr.base.ref==='staging'?D:E;git[pr.base.ref]=sha;git.files[sha]=git.files[C];pr.state='closed';return {merged:true,sha};}
   if(/^\/pulls\/\d+$/.test(path))return git.prs.find(p=>p.number===Number(path.split('/')[2]));
-  if(path.includes('/actions/workflows/deploy.yml/dispatches')){git.dispatched=true;return;}
-  if(path.includes('/actions/workflows/deploy.yml/runs'))return {workflow_runs:git.dispatched?[{id:8,status:'completed',conclusion:'success',html_url:'https://github.com/run/8'}]:[]};
+  if(/\/actions\/workflows\/(?:deploy|article-release)\.yml\/dispatches/.test(path)){git.dispatched=true;return;}
+  if(/\/actions\/workflows\/(?:deploy|article-release)\.yml\/runs/.test(path))return {workflow_runs:git.dispatched?[{id:8,status:'completed',conclusion:'success',html_url:'https://github.com/run/8'}]:[]};
   if(path.includes('/actions/runs?')){const stage=path.includes('event=push');return {workflow_runs:(stage?['Check and deploy staging']:['Check and deploy website','Editorial production gate']).map((name,i)=>({id:10+i,workflow_id:i,name,status:'completed',conclusion:git.failed?'failure':'success',html_url:'https://github.com/run/'+i}))};}
   assert.fail(path);
  }
- const publication=createPublications({db,call,isOwner:actor=>git.owner&&actor==='owner',now:()=>time,publicRevision:async origin=>origin.includes('staging')?git.staging:git.main,verifyPublic:async()=>{if(git.publicPending)throw Object.assign(new Error('Route verification pending'),{status:503,publicPending:true});git.verified=true;}});
- return {db,git,calls,source,publication,prepare:target=>publication.prepare('owner',{id:'example',revision:B,target}),approve:plan=>publication.approve('owner',{id:plan.id,digest:plan.digest},{id:'signed-event'}),advance:()=>{time+=600001;}};
+ const publication=createPublications({db,articleOnly,call,isOwner:actor=>git.owner&&actor==='owner',now:()=>time,publicRevision:async origin=>origin.includes('staging')?git.staging:git.main,verifyPublic:async()=>{if(git.publicPending)throw Object.assign(new Error('Route verification pending'),{status:503,publicPending:true});git.verified=true;}});
+ return {db,git,calls,source,publication,prepare:target=>publication.prepare('owner',{id:'example',revision:B,target}),approve:plan=>publication.approve('owner',{id:plan.id,digest:plan.digest},{id:'signed-event',created_at:Math.floor(time/1000)}),advance:()=>{time+=600001;}};
 }
 test('publication requires owner, deployment readiness and a content-only staging scope',async t=>{
  const f=fixture(t);await assert.rejects(f.publication.prepare('editor',{id:'example',revision:B,target:'publish'}),e=>e.status===403);
@@ -108,4 +111,28 @@ test('publication content preflight rejects incomplete drafts before creating a 
  const f=fixture(t);const parsed=decodeArticle(f.source.en);parsed.document.set('keyAnswer','x'.repeat(300));parsed.document.set('sources',[{label:'Only one reference',url:'https://example.com'}]);f.source.en=`---\n${parsed.document.toString()}---\n\nPlaceholder text with no headings or comparison table.\n`;
  await assert.rejects(f.prepare('publish'),error=>error.status===400&&error.message.includes('40 and 240')&&error.message.includes('two relevant sources')&&error.message.includes('three sections'));
  assert.equal(f.db.prepare('SELECT COUNT(*) AS n FROM article_publications').get().n,0);assert.ok(!f.calls.some(call=>call.body));
+});
+
+test('website publication stores the original proof and binds its deployment dispatch to the production merge',async t=>{
+ const f=fixture(t,{articleOnly:true});assert.equal((await f.publication.readiness()).websiteOnly,true);const plan=await f.prepare('publish');f.approve(plan);
+ for(let step=0;step<7;step++)await f.publication.tick();
+ assert.equal(f.publication.status('owner',plan.id).state,'live');assert.equal(f.publication.status('owner',plan.id).requiresGitHubApproval,false);
+ const proof=f.git.files['f'.repeat(40)][0];assert.equal(proof.path,'approval.json');const envelope=JSON.parse(proof.content);assert.equal(envelope.operationId,plan.id);assert.equal(envelope.event.id,'signed-event');
+ assert.equal(JSON.parse(envelope.planJson).revision,B);
+ const merge=f.calls.find(c=>c.method==='PUT'&&c.body.commit_message);assert.equal(merge.body.commit_message,'Custody-Article-Approval: '+'f'.repeat(40));
+ const dispatch=f.calls.find(c=>c.path==='/actions/workflows/article-release.yml/dispatches');assert.deepEqual(dispatch.body,{ref:'main',inputs:{release_sha:E,approval_ref:'f'.repeat(40)}});
+ assert.ok(!f.calls.some(c=>c.path==='/actions/workflows/deploy.yml/dispatches'));
+});
+import {finalizeEvent,generateSecretKey,getPublicKey} from 'nostr-tools/pure';
+import {npubEncode} from 'nostr-tools/nip19';
+import {ownerApproval,sha as approvalHash} from '../../publishing/article-release-guard.mjs';
+test('the worker proof round-trips through the independent workflow signature verifier',async t=>{
+ const f=fixture(t,{articleOnly:true}),plan=await f.prepare('publish');
+ const raw=JSON.parse(f.db.prepare('SELECT planJson FROM article_publications WHERE id=?').get(plan.id).planJson);
+ const key=generateSecretKey();
+ const event=finalizeEvent({kind:27235,created_at:Math.floor(raw.createdAt/1000),content:'',tags:[['u','https://staging.custody.consulting/booking-api/checkout'],['method','POST'],['payload',approvalHash(JSON.stringify({purpose:'article-release',request:{id:plan.id,digest:plan.digest}}))],['challenge','z'.repeat(43)]]},key);
+ f.publication.approve('owner',{id:plan.id,digest:plan.digest},event);
+ for(let step=0;step<7;step++)await f.publication.tick();
+ const proof=JSON.parse(f.git.files['f'.repeat(40)][0].content);
+ assert.equal(ownerApproval(proof,{ownerNpub:npubEncode(getPublicKey(key)),now:raw.createdAt+1000}).digest,plan.digest);
 });

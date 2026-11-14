@@ -2,7 +2,7 @@ import { editableChanges, signature, reviewChanges, validateChanges, publication
 
 const $ = id => document.getElementById(id);
 let snapshot, draft, savedSignature = '', language = 'en', articles = [], busy = false, reading = false;
-let selection = 0,capabilities={create:false,publish:false},publishing={ready:false},libraryTopics=[],releasePlan,operation;
+let selection = 0,capabilities={create:false,publish:false},publishing={ready:false},libraryTopics=[],releasePlan,operation,liveSyncId;
 const dirty = () => draft && signature(draft) !== savedSignature;
 const setText = (id, text) => { $(id).textContent = text; };
 function feedback(text) { setText('feedback', text); }
@@ -55,7 +55,15 @@ function listArticles() {
 async function loadLibrary() {
   const result = await api('workspaceList');capabilities=result.capabilities||{create:false,publish:false};publishing=result.publishing||{ready:false};libraryTopics=result.topics||[];$('new-article').hidden=!capabilities.create;setText('publication-help',publishing.ready?'Approve the saved revision to begin protected publication.':publishing.message||'Only the business owner can publish.');articles = result.articles; listArticles(); updateState();
   if (!snapshot && articles.length) await selectArticle(articles[0].id);
+  else if(snapshot)await refreshOpenArticle();
   if (!articles.length) setText('loading-message', 'No articles are available yet.');
+}
+async function refreshOpenArticle(){
+ if(!snapshot||snapshot.isNew||busy)return false;const id=snapshot.id;const result=await api('workspaceRead',{id});if(snapshot?.id!==id||busy)return false;
+ if(!dirty()){snapshot=result;draft=editableChanges(result.translations,result.translations.en.topics);savedSignature=signature(draft);renderLanguage();renderTopics();}
+ else{snapshot.live=result.live;snapshot.liveRevision=result.liveRevision;snapshot.liveStatusKnown=result.liveStatusKnown;updateState();}
+ const isLive=result.liveStatusKnown&&result.live.en&&result.live.pl;setText('live-status',!result.liveStatusKnown?'Live status could not be verified. Your open draft is preserved.':isLive?'Published in English and Polish · You are editing a draft copy.':'Not published in both languages. Your draft is retained.');
+ return true;
 }
 async function selectArticle(id) {
   if (busy) return;
@@ -270,8 +278,8 @@ $('publication-confirm').addEventListener('click',async()=>{
  try{const event=await signerRequest();const npub=event.npub;const response=await fetch('/booking-api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'mentor-network-challenge',npub,purpose:'article-release',request:{id:releasePlan.id,digest:releasePlan.digest}}),signal:AbortSignal.timeout(30000)});const challenge=await response.json();if(!response.ok)throw new Error(challenge.error||'Publication approval failed.');const signed=await signerRequest(challenge.event);const confirmation=await fetch('/booking-api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'mentor-network-confirm',event:signed}),signal:AbortSignal.timeout(30000)});const result=await confirmation.json();if(!confirmation.ok)throw new Error(result.error||'Publication approval failed.');operation=result;$('publication-dialog').close();$('publication-progress').hidden=false;await checkPublication();}
  catch(failure){$('publication-dialog').close();error(failure.message);if(releasePlan){operation={id:releasePlan.id};$('publication-progress').hidden=false;setText('publication-message','Approval response not confirmed. Check progress before trying again.');}}finally{setBusy(false);$('publication-confirm').disabled=false;}
 });
-async function checkPublication(){if(!operation)return;try{operation=await api('workspaceReleaseStatus',{id:operation.id});setText('publication-message',operation.message||({prepared:'Review required',queued:'Publication queued',staging_checks:'Checking the saved revision',staging_deploy:'Deploying staging preview',production_checks:'Checking production promotion',deploy:'Waiting for production deployment or approval',live:'Verified on production',blocked:'Publication needs attention'})[operation.state]);updateState();const url=operation.runUrl||operation.reviewUrl;$('publication-link').hidden=!url;if(url)$('publication-link').href=url;}catch(failure){error(failure.message);}}
+async function checkPublication(){if(!operation)return;const id=operation.id;try{const result=await api('workspaceReleaseStatus',{id});if(operation?.id!==id)return;operation=result;if(operation.state==='live'&&liveSyncId!==id&&await refreshOpenArticle())liveSyncId=id;setText('publication-message',operation.message||({prepared:'Review required',queued:'Publication queued',staging_checks:'Checking the saved revision',staging_deploy:'Deploying staging preview',production_checks:'Checking production promotion',deploy:'Waiting for production deployment or approval',live:'Verified on production',blocked:'Publication needs attention'})[operation.state]);updateState();const url=operation.runUrl||operation.reviewUrl;$('publication-link').hidden=!url||!(operation.state==='blocked'||operation.requiresGitHubApproval&&operation.state==='deploy');$('publication-link').textContent=operation.requiresGitHubApproval&&operation.state==='deploy'?'Open production deployment approval':'View technical details';if(url)$('publication-link').href=url;}catch(failure){error(failure.message);}}
 $('publication-refresh').addEventListener('click',()=>void checkPublication());
-const publicationTimer=setInterval(()=>{if(operation&&!['live','blocked'].includes(operation.state))void checkPublication();},15000);
+const publicationTimer=setInterval(()=>{if(operation&&(!['live','blocked'].includes(operation.state)||operation.state==='live'&&liveSyncId!==operation.id))void checkPublication();},15000);
 
 window.addEventListener('pagehide',()=>clearInterval(publicationTimer));

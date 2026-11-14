@@ -105,7 +105,7 @@ const releaseCall=async(path,body,method)=>{
  try{return await contentGithub('/repos/'+contentRepository+path,await releaseCredential.token,body,method);}catch(error){releaseCredential=undefined;throw error;}
 };
 const contentPublicRevision=async origin=>{const response=await fetch(origin+'/version.txt?article-release=1',{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});const revision=(await response.text()).trim();if(!response.ok||!/^[a-f0-9]{40}$/.test(revision))throw new Error('Public release could not be verified.');return revision;};
-const publications=contentSessionEnabled?createPublications({db,call:releaseCall,isOwner:actor=>mentorNetwork?.isSuperAdmin(actor),publicRevision:contentPublicRevision}):null;
+const publications=contentSessionEnabled?createPublications({db,articleOnly:process.env.CONTENT_ARTICLE_AUTOMATION_ENABLED==='true',call:releaseCall,isOwner:actor=>mentorNetwork?.isSuperAdmin(actor),publicRevision:contentPublicRevision}):null;
 if (process.env.MENTOR_NETWORK_ENABLED === 'true' && !config.pilot) {
   try { mentorNetwork=createMentorNetwork({db,superAdminNpub:process.env.CUSTODY_SUPER_ADMIN_NPUB,origin:config.origin,approveArticleRelease:(actor,input,event)=>{if(!publications)throw new AdminError('Article publishing is not configured.',409);return publications.approve(actor,input,event);}}); }
   catch { console.error('Mentor network configuration is invalid. Mentor endpoints are disabled; existing booking services remain available.'); }
