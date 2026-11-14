@@ -30,7 +30,7 @@
     "@types/react": "19.2.0",
     "@types/react-dom": "19.2.0",
     "@vitejs/plugin-react": "5.2.0",
-    "astro": "7.4.5",
+    "astro": "7.4.12",
     "tailwindcss": "4.2.1",
     "tw-animate-css": "1.3.4",
     "typescript": "5.8.3",
