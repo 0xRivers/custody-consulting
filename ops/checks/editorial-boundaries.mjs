@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import { relative } from 'node:path';
+import { articleFrontmatter } from './article-frontmatter.mjs';
 
 const contentRoot = new URL('../../astro/src/content/blog/', import.meta.url);
 const productionRoot = new URL('../../build/astro-production/', import.meta.url);
@@ -16,29 +17,14 @@ async function filesUnder(directory, suffix) {
   return files;
 }
 
-function scalar(frontmatter, field) {
-  const match = frontmatter.match(new RegExp(`^${field}:\\s*(?:"([^"]*)"|'([^']*)'|([^#\\n]+))\\s*$`, 'm'));
-  if (!match) throw new Error(`Missing ${field}`);
-  return (match[1] ?? match[2] ?? match[3]).trim();
-}
-
 const articles = [];
 for (const file of await filesUnder(contentRoot)) {
   if (!/\.mdx?$/.test(file.pathname)) continue;
   const source = await readFile(file, 'utf8');
-  const match = source.match(/^---\s*\n([\s\S]*?)\n---/);
-  assert(match, `Missing frontmatter in ${file.pathname}`);
-  const data = match[1];
   const filePath = relative(contentRoot.pathname, file.pathname);
-  const locale = scalar(data, 'locale');
-  assert.equal(filePath.split('/')[0], locale, `Article language must match its folder: ${filePath}`);
-  articles.push({
-    file: filePath,
-    locale,
-    slug: scalar(data, 'slug'),
-    translationKey: scalar(data, 'translationKey'),
-    draft: scalar(data, 'draft') === 'true',
-  });
+  const data = articleFrontmatter(source, filePath);
+  assert.equal(filePath.split('/')[0], data.locale, `Article language must match its folder: ${filePath}`);
+  articles.push({ file: filePath, ...data });
 }
 
 const pairs = Map.groupBy(articles, (article) => article.translationKey);
