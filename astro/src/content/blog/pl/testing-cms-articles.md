@@ -16,7 +16,11 @@
   draft: true,
   translationKey: testing-cms-articles,
   topics: [ foundations ],
-  sources: [ { label: Wirtualna Polska, url: https://wp.pl } ]
+  sources:
+    [
+      { label: Wirtualna Polska, url: https://wp.pl },
+      { label: Onet, url: https://onet.pl }
+    ]
 }
 ---
 
