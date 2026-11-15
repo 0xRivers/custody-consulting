@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: '24'
       - if: steps.eligible.outputs.enabled == 'true'
-        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+        run: npm ci --include=dev --ignore-scripts --no-audit --no-fund
       - id: verify
         if: steps.eligible.outputs.enabled == 'true'
         env:
