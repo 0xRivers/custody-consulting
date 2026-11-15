@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - run: npm ci --include=dev --ignore-scripts --no-audit --no-fund
       - name: Verify owner-approved article release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -73,7 +73,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - run: npm ci --include=dev --ignore-scripts --no-audit --no-fund
         working-directory: guard
       - name: Recheck approval and live production base
         working-directory: guard
