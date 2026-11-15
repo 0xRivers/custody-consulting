@@ -3,6 +3,23 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {parse} from 'yaml';
 const workflow=async name=>parse(await readFile(new URL('../../.github/workflows/'+name,import.meta.url),'utf8'));
+test('every pinned verifier installs its complete locked dependency graph before execution',async()=>{
+ const engineering=await workflow('deploy.yml'),article=await workflow('article-release.yml');
+ for(const job of [engineering.jobs.article_route,article.jobs.verify,article.jobs.deploy]){
+  const steps=job.steps;
+  const verifyIndex=steps.findIndex(step=>step.run?.includes('node ops/publishing/article-release-guard.mjs'));
+  assert.ok(verifyIndex>=0,'the pinned verifier must execute');
+  const checkoutIndex=steps.findIndex(step=>step.with?.ref==='${{ vars.ARTICLE_RELEASE_GUARD_SHA }}');
+  const installIndex=steps.findIndex(step=>step.run?.includes('npm ci'));
+  assert.ok(checkoutIndex>=0&&checkoutIndex<installIndex&&installIndex<verifyIndex);
+  const install=steps[installIndex],verify=steps[verifyIndex];
+  assert.match(install.run,/--include=dev/,'older trusted commits list yaml as a dev dependency');
+  assert.doesNotMatch(install.run,/--omit=dev/);
+  assert.match(install.run,/--ignore-scripts/,'installing the verifier must not execute lifecycle scripts');
+  assert.equal(install['working-directory'],verify['working-directory']);
+  assert.equal(install.if,verify.if);
+ }
+});
 test('engineering and article deployments serialize without weakening production approval',async()=>{
  const engineering=await workflow('deploy.yml'),article=await workflow('article-release.yml');
  assert.equal(engineering.jobs.deploy.environment,'production');
