@@ -1,0 +1,138 @@
+name: Publish owner-approved article
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact reviewed main merge
+        required: true
+        type: string
+      approval_ref:
+        description: Immutable signed approval commit
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: custody-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the pinned trusted verifier
+        env:
+          GUARD_SHA: ${{ vars.ARTICLE_RELEASE_GUARD_SHA }}
+        run: '[[ "$GUARD_SHA" =~ ^[a-f0-9]{40}$ ]]'
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ vars.ARTICLE_RELEASE_GUARD_SHA }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - name: Verify owner-approved article release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CUSTODY_SUPER_ADMIN_NPUB: ${{ vars.CUSTODY_SUPER_ADMIN_NPUB }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          APPROVAL_REF: ${{ inputs.approval_ref }}
+        run: node ops/publishing/article-release-guard.mjs verify "$RELEASE_SHA" "$APPROVAL_REF"
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.release_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: |
+          npm ci
+          bash ops/publishing/verify-builds.sh
+          npm audit --audit-level=moderate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: article-production-${{ github.sha }}-${{ github.run_attempt }}
+          path: build/astro-production/
+          if-no-files-found: error
+  deploy:
+    needs: [verify, build]
+    runs-on: ubuntu-latest
+    environment: article-production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ vars.ARTICLE_RELEASE_GUARD_SHA }}
+          path: guard
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+        working-directory: guard
+      - name: Recheck approval and live production base
+        working-directory: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CUSTODY_SUPER_ADMIN_NPUB: ${{ vars.CUSTODY_SUPER_ADMIN_NPUB }}
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          APPROVAL_REF: ${{ inputs.approval_ref }}
+        run: node ops/publishing/article-release-guard.mjs verify "$RELEASE_SHA" "$APPROVAL_REF" > "$RUNNER_TEMP/article-approval.json"
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.release_sha }}
+          path: site
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: article-production-${{ github.sha }}-${{ github.run_attempt }}
+          path: site/build/astro-production/
+      - name: Prepare IndexNow
+        id: indexnow
+        continue-on-error: true
+        working-directory: site
+        run: node ops/indexnow.mjs prepare build/astro-production "$RUNNER_TEMP/indexnow.json"
+      - name: Deploy verified article artifact
+        working-directory: site
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_DEPLOY_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          DEPLOY_USER: custody
+        run: |
+          set -euo pipefail
+          current=$(gh api repos/0xRivers/custody-consulting/git/ref/heads/main --jq .object.sha)
+          test "$current" = "$GITHUB_SHA"
+          umask 077
+          key="$RUNNER_TEMP/article-deploy-key"
+          hosts="$RUNNER_TEMP/article-known-hosts"
+          trap 'rm -f "$key" "$hosts"' EXIT
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$hosts"
+          export DEPLOY_KEY="$key" DEPLOY_KNOWN_HOSTS="$hosts"
+          bash ops/deploy.sh
+      - name: Verify public article visibility
+        working-directory: site
+        run: |
+          set -euo pipefail
+          actual=$(curl --fail --silent --show-error --retry 2 --max-time 20 "https://custody.consulting/version.txt?expected=$GITHUB_SHA")
+          test "$actual" = "$GITHUB_SHA"
+          node --input-type=module <<'JS'
+          import {readFile} from 'node:fs/promises';
+          const approval=JSON.parse(await readFile(process.env.RUNNER_TEMP+'/article-approval.json','utf8'));
+          for(const route of approval.routes){
+            const response=await fetch('https://custody.consulting'+route+'?article-release='+Date.now(),{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(15000)});
+            if(response.status!==(approval.target==='publish'?200:404))throw new Error('Article visibility verification failed.');
+          }
+          JS
+          node ops/checks/url-migration.mjs https://custody.consulting
+      - name: Notify IndexNow
+        if: steps.indexnow.outcome == 'success'
+        continue-on-error: true
+        working-directory: site
+        run: node ops/indexnow.mjs submit "$RUNNER_TEMP/indexnow.json"
