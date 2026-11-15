@@ -21,6 +21,11 @@
       { label: Wirtualna Polska, url: https://wp.pl },
       { label: Onet, url: https://onet.pl }
     ],
+  updatedAt: 2026-11-14
+}
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.astra
   updatedAt: 2026-11-15
 }
 ---
