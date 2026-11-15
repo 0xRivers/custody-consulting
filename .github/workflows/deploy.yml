@@ -10,6 +10,35 @@ concurrency:
   group: custody-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  article_route:
+    runs-on: ubuntu-latest
+    outputs:
+      article: ${{ steps.verify.outputs.article }}
+    steps:
+      - id: eligible
+        env:
+          GUARD_SHA: ${{ vars.ARTICLE_RELEASE_GUARD_SHA }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main && "$GUARD_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.eligible.outputs.enabled == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ vars.ARTICLE_RELEASE_GUARD_SHA }}
+          persist-credentials: false
+      - if: steps.eligible.outputs.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - if: steps.eligible.outputs.enabled == 'true'
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+      - id: verify
+        if: steps.eligible.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CUSTODY_SUPER_ADMIN_NPUB: ${{ vars.CUSTODY_SUPER_ADMIN_NPUB }}
+        run: node ops/publishing/article-release-guard.mjs route "$GITHUB_SHA"
   check:
     runs-on: ubuntu-latest
     steps:
@@ -28,8 +57,8 @@ jobs:
           path: build/astro-production/
           if-no-files-found: error
   deploy:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push')
-    needs: check
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') && needs.article_route.outputs.article != 'true'
+    needs: [check, article_route]
     runs-on: ubuntu-latest
     environment: production
     steps:

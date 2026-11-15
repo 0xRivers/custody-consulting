@@ -58,3 +58,25 @@ test('pagination and topic routes are derived only from existing articles', () =
   assert.deepEqual(articleTopics(articles), ['foundations', 'recovery']);
   assert.throws(() => paginateArticles(articles, 3), /exceeds/);
 });
+
+import { articleFrontmatter } from './article-frontmatter.mjs';
+
+test('editorial boundaries accept equivalent block and CMS flow-style YAML', () => {
+  const block = '---\nlocale: en\nslug: testing-cms-articles\ntranslationKey: testing-cms-articles\ndraft: false\n---\nText';
+  const flow = '---\n{\n  title: "Testing CMS articles",\n  locale: en,\n  slug: testing-cms-articles,\n  translationKey: testing-cms-articles,\n  draft: false\n}\n---\nText';
+  assert.deepEqual(articleFrontmatter(flow), articleFrontmatter(block));
+});
+
+test('editorial boundaries preserve unpublished state in both YAML styles', () => {
+  for (const metadata of ['locale: pl\nslug: testujemy-artykuly\ntranslationKey: testing-cms-articles\ndraft: true', '{locale: pl, slug: testujemy-artykuly, translationKey: testing-cms-articles, draft: true}']) {
+    assert.equal(articleFrontmatter('---\n' + metadata + '\n---\nText').draft, true);
+  }
+});
+
+test('editorial boundaries reject missing identity and ambiguous draft flags', () => {
+  assert.throws(() => articleFrontmatter('---\nslug: test\ntranslationKey: test\ndraft: false\n---\nText'), /locale/);
+  for (const draft of ['"true"', '"false"', 'null', '0']) {
+    assert.throws(() => articleFrontmatter('---\nlocale: en\nslug: test\ntranslationKey: test\ndraft: ' + draft + '\n---\nText'), /draft/);
+  }
+  assert.throws(() => articleFrontmatter('---\nlocale: en\nlocale: pl\nslug: test\ntranslationKey: test\ndraft: false\n---\nText'), /unique/i);
+});

@@ -24,6 +24,11 @@
 ---
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.astra
+  updatedAt: 2026-11-15
+}
+---
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.astraterra
 
 ## What should you consider?
 
