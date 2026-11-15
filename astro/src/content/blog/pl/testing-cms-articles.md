@@ -13,7 +13,7 @@
   slug: testujemy-artykuly,
   author: Custody Consulting,
   publishedAt: 2026-11-14,
-  draft: true,
+  draft: false,
   translationKey: testing-cms-articles,
   topics: [ foundations ],
   sources:
@@ -21,7 +21,7 @@
       { label: Wirtualna Polska, url: https://wp.pl },
       { label: Onet, url: https://onet.pl }
     ],
-  updatedAt: 2026-11-14
+  updatedAt: 2026-11-15
 }
 ---
 
