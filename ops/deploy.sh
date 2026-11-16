@@ -22,6 +22,9 @@ cp -a "$build_dir"/. "$stage/"
 printf '%s\n' "production" > "$stage/astro-release.txt"
 [[ -s "$stage/sitemap.xml" && -s "$stage/robots.txt" ]]
 printf '%s\n' "$sha" > "$stage/version.txt"
+# These are public static files; the web server may use a different account.
+# Keep the caller's restrictive umask for SSH credentials and other temp files.
+chmod 0644 "$stage/astro-release.txt" "$stage/version.txt"
 ssh_args=(-F /dev/null -i "$DEPLOY_KEY" -p "$port" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=\"$DEPLOY_KNOWN_HOSTS\"" -o ConnectTimeout=15)
 # Keep incomplete uploads out of releases and allow retries of an identical artifact.
 remote="release=$sha;"'
@@ -39,6 +42,8 @@ remote="release=$sha;"'
     chmod 0755 "$upload"
     mv -T -- "$upload" "$target"
   fi
+  # An identical earlier upload may predate the public-marker permission fix.
+  chmod 0644 "$target/astro-release.txt" "$target/version.txt"
   /usr/local/bin/custody-activate-release "$release"
 '
 tar -C "$stage" -czf - . | ssh "${ssh_args[@]}" "$deploy_user@$host" "$remote"
