@@ -4,7 +4,7 @@ import { relative } from 'node:path';
 import { articleFrontmatter } from './article-frontmatter.mjs';
 
 const contentRoot = new URL('../../astro/src/content/blog/', import.meta.url);
-const productionRoot = new URL('../../build/astro-production/', import.meta.url);
+const publicRoots = ['staging','production'].map(environment=>new URL('../../build/astro-'+environment+'/', import.meta.url));
 
 async function filesUnder(directory, suffix) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -37,15 +37,15 @@ for (const [translationKey, pair] of pairs) {
   assert.equal(new Set(pair.map((article) => article.draft)).size, 1, `${translationKey} must use the same draft state in both languages`);
 }
 
-const productionFiles = await filesUnder(productionRoot, '.html');
-const productionHtml = (await Promise.all(productionFiles.map((file) => readFile(file, 'utf8')))).join('\n');
-const syndication = await Promise.all(['sitemap.xml', 'en/rss.xml', 'pl/rss.xml'].map(
-  (path) => readFile(new URL(path, productionRoot), 'utf8'),
-));
+const publicHtml = (await Promise.all(publicRoots.map(async root => {
+  const files=await filesUnder(root,'.html');
+  return (await Promise.all(files.map(file=>readFile(file,'utf8')))).join('\n');
+}))).join('\n');
+const syndication=await Promise.all(['sitemap.xml','en/rss.xml','pl/rss.xml'].map(path=>readFile(new URL(path,publicRoots[1]),'utf8')));
 for (const article of articles.filter((candidate) => candidate.draft)) {
-  assert(!productionHtml.includes(article.slug), `Draft slug ${article.slug} from ${article.file} leaked into production HTML`);
+  assert(!publicHtml.includes(article.slug), `Draft slug ${article.slug} from ${article.file} leaked into a public build HTML`);
   assert(!syndication.some((xml) => xml.includes(`/${article.locale}/blog/${article.slug}/`)),
     `Draft URL for ${article.file} leaked into the production sitemap or a feed`);
 }
 
-console.log(`Verified ${articles.length} bilingual entries; ${articles.filter((article) => article.draft).length} drafts are absent from production HTML.`);
+console.log(`Verified ${articles.length} bilingual entries; ${articles.filter((article) => article.draft).length} drafts are absent from staging and production HTML.`);

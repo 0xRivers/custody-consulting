@@ -22,8 +22,7 @@ export async function getPreviewArticles(locale?: ArticleLocale): Promise<Collec
 }
 
 export async function getBuildArticles(locale?: ArticleLocale): Promise<CollectionEntry<'blog'>[]> {
-  const environment = buildEnvironment(process.env.SITE_ENV);
-  return environment.name === 'staging'
-    ? getPreviewArticles(locale)
-    : getPublishedArticles(locale);
+  buildEnvironment(process.env.SITE_ENV);
+  // Public staging pages follow production visibility. Drafts stay in Admin.
+  return getPublishedArticles(locale);
 }
