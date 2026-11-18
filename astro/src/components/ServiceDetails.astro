@@ -10,7 +10,7 @@ interface Props {
 const { id, title, details, lang, bookingUrl, bookingLabel } = Astro.props;
 ---
 <div class="service-details">
-  <button type="button" class="details-trigger" aria-haspopup="dialog" aria-controls={id}>{details.cta} <span aria-hidden="true">→</span></button>
+  <button type="button" class="details-trigger" aria-haspopup="dialog" aria-controls={id} commandfor={id} command="show-modal">{details.cta} <span aria-hidden="true">→</span></button>
   <dialog id={id} aria-labelledby={id+'-heading'}>
     <form method="dialog"><button class="dismiss" aria-label={lang==='pl'?'Zamknij':'Close'} autofocus>×</button></form>
     <h2 id={id+'-heading'}>{title}</h2>
@@ -19,14 +19,6 @@ const { id, title, details, lang, bookingUrl, bookingLabel } = Astro.props;
     <a class="button" href={bookingUrl}>{bookingLabel}</a>
   </dialog>
 </div>
-<script>
-  document.querySelectorAll<HTMLButtonElement>('.details-trigger').forEach(trigger => {
-    const dialog = document.getElementById(trigger.getAttribute('aria-controls') ?? '');
-    if (!(dialog instanceof HTMLDialogElement)) return;
-    trigger.addEventListener('click', () => dialog.showModal());
-    dialog.addEventListener('close', () => trigger.focus({preventScroll:true}));
-  });
-</script>
 <style>
   .details-trigger { display:inline-flex; align-items:center; gap:.6rem; min-height:44px; margin-top:.9rem; padding:.25rem 0; border:0; background:none; color:var(--ink); font-weight:700; cursor:pointer; text-align:start; text-decoration:underline; text-underline-offset:.25em; }
   dialog { box-sizing:border-box; width:min(34rem,calc(100% - 2rem)); max-height:calc(100dvh - 2rem); overflow:auto; overscroll-behavior:contain; padding:clamp(1.25rem,4vw,2.5rem); border:1px solid var(--paper-line); border-radius:.75rem; background:var(--paper); color:var(--ink); color-scheme:light; }
