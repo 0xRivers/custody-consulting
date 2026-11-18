@@ -65,6 +65,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
       <p class="section-label">{t.why.label}</p>
       <h2>{t.why.title}</h2>
       <p class="section-intro">{t.why.sub}</p>
+      {lang === 'pl' && <p><a href="https://www.gov.pl/web/prokuratura-krajowa/zondacrypto">Informacje Prokuratury Krajowej dla klientów zondacrypto</a></p>}
       <div class="principles">
         {t.why.items.map((item, index) => (
           <article>
