@@ -10,7 +10,7 @@ export const content = {
     hero: {
       eyebrow: "Samodzielne przechowywanie bitcoina · Europa",
       title: "Przenieś bitcoina z giełdy do własnego portfela.",
-      sub: "Pokażemy Ci, jak przygotować portfel, sprawdzić adres i zacząć od małej wypłaty próbnej. Ty zatwierdzasz przelew. Uczysz się też, jak zabezpieczyć kopię zapasową i odzyskać dostęp po utracie urządzenia.",
+      sub: "Pokażemy Ci, jak przygotować portfel, sprawdzić adres i zacząć od małej wypłaty próbnej. Ty zatwierdzasz przelew. Nauczysz się też, jak zabezpieczyć kopię zapasową i odzyskać dostęp na wypadek utraty urządzenia.",
       cta: "Znajdź wsparcie dla siebie",
       cta2: "Zobacz, jak pracujemy",
       signals: ["Klucze pozostają u Ciebie", "Wsparcie po polsku i angielsku", "Plan dopasowany do Twojej sytuacji"],
