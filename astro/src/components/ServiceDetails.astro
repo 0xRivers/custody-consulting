@@ -1,0 +1,31 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  details: {cta: string; intro: string; steps: readonly string[]};
+  lang: 'pl' | 'en';
+  bookingUrl: string;
+  bookingLabel: string;
+}
+const { id, title, details, lang, bookingUrl, bookingLabel } = Astro.props;
+---
+<div class="service-details">
+  <button type="button" class="details-trigger" aria-haspopup="dialog" aria-controls={id} commandfor={id} command="show-modal">{details.cta} <span aria-hidden="true">→</span></button>
+  <dialog id={id} aria-labelledby={id+'-heading'}>
+    <form method="dialog"><button class="dismiss" aria-label={lang==='pl'?'Zamknij':'Close'} autofocus>×</button></form>
+    <h2 id={id+'-heading'}>{title}</h2>
+    <p>{details.intro}</p>
+    <ul>{details.steps.map(step => <li>{step}</li>)}</ul>
+    <a class="button" href={bookingUrl}>{bookingLabel}</a>
+  </dialog>
+</div>
+<style>
+  .details-trigger { display:inline-flex; align-items:center; gap:.6rem; min-height:44px; margin-top:.9rem; padding:.25rem 0; border:0; background:none; color:var(--ink); font-weight:700; cursor:pointer; text-align:start; text-decoration:underline; text-underline-offset:.25em; }
+  dialog { box-sizing:border-box; width:min(34rem,calc(100% - 2rem)); max-height:calc(100dvh - 2rem); overflow:auto; overscroll-behavior:contain; padding:clamp(1.25rem,4vw,2.5rem); border:1px solid var(--paper-line); border-radius:.75rem; background:var(--paper); color:var(--ink); color-scheme:light; }
+  dialog::backdrop { background:rgb(6 22 49 / 80%); }
+  dialog form { float:right; margin:-.45rem -.45rem .3rem .5rem; }
+  .dismiss { width:44px; height:44px; cursor:pointer; border:1px solid var(--paper-line); border-radius:50%; color:inherit; background:transparent; font-size:1.6rem; line-height:1; }
+  dialog h2 { font-size:clamp(1.6rem,5vw,2.3rem); margin:0 0 1rem; }
+  dialog ul { padding-inline-start:1.3rem; margin:1rem 0 1.5rem; }
+  dialog li + li { margin-top:.5rem; }
+</style>
