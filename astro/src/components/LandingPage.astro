@@ -106,7 +106,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
                 <h3>{service.t}</h3>
                 <p class="service-description">{service.d}</p>
                 <p class="service-outcome">{service.outcome}</p>
-                <ServiceDetails id={`service-detail-${index + 1}`} title={service.t} details={service.details} lang={lang} bookingUrl={discoveryUrl} bookingLabel={discoveryLabel} />
+                <ServiceDetails photo={servicePhotos[index]} id={`service-detail-${index + 1}`} title={service.t} details={service.details} lang={lang} bookingUrl={discoveryUrl} bookingLabel={discoveryLabel} />
               </div>
             </article>
           ))}
