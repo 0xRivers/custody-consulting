@@ -3,22 +3,22 @@ export type Lang = "pl" | "en";
 export const content = {
   pl: {
     meta: {
-      title: "Custody Consulting — Twój bitcoin. Twoje klucze. Jasny plan.",
-      description: "Indywidualne wsparcie w samodzielnym przechowywaniu bitcoina. Portfele sprzętowe, kopie zapasowe i plan odzyskiwania. Po polsku i angielsku, dla klientów w Europie.",
+      title: "Custody Consulting — Przenieś bitcoina z giełdy do własnego portfela.",
+      description: "Dowiedz się, jak przygotować portfel, sprawdzić adres wypłaty i zadbać o kopię zapasową. Indywidualne konsultacje po polsku i angielsku.",
     },
     nav: { why: "Po co plan", services: "Usługi", process: "Jak pracujemy", faq: "FAQ", blog: "Baza wiedzy", cta: "Porozmawiajmy", label: "Nawigacja główna", language: "Wybierz język" },
     hero: {
       eyebrow: "Samodzielne przechowywanie bitcoina · Europa",
-      title: "Twój bitcoin. Twoje klucze. Jasny plan.",
-      sub: "Pomagamy osobom prywatnym, rodzinom i firmom wybrać portfel, przygotować kopie zapasowe i przećwiczyć odzyskiwanie dostępu. Krok po kroku, po polsku lub angielsku.",
+      title: "Przenieś bitcoina z giełdy do własnego portfela.",
+      sub: "Pokażemy Ci, jak przygotować portfel, sprawdzić adres i zacząć od małej wypłaty próbnej. Ty zatwierdzasz przelew. Uczysz się też, jak zabezpieczyć kopię zapasową i odzyskać dostęp po utracie urządzenia.",
       cta: "Znajdź wsparcie dla siebie",
       cta2: "Zobacz, jak pracujemy",
       signals: ["Klucze pozostają u Ciebie", "Wsparcie po polsku i angielsku", "Plan dopasowany do Twojej sytuacji"],
     },
     why: {
       label: "ZACZNIJ OD PODSTAW",
-      title: "Sam portfel to dopiero początek.",
-      sub: "Dobry plan obejmuje codzienną obsługę, utratę urządzenia i sytuacje, w których potrzebna będzie pomoc bliskich.",
+      title: "Co warto sprawdzić przed pierwszą wypłatą?",
+      sub: "Dopóki bitcoin jest na giełdzie, wypłata zależy od jej działania. Po upadłości operatora zondacrypto wielu klientów w Polsce stanęło przed pytaniem, co dalej z ich środkami. Jeśli nadal możesz wypłacić bitcoina ze swojej giełdy, warto najpierw przygotować portfel i sprawdzić, czy potrafisz odzyskać do niego dostęp.",
       items: [
         { t: "Kontrola nad dostępem", d: "Trzymając bitcoin na giełdzie, polegasz na jej zasadach i dostępności. We własnym portfelu zarządzasz kluczami — i odpowiadasz za ich ochronę." },
         { t: "Kopie, które potrafisz odtworzyć", d: "Kopia zapasowa pomaga tylko wtedy, gdy jest kompletna, chroniona i zrozumiała. Zaplanuj sposób jej przechowywania i sprawdź procedurę odzyskiwania." },
@@ -74,7 +74,7 @@ export const content = {
     },
     contact: {
       title: "Zacznij od swoich pytań.",
-      sub: "Nie musisz wybierać portfela przed rozmową. Warto najpierw zastanowić się, czego potrzebujesz od swojego systemu.",
+      sub: "Nie musisz mieć portfela przed rozmową. Powiedz, na którym kroku się zatrzymujesz. Wspólnie ustalimy, co warto przećwiczyć najpierw.",
       panelTitle: "Co warto przygotować",
       prompts: ["Czy dopiero zaczynasz, czy masz już własny portfel?", "Co najbardziej Cię niepokoi: obsługa, kopie czy dostęp dla bliskich?", "Kto będzie korzystał z portfela i utrzymywał plan?"],
       status: "Rezerwacja konsultacji wkrótce",
@@ -85,22 +85,22 @@ export const content = {
   },
   en: {
     meta: {
-      title: "Custody Consulting — Your bitcoin. Your keys. A clear plan.",
-      description: "Personal guidance for Bitcoin self-custody. Hardware wallets, backups and recovery planning for individuals, families and businesses across Europe. English and Polish.",
+      title: "Custody Consulting — Move your bitcoin off the exchange and into your own wallet.",
+      description: "Get one-to-one guidance on withdrawing bitcoin from an exchange, checking the receiving address and protecting your wallet backup. In English or Polish.",
     },
     nav: { why: "Why a plan", services: "Services", process: "Our approach", faq: "FAQ", blog: "Knowledge base", cta: "Let’s talk", label: "Main navigation", language: "Choose language" },
     hero: {
       eyebrow: "Bitcoin self-custody consulting · Europe",
-      title: "Your bitcoin. Your keys. A clear plan.",
-      sub: "We help individuals, families and businesses choose a wallet, prepare backups and practise recovery. Step by step, in English or Polish.",
+      title: "Move your bitcoin off the exchange and into your own wallet.",
+      sub: "We’ll guide you through setting up a wallet, checking the receiving address and making a small test withdrawal. You approve the transfer and learn how to protect your backup and recover access if you lose your device.",
       cta: "Find the support you need",
       cta2: "See how we work",
       signals: ["You keep your keys", "English and Polish", "A plan for your situation"],
     },
     why: {
       label: "START WITH THE FOUNDATIONS",
-      title: "A wallet is only the beginning.",
-      sub: "A useful plan covers everyday transactions, a lost device and the times when someone close to you may need to help.",
+      title: "What should you check before your first withdrawal?",
+      sub: "While an exchange holds your bitcoin, you depend on it to process withdrawals. Before moving a larger amount, practise receiving a small payment and make sure you know how to restore your wallet.",
       items: [
         { t: "Control over access", d: "Keeping bitcoin on an exchange means relying on its rules and availability. With your own wallet, you manage the keys — and take responsibility for protecting them." },
         { t: "Backups you can recover", d: "A backup helps only if it is complete, protected and understood. Plan where it belongs and test the steps needed to restore access." },
@@ -156,7 +156,7 @@ export const content = {
     },
     contact: {
       title: "Start with your questions.",
-      sub: "You do not need to choose a wallet before we talk. First, consider what you need your setup to do.",
+      sub: "You can come to the call before you’ve chosen a wallet. Tell us which step you’re unsure about, and we’ll work out what to practise first.",
       panelTitle: "What to think about",
       prompts: ["Are you getting started, or do you already have a wallet?", "What concerns you most: daily use, backups or family access?", "Who will operate the wallet and maintain the plan?"],
       status: "Consultation booking coming soon",
