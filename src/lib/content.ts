@@ -3,22 +3,22 @@ export type Lang = "pl" | "en";
 export const content = {
   pl: {
     meta: {
-      title: "Custody Consulting — Twój bitcoin. Twoje klucze. Jasny plan.",
-      description: "Indywidualne wsparcie w samodzielnym przechowywaniu bitcoina. Portfele sprzętowe, kopie zapasowe i plan odzyskiwania. Po polsku i angielsku, dla klientów w Europie.",
+      title: "Custody Consulting — Przenieś bitcoina z giełdy do własnego portfela.",
+      description: "Dowiedz się, jak przygotować portfel, sprawdzić adres wypłaty i zadbać o kopię zapasową. Indywidualne konsultacje po polsku i angielsku.",
     },
     nav: { why: "Po co plan", services: "Usługi", process: "Jak pracujemy", faq: "FAQ", blog: "Baza wiedzy", cta: "Porozmawiajmy", label: "Nawigacja główna", language: "Wybierz język" },
     hero: {
       eyebrow: "Samodzielne przechowywanie bitcoina · Europa",
-      title: "Twój bitcoin. Twoje klucze. Jasny plan.",
-      sub: "Pomagamy osobom prywatnym, rodzinom i firmom wybrać portfel, przygotować kopie zapasowe i przećwiczyć odzyskiwanie dostępu. Krok po kroku, po polsku lub angielsku.",
+      title: "Przenieś bitcoina z giełdy do własnego portfela.",
+      sub: "Pokażemy Ci, jak przygotować portfel, sprawdzić adres i zacząć od małej wypłaty próbnej. Ty zatwierdzasz przelew. Nauczysz się też, jak zabezpieczyć kopię zapasową i odzyskać dostęp na wypadek utraty urządzenia.",
       cta: "Znajdź wsparcie dla siebie",
       cta2: "Zobacz, jak pracujemy",
       signals: ["Klucze pozostają u Ciebie", "Wsparcie po polsku i angielsku", "Plan dopasowany do Twojej sytuacji"],
     },
     why: {
       label: "ZACZNIJ OD PODSTAW",
-      title: "Sam portfel to dopiero początek.",
-      sub: "Dobry plan obejmuje codzienną obsługę, utratę urządzenia i sytuacje, w których potrzebna będzie pomoc bliskich.",
+      title: "Co warto sprawdzić przed pierwszą wypłatą?",
+      sub: "Dopóki bitcoin jest na giełdzie, wypłata zależy od jej działania. Po upadłości operatora zondacrypto wielu klientów w Polsce stanęło przed pytaniem, co dalej z ich środkami. Jeśli nadal możesz wypłacić bitcoina ze swojej giełdy, warto najpierw przygotować portfel i sprawdzić, czy potrafisz odzyskać do niego dostęp.",
       items: [
         { t: "Kontrola nad dostępem", d: "Trzymając bitcoin na giełdzie, polegasz na jej zasadach i dostępności. We własnym portfelu zarządzasz kluczami — i odpowiadasz za ich ochronę." },
         { t: "Kopie, które potrafisz odtworzyć", d: "Kopia zapasowa pomaga tylko wtedy, gdy jest kompletna, chroniona i zrozumiała. Zaplanuj sposób jej przechowywania i sprawdź procedurę odzyskiwania." },
@@ -42,10 +42,10 @@ export const content = {
       sub: "Od pierwszej rozmowy do praktycznej nauki i planu na przyszłość.",
       note: "Zakres współpracy i całkowity koszt ustalamy przed rozpoczęciem pracy.",
       items: [
-        {"t": "Foundation", "p": "", "meta": "1 godzina · konsultacja", "d": "Rozmowa 1:1 o Twoim doświadczeniu, pytaniach i sposobie przechowywania bitcoina. Wspólnie ustalamy priorytety i kolejny krok.", "outcome": "Wychodzisz z jasnym kierunkiem i listą praktycznych działań."},
-        {"t": "Self-Custody Essentials", "p": "", "meta": "7 godzin · kurs praktyczny", "d": "Praktyczny kurs konfiguracji portfeli, przygotowania kopii zapasowych i odzyskiwania dostępu. Pracujesz na własnych urządzeniach i ćwiczysz procedury krok po kroku.", "outcome": "Uczysz się samodzielnie obsługiwać portfel i odtwarzać do niego dostęp."},
-        {"t": "Wsparcie przy transakcjach", "p": "", "meta": "Wsparcie przy konkretnej operacji", "d": "Pomoc w przygotowaniu transakcji: sprawdzeniu sieci, adresu i opłaty oraz zrozumieniu statusu i potwierdzeń. Ty obsługujesz portfel i zatwierdzasz transfer.", "outcome": "Przechodzisz przez transakcję, rozumiejąc każdy krok."},
-        {"t": "Ciągłość dla rodziny i firmy", "p": "", "meta": "Planowanie i dokumentacja", "d": "Przygotuj instrukcje dla bliskich lub zespołu, podział odpowiedzialności i zasady dostępu awaryjnego. Uwzględnij dziedziczenie i sytuacje, gdy nie możesz działać osobiście.", "outcome": "Zyskujesz plan do przećwiczenia z bliskimi, zespołem i omówienia z doradcą prawnym."},
+        {"t": "Foundation", "p": "", "meta": "1 godzina · konsultacja", "d": "Rozmowa 1:1 o Twoim doświadczeniu, pytaniach i sposobie przechowywania bitcoina. Wspólnie ustalamy priorytety i kolejny krok.", "outcome": "Wychodzisz z jasnym kierunkiem i listą praktycznych działań.", "details": {"cta": "Zobacz przebieg konsultacji", "intro": "Masz bitcoina na giełdzie i zastanawiasz się, od czego zacząć? Na godzinnej konsultacji omawiamy jedną decyzję, która dziś sprawia Ci trudność.", "steps": ["Opisz, co chcesz zrobić i z jakiego urządzenia korzystasz. Nie musisz podawać salda.", "Porównamy opcje pod kątem Twojego doświadczenia, kosztów i sposobu korzystania z portfela.", "Ułożymy krótką listę działań w kolejności, w jakiej możesz je wykonać."]}},
+        {"t": "Self-Custody Essentials", "p": "", "meta": "7 godzin · kurs praktyczny", "d": "Praktyczny kurs konfiguracji portfeli, przygotowania kopii zapasowych i odzyskiwania dostępu. Pracujesz na własnych urządzeniach i ćwiczysz procedury krok po kroku.", "outcome": "Uczysz się samodzielnie obsługiwać portfel i odtwarzać do niego dostęp.", "details": {"cta": "Poznaj program kursu", "intro": "W ciągu siedmiu godzin ćwiczysz na własnym urządzeniu. Przechodzimy od konfiguracji portfela do sytuacji, w której trzeba odzyskać do niego dostęp.", "steps": ["Skonfigurujesz portfel sprzętowy, sprawdzisz adres odbiorczy na jego ekranie i przygotujesz kopię zapasową. Słowa odzyskiwania zachowujesz dla siebie.", "Na portfelu ćwiczeniowym dodasz opcjonalne hasło (passphrase). Sprawdzisz, dlaczego do odtworzenia tego portfela potrzebujesz zarówno słów odzyskiwania, jak i dokładnie tego samego hasła.", "Przećwiczysz multisig w układzie 2 z 3: zobaczysz, jak dwa różne klucze zatwierdzają jedną transakcję i co trzeba zachować, by odtworzyć portfel.", "Przygotujesz niewielką transakcję testową. Sprawdzisz adres, kwotę i opłatę, a następnie podpiszesz i wyślesz transakcję.", "Odszukasz transakcję po jej identyfikatorze (TXID) w eksploratorze bloków Bitcoina. Sprawdzisz, czy czeka na potwierdzenie, czy trafiła już do bloku i ile ma potwierdzeń."]}},
+        {"t": "Wsparcie przy transakcjach", "p": "", "meta": "Indywidualne wsparcie concierge", "d": "Planujesz przelew większej kwoty w bitcoinie? Towarzyszymy Ci od sprawdzenia portfela aż do potwierdzenia transakcji.", "outcome": "Tylko Ty masz klucze i podpisujesz transakcję.", "details": {"cta": "Zobacz, jak wygląda wsparcie", "intro": "Przy przelewie większej kwoty masz do dyspozycji osobistego konsultanta. Przechodzimy z Tobą przez każdy krok, a klucze prywatne przez cały czas pozostają wyłącznie u Ciebie.", "steps": ["Razem przetestujemy urządzenie do podpisywania transakcji. Sprawdzimy wersję oprogramowania i komunikaty producenta o znanych lukach. W razie potrzeby pomożemy Ci zainstalować aktualizację.", "Przed wysyłką sprawdzimy z Tobą adres odbiorcy, kwotę i opłatę sieciową na ekranie urządzenia. Tylko Ty podpiszesz transakcję.", "Po wysyłce wspólnie odszukamy transakcję po jej identyfikatorze (TXID). Sprawdzimy, czy kwota i adres się zgadzają, i poczekamy z Tobą na pierwsze potwierdzenie w bloku.", "Opłata za wsparcie wynosi 0,42% wartości przelewu. Minimum to cena sesji Foundation (420 zł lub 95 EUR, zależnie od waluty rozliczenia)."]}},
+        {"t": "Ciągłość dla rodziny i firmy", "p": "", "meta": "Planowanie i dokumentacja", "d": "Przygotuj instrukcje dla bliskich lub zespołu, podział odpowiedzialności i zasady dostępu awaryjnego. Uwzględnij dziedziczenie i sytuacje, gdy nie możesz działać osobiście.", "outcome": "Zyskujesz plan do przećwiczenia z bliskimi, zespołem i omówienia z doradcą prawnym.", "details": {"cta": "Zobacz, jak przygotować plan", "intro": "Co ma zrobić bliska osoba lub wspólnik, jeśli przez dłuższy czas nie może się z Tobą skontaktować? Od takiego scenariusza zaczynamy pracę nad planem.", "steps": ["Ustalisz, kto powinien znać procedurę i kto ma prawo podjąć poszczególne decyzje.", "Przygotujesz instrukcję, którą można udostępnić bez ujawniania kluczy prywatnych.", "Zaplanujesz próbę z rodziną lub zespołem i ustalisz, kiedy aktualizować dokumentację."]}},
       ],
     },
     process: {
@@ -74,7 +74,7 @@ export const content = {
     },
     contact: {
       title: "Zacznij od swoich pytań.",
-      sub: "Nie musisz wybierać portfela przed rozmową. Warto najpierw zastanowić się, czego potrzebujesz od swojego systemu.",
+      sub: "Nie musisz mieć portfela przed rozmową. Powiedz, na którym kroku się zatrzymujesz. Wspólnie ustalimy, co warto przećwiczyć najpierw.",
       panelTitle: "Co warto przygotować",
       prompts: ["Czy dopiero zaczynasz, czy masz już własny portfel?", "Co najbardziej Cię niepokoi: obsługa, kopie czy dostęp dla bliskich?", "Kto będzie korzystał z portfela i utrzymywał plan?"],
       status: "Rezerwacja konsultacji wkrótce",
@@ -85,22 +85,22 @@ export const content = {
   },
   en: {
     meta: {
-      title: "Custody Consulting — Your bitcoin. Your keys. A clear plan.",
-      description: "Personal guidance for Bitcoin self-custody. Hardware wallets, backups and recovery planning for individuals, families and businesses across Europe. English and Polish.",
+      title: "Custody Consulting — Move your bitcoin off the exchange and into your own wallet.",
+      description: "Get one-to-one guidance on withdrawing bitcoin from an exchange, checking the receiving address and protecting your wallet backup. In English or Polish.",
     },
     nav: { why: "Why a plan", services: "Services", process: "Our approach", faq: "FAQ", blog: "Knowledge base", cta: "Let’s talk", label: "Main navigation", language: "Choose language" },
     hero: {
       eyebrow: "Bitcoin self-custody consulting · Europe",
-      title: "Your bitcoin. Your keys. A clear plan.",
-      sub: "We help individuals, families and businesses choose a wallet, prepare backups and practise recovery. Step by step, in English or Polish.",
+      title: "Move your bitcoin off the exchange and into your own wallet.",
+      sub: "We’ll guide you through setting up a wallet, checking the receiving address and making a small test withdrawal. You approve the transfer and learn how to protect your backup and recover access if you lose your device.",
       cta: "Find the support you need",
       cta2: "See how we work",
       signals: ["You keep your keys", "English and Polish", "A plan for your situation"],
     },
     why: {
       label: "START WITH THE FOUNDATIONS",
-      title: "A wallet is only the beginning.",
-      sub: "A useful plan covers everyday transactions, a lost device and the times when someone close to you may need to help.",
+      title: "What should you check before your first withdrawal?",
+      sub: "While an exchange holds your bitcoin, you depend on it to process withdrawals. Before moving a larger amount, practise receiving a small payment and make sure you know how to restore your wallet.",
       items: [
         { t: "Control over access", d: "Keeping bitcoin on an exchange means relying on its rules and availability. With your own wallet, you manage the keys — and take responsibility for protecting them." },
         { t: "Backups you can recover", d: "A backup helps only if it is complete, protected and understood. Plan where it belongs and test the steps needed to restore access." },
@@ -124,10 +124,10 @@ export const content = {
       sub: "From your first conversation to practical skills and a plan for the future.",
       note: "We agree the scope and total cost before work begins.",
       items: [
-        {"t": "Foundation", "p": "", "meta": "1 hour · consultation", "d": "A focused 1:1 conversation about your experience, questions and current approach to Bitcoin. We identify your priorities and agree on a practical next step.", "outcome": "Leave with a clear direction and practical actions to take."},
-        {"t": "Self-Custody Essentials", "p": "", "meta": "7 hours · practical course", "d": "A hands-on course covering wallet setup, backups and recovery. Work on your own devices and practise the procedures step by step.", "outcome": "Build the skills to operate your wallet and restore access independently."},
-        {"t": "Transaction Support", "p": "", "meta": "Support for a specific transfer", "d": "Guidance as you prepare a transaction: checking the network, destination and fee, then understanding its status and confirmations. You operate the wallet and approve the transfer.", "outcome": "Work through your transaction with a clear understanding of each step."},
-        {"t": "Family & Business Continuity", "p": "", "meta": "Planning and documentation", "d": "Prepare instructions for family or team members, define responsibilities and plan emergency access. Address inheritance and situations where you cannot act yourself.", "outcome": "Create a plan to practise with family or colleagues and discuss with legal advisers."},
+        {"t": "Foundation", "p": "", "meta": "1 hour · consultation", "d": "A focused 1:1 conversation about your experience, questions and current approach to Bitcoin. We identify your priorities and agree on a practical next step.", "outcome": "Leave with a clear direction and practical actions to take.", "details": {"cta": "Explore the consultation", "intro": "If your bitcoin is on an exchange and you’re unsure where to start, bring the one decision you’d like to make during this hour.", "steps": ["Tell us what you want to do and which device you use. You can keep your balance private.", "Compare wallet options against your experience, budget and day-to-day needs.", "Put the next steps in order so you know what to do after the call."]}},
+        {"t": "Self-Custody Essentials", "p": "", "meta": "7 hours · practical course", "d": "A hands-on course covering wallet setup, backups and recovery. Work on your own devices and practise the procedures step by step.", "outcome": "Build the skills to operate your wallet and restore access independently.", "details": {"cta": "Explore the course", "intro": "Over seven hours, you practise on your own device, from setting up a wallet to working through what happens if you lose it.", "steps": ["Set up a hardware wallet, verify a receiving address on its screen and prepare a backup. Your recovery words stay private.", "Add an optional passphrase to a practice wallet. Restore it to see why you need both your recovery words and the exact same passphrase.", "Practise with a 2-of-3 multisig wallet. See how two different keys approve one transaction and what you need to back up to restore the wallet.", "Make a small test transaction: check the address, amount and fee, then sign and send it.", "Look up the transaction ID (TXID) in a Bitcoin block explorer. See whether the transaction is still pending, which block includes it once confirmed, and how many confirmations it has."]}},
+        {"t": "Transaction Support", "p": "", "meta": "One-to-one concierge service", "d": "Moving a significant amount of bitcoin? We stay with you from the first wallet check until your transfer is confirmed.", "outcome": "Only you hold the keys and sign the transaction.", "details": {"cta": "See how transfer support works", "intro": "For a high-value bitcoin transfer, a dedicated consultant walks you through every step. Your private keys stay with you throughout.", "steps": ["Together we test your signing device, check its firmware version and review the manufacturer’s advisories for known vulnerabilities. If an update is needed, we guide you through it.", "Before you send, we walk you through checking the receiving address, amount and network fee on your device. Only you sign the transaction.", "After you send, we look up the transaction by its ID (TXID), check the address and amount with you, and stay until we see its first confirmation in a Bitcoin block.", "Our fee is 0.42% of the transfer value. The minimum is the price of a Foundation session (PLN 420 or EUR 95, depending on your billing currency)."]}},
+        {"t": "Family & Business Continuity", "p": "", "meta": "Planning and documentation", "d": "Prepare instructions for family or team members, define responsibilities and plan emergency access. Address inheritance and situations where you cannot act yourself.", "outcome": "Create a plan to practise with family or colleagues and discuss with legal advisers.", "details": {"cta": "Explore continuity planning", "intro": "Start with a practical question: what should a family member or business partner do if they can’t reach you for an extended period?", "steps": ["Decide who needs to know the procedure and who has authority to act.", "Draft instructions you can share without disclosing private keys.", "Plan a rehearsal with your family or team and decide when to update the instructions."]}},
       ],
     },
     process: {
@@ -156,7 +156,7 @@ export const content = {
     },
     contact: {
       title: "Start with your questions.",
-      sub: "You do not need to choose a wallet before we talk. First, consider what you need your setup to do.",
+      sub: "You can come to the call before you’ve chosen a wallet. Tell us which step you’re unsure about, and we’ll work out what to practise first.",
       panelTitle: "What to think about",
       prompts: ["Are you getting started, or do you already have a wallet?", "What concerns you most: daily use, backups or family access?", "Who will operate the wallet and maintain the plan?"],
       status: "Consultation booking coming soon",
