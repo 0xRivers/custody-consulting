@@ -1,0 +1,65 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  photo: ImageMetadata;
+  id: string;
+  title: string;
+  details: {cta: string; intro: string; steps: readonly string[]};
+  lang: 'pl' | 'en';
+  bookingUrl: string;
+  bookingLabel: string;
+}
+const { photo, id, title, details, lang, bookingUrl, bookingLabel } = Astro.props;
+---
+<div class="service-details">
+  <button type="button" class="details-trigger" aria-haspopup="dialog" aria-controls={id} commandfor={id} command="show-modal">{details.cta} <span aria-hidden="true">→</span></button>
+  <dialog id={id} aria-labelledby={id+'-heading'}>
+    <div class="dialog-layout">
+      <div class="dialog-photo">
+        <Image src={photo} alt="" width={1100} widths={[480, 768, 1100]} sizes="(max-width: 47.99rem) 100vw, (max-width: 74rem) 33vw, 24rem" format="webp" quality={65} loading="lazy" decoding="async" />
+      </div>
+      <div class="dialog-copy">
+        <form method="dialog"><button class="dismiss" aria-label={lang==='pl'?'Zamknij':'Close'} autofocus>×</button></form>
+        <h2 id={id+'-heading'}>{title}</h2>
+        <p>{details.intro}</p>
+        <ul>{details.steps.map(step => <li>{step}</li>)}</ul>
+        <a class="button" href={bookingUrl}>{bookingLabel}</a>
+      </div>
+    </div>
+  </dialog>
+</div>
+<style>
+  .details-trigger { display:inline-flex; align-items:center; gap:.6rem; min-height:44px; margin-top:.9rem; padding:.25rem 0; border:0; background:none; color:var(--ink); font-weight:700; cursor:pointer; text-align:start; text-decoration:underline; text-underline-offset:.25em; }
+  dialog { box-sizing:border-box; width:min(72rem,calc(100% - 2rem)); max-height:calc(100dvh - 2rem); overflow:auto; overscroll-behavior:contain; padding:0; border:1px solid var(--paper-line); border-radius:.75rem; background:var(--paper); color:var(--ink); color-scheme:light; }
+  dialog::backdrop { background:rgb(6 22 49 / 80%); }
+  .dialog-layout { display:grid; grid-template-columns:1fr 2fr; }
+  .dialog-photo { position:relative; }
+  .dialog-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .dialog-copy { min-width:0; padding:clamp(1rem,3vh,2rem) clamp(1.25rem,3vw,2.5rem); line-height:1.35; }
+  dialog form { float:right; margin:-.45rem -.45rem .3rem .5rem; }
+  .dismiss { width:44px; height:44px; cursor:pointer; border:1px solid var(--paper-line); border-radius:50%; color:inherit; background:transparent; font-size:1.6rem; line-height:1; }
+  dialog h2 { font-size:clamp(1.6rem,5vw,2.3rem); margin:0 0 1rem; }
+  dialog ul { padding-inline-start:1.3rem; margin:1rem 0 1.5rem; }
+  dialog li + li { margin-top:.5rem; }
+  @media (min-width:48rem) and (max-height:44rem) {
+    .dialog-copy { padding-block:1rem; }
+    dialog h2, dialog p { margin-block:0 .6rem; }
+    dialog ul { margin-block:.6rem .9rem; }
+    dialog li + li { margin-top:.3rem; }
+  }
+  @media (min-width:48rem) and (max-width:62rem) and (max-height:42rem) {
+    .dialog-layout { grid-template-columns:1fr 2fr auto; gap:.6rem 1rem; padding:1rem; align-items:center; }
+    .dialog-copy { display:contents; }
+    .dialog-photo { grid-area:1 / 1; align-self:stretch; min-height:3rem; }
+    dialog h2 { grid-area:1 / 2; margin:0; }
+    dialog form { grid-area:1 / 3; margin:0; }
+    dialog p, dialog ul, dialog .button { grid-column:1 / -1; margin:0; line-height:1.35; }
+    dialog .button { justify-self:start; }
+  }
+  @media (max-width:47.99rem) {
+    .dialog-layout { grid-template-columns:1fr; }
+    .dialog-photo { height:clamp(5rem,18dvh,10rem); }
+  }
+</style>
