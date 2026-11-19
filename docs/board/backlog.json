@@ -1,6 +1,6 @@
 {
   "title": "Custody Consulting · Astro rollout",
-  "updated": "2026-11-07",
+  "updated": "2026-11-17",
   "items": [
     {
       "id": "CC-1",
@@ -876,6 +876,257 @@
         "Exercise previous-code rollback against additive schema changes without rewinding the live payment database. Record procedures and evidence."
       ],
       "notes": "Owner verified on 2026-11-08 that the AES-256 encrypted production database backup restored off-server and passed SQLite integrity checks. The restored snapshot contained one booking, one linked payment and four invitations; it contained no review or resolution records. The previous production entry point opened the restored schema and created one isolated test invite with networking disabled. The live production service stayed active. A separate encrypted off-server backup of the production environment file passed decryption verification."
+    },
+    {
+      "id": "CRM-13",
+      "title": "Prove super-admin-only access and encrypted client records",
+      "phase": "Rust CRM",
+      "priority": "P0",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [],
+      "status": "Backlog",
+      "acceptance": [
+        "Document who can read each field across CRM, mailbox, calendar, payments, attachments, indexes, logs and backups. Identify provider-visible metadata and contents explicitly.",
+        "Require fresh signed Nostr authentication and a dedicated CRM session on an explicitly approved super-admin key. Test default deny, ordinary staff, direct API and file access, expiry and revocation. Require authentication and allowlist checks on private relay reads and writes; disable public relay fallback.",
+        "Prototype client-side encryption with independently recoverable encryption keys on a trusted client. Verify that hosted server snapshots and the running relay lack the keys to read private content. Document the risk of server-delivered client code; demonstrate restore, key rotation and lost-device recovery.",
+        "Test inbound capture and PL/EN sending while locked. Document which automation requires plaintext and where it runs. While locked, queue opaque events and defer private CRM processing and personalized sends until unlock."
+      ],
+      "notes": "Proposed implementation. Start here with synthetic records."
+    },
+    {
+      "id": "CRM-01",
+      "title": "Build the Rust desktop CRM pilot",
+      "phase": "Rust CRM",
+      "priority": "P0",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-13"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "On an independently installed desktop client, unlock, create a fictional contact, add a discovery note, and select a Polish or English Foundation template.",
+        "Send using Lettre through test SMTP, capture a test reply through a business-only inbound path, and show both on the timeline. For an ambiguous SMTP acknowledgement, flag for reconciliation before retry.",
+        "Sync encrypted events to the private relay, restore on a clean second device and reproduce the timeline without sending again. Confirm no plaintext client identifiers, subjects or notes in relay tags, hosted logs or backups."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-02",
+      "title": "Connect the trusted client to the Nostr-protected admin panel",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-01"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Give the approved admin a Contacts entry beside Sales and Invites that opens the installed client. Pass only opaque references. Require local confirmation for sends.",
+        "Require a dedicated super-admin session on protected integration endpoints. Reject an ordinary staff session. Keep private content, recovery material and Proton credentials out of the hosted browser.",
+        "Verify desktop login, lock, expiry and revocation. On mobile keep existing admin workflows available; private mobile CRM requires its own trusted-client milestone."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-03",
+      "title": "Track Polish lead sources and contact preferences",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-02"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Record referral, meetup, Nostr, website or other source, contact method, preferred PL/EN, outreach permission and next action.",
+        "Handle duplicates with staff review.",
+        "Publish launch copy on approved channels only after editorial review.",
+        "Measure booked calls by source."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-04",
+      "title": "Build a unified client touchpoint timeline",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-02",
+        "CRM-03"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Show timestamp, channel, direction, actor, summary and source reference for inquiries, manually recorded meetup/phone/Nostr interactions, inbound/outbound email, discovery, invites, checkout, settlement, refunds and sessions.",
+        "Support reschedules, cancellations and no-shows.",
+        "Deduplicate retries, reconcile missed events and quarantine ambiguous matches.",
+        "Test with synthetic records."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-05",
+      "title": "Connect Proton outbound mail and capture replies",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-04"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Send from info@custody.consulting with a dedicated SMTP token.",
+        "Validate an isolated business-only inbound path using Bridge/IMAP or dedicated forwarding, excluding personal mailbox traffic.",
+        "Thread by Message-ID/references; review unmatched replies, surface failures and retry without duplicate sends.",
+        "Verify with a test inbox."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-06",
+      "title": "Ship Polish and English client email templates",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-05"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Provide paired subjects and bodies for discovery invitation, confirmation, recap, Foundation invitation, package offer, reminder, first-BTC walkthrough and hours summary.",
+        "Select contact language, allow override and preview; block unresolved placeholders.",
+        "Log the rendered version and avoid duplicate provider receipts."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-07",
+      "title": "Convert discovery calls into paid Foundation sessions",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-03",
+        "CRM-06"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Use the existing 15-minute calendar link, record five minutes of introduction and ten for needs.",
+        "Capture trigger, obstacle, desired outcome, invite permission and next step.",
+        "Send private invite with configured Foundation pricing.",
+        "Track booked → attended → invited → paid or closed; report invite/attended and paid/invited by source."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-08",
+      "title": "Issue custom prepaid hour-block invitations",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-02"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "In Invites enter client, scope, arbitrary hours, total PLN price, allowed payment methods, expiry, validity and terms.",
+        "Preview in PL/EN, revoke or reissue.",
+        "Snapshot transactional terms server-side using an opaque client reference. Keep private needs assessments and personalized correspondence in the trusted client.",
+        "Verify 10h and 21h offers, expired links and unchanged Foundation checkout."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-09",
+      "title": "Track settlement, session usage and remaining hours",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-08",
+        "CRM-04"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Treat verified Stripe/BTCPay settlement as authoritative.",
+        "Credit purchased hours once; debit delivered sessions, record adjustments/refunds and show balance in Sales and client history.",
+        "Test repeated and out-of-order events, partial use and concurrent entries."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-10",
+      "title": "Configure a bitcoin-only Black Friday package",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-08",
+        "CRM-09"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Grant 21 hours for the approved 10-hour package price only on settled BTCPay payment.",
+        "Set campaign window in Europe/Warsaw, capacity and published terms; review Polish reference-price wording before launch.",
+        "Reject card checkout and discount stacking.",
+        "Verify expiry, capacity races and exact credit."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-11",
+      "title": "Offer optional first-bitcoin payment guidance in PL and EN",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-06",
+        "CRM-10"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Provide a walkthrough before opening a timed invoice.",
+        "Explain total PLN price, possible fees, network selection and invoice expiry.",
+        "Client controls their provider, wallet and approval.",
+        "Never request recovery words or store wallet balances.",
+        "Test both language paths and an expired invoice."
+      ],
+      "notes": "Proposed implementation. "
+    },
+    {
+      "id": "CRM-12",
+      "title": "Verify the launch journey and client-data controls",
+      "phase": "Rust CRM",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Engineering",
+      "dependencies": [
+        "CRM-07",
+        "CRM-08",
+        "CRM-09",
+        "CRM-10",
+        "CRM-11"
+      ],
+      "status": "Backlog",
+      "acceptance": [
+        "Run PL and EN synthetic journeys from referral to reply, paid Foundation, package and remaining hours.",
+        "Confirm scoped staff access, export/deletion, documented retention and sanitized logs.",
+        "Prevent seed phrases or private client details entering GitHub issues.",
+        "Document support, reconciliation and rollback before launch."
+      ],
+      "notes": "Proposed implementation. "
     }
   ]
 }

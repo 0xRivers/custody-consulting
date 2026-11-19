@@ -6,6 +6,7 @@ import essentialsPhoto from '../../../src/assets/services/essentials.jpg';
 import transactionPhoto from '../../../src/assets/services/transactions.jpg';
 import continuityPhoto from '../../../src/assets/services/continuity.jpg';
 const servicePhotos=[foundationPhoto,essentialsPhoto,transactionPhoto,continuityPhoto];
+import ServiceDetails from './ServiceDetails.astro';
 import Base from '../layouts/Base.astro';
 import SiteFooter from './SiteFooter.astro';
 import SiteHeader from './SiteHeader.astro';
@@ -65,6 +66,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
       <p class="section-label">{t.why.label}</p>
       <h2>{t.why.title}</h2>
       <p class="section-intro">{t.why.sub}</p>
+      {lang === 'pl' && <p><a href="https://www.gov.pl/web/prokuratura-krajowa/zondacrypto">Informacje Prokuratury Krajowej dla klientów zondacrypto</a></p>}
       <div class="principles">
         {t.why.items.map((item, index) => (
           <article>
@@ -104,6 +106,7 @@ const discoveryLabel = lang === 'pl' ? 'Umów bezpłatną rozmowę (15 min)' : '
                 <h3>{service.t}</h3>
                 <p class="service-description">{service.d}</p>
                 <p class="service-outcome">{service.outcome}</p>
+                <ServiceDetails photo={servicePhotos[index]} id={`service-detail-${index + 1}`} title={service.t} details={service.details} lang={lang} bookingUrl={discoveryUrl} bookingLabel={discoveryLabel} />
               </div>
             </article>
           ))}
